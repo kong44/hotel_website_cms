@@ -1,0 +1,271 @@
+/* Indra Hotel - Multi-Language (i18n) & Luxury Stately Theme Stylesheet */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root {
+    --primary-color: #343c0a;
+    --deep-olive: #4B5320;
+    --onyx-charcoal: #262626;
+    --sand-bg: #f9f9f9;
+    --font-main: 'DM Sans', 'Noto Sans Khmer', 'Noto Sans SC', 'Noto Sans KR', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: #f9f9f9;
+    color: #1a1c1c;
+    font-family: var(--font-main);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .font-headline {
+    font-family: 'DM Sans', 'Noto Sans Khmer', 'Noto Sans SC', 'Noto Sans KR', sans-serif;
+}
+
+/* Locale Specific Font Helpers */
+.font-khmer {
+    font-family: 'Noto Sans Khmer', 'DM Sans', sans-serif;
+}
+
+.font-zh {
+    font-family: 'Noto Sans SC', 'DM Sans', sans-serif;
+}
+
+.font-ko {
+    font-family: 'Noto Sans KR', 'DM Sans', sans-serif;
+}
+
+/* Material symbols sizing */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+.material-symbols-outlined.fill {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* =======================================================
+   1. Luxury Scroll-Driven Reveal Micro-Animations
+   ======================================================= */
+.reveal {
+    opacity: 0;
+    transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.reveal-up {
+    transform: translateY(32px);
+}
+
+.reveal-fade {
+    transform: translateY(0);
+}
+
+.reveal-scale {
+    transform: scale(0.93) translateY(24px);
+}
+
+.reveal-left {
+    transform: translateX(-36px);
+}
+
+.reveal-right {
+    transform: translateX(36px);
+}
+
+.reveal.is-revealed {
+    opacity: 1;
+    transform: translate(0) scale(1);
+}
+
+/* Cascading Stagger Delays for Grids */
+.stagger-1 { transition-delay: 0.08s; }
+.stagger-2 { transition-delay: 0.16s; }
+.stagger-3 { transition-delay: 0.24s; }
+.stagger-4 { transition-delay: 0.32s; }
+.stagger-5 { transition-delay: 0.40s; }
+.stagger-6 { transition-delay: 0.48s; }
+
+/* =======================================================
+   2. Hero Ken Burns Cinematic Ambient Motion
+   ======================================================= */
+.ken-burns {
+    animation: kenBurnsZoom 22s ease-in-out infinite alternate;
+    will-change: transform;
+    transform-origin: center center;
+}
+
+@keyframes kenBurnsZoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.08); }
+}
+
+/* =======================================================
+   3. Interactive Micro-Interactions & Luxury Buttons
+   ======================================================= */
+.btn-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-shimmer::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -75%;
+    width: 50%;
+    height: 200%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.32),
+        transparent
+    );
+    transform: rotate(25deg);
+    transition: none;
+    pointer-events: none;
+}
+
+.btn-shimmer:hover::after {
+    animation: shimmerSweep 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes shimmerSweep {
+    0% { left: -75%; }
+    100% { left: 140%; }
+}
+
+/* Card hover elevation & luxury soft shadow */
+.luxury-card {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+
+.luxury-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Smooth zoom effect for gallery and room photos */
+.img-zoom-container {
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.img-zoom-container img {
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.img-zoom-container:hover img {
+    transform: scale(1.06);
+}
+
+/* =======================================================
+   4. Glassmorphism Sticky Header & Back-to-Top
+   ======================================================= */
+.header-transition {
+    transition: background-color 0.35s ease, backdrop-filter 0.35s ease, box-shadow 0.35s ease, padding 0.35s ease;
+}
+
+.header-scrolled {
+    background-color: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+}
+
+#back-to-top-btn {
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+}
+
+#back-to-top-btn.btn-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+#back-to-top-btn.btn-hidden {
+    opacity: 0;
+    transform: translateY(16px) scale(0.88);
+    pointer-events: none;
+}
+
+/* =======================================================
+   5. Lightbox Modal Animation
+   ======================================================= */
+.lightbox-fade {
+    animation: lightboxFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.lightbox-img-zoom {
+    animation: lightboxZoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lightboxFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes lightboxZoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c8c7b8;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4B5320;
+}
+
+/* Multi-language tab button styling */
+.lang-tab-btn {
+    transition: all 0.2s ease-in-out;
+}
+.lang-tab-btn.active {
+    background-color: #343c0a;
+    color: #ffffff;
+    border-color: #343c0a;
+    font-weight: 700;
+}
+
+/* =======================================================
+   6. Accessibility: Reduced Motion
+   ======================================================= */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .ken-burns {
+        animation: none !important;
+    }
+}

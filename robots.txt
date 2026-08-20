@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /database.sqlite
+Disallow: /schema.sql
+Disallow: /seed.sql
+Disallow: /install.php
+
+Sitemap: /sitemap.xml.php
