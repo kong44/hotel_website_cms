@@ -119,3 +119,55 @@ CREATE TABLE IF NOT EXISTS `site_settings` (
   `setting_value` TEXT NULL,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `media_uploads` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `filename` VARCHAR(255) NOT NULL,
+  `original_name` VARCHAR(255) NULL,
+  `file_path` VARCHAR(255) NOT NULL,
+  `url` TEXT NOT NULL,
+  `folder` VARCHAR(50) NOT NULL DEFAULT 'general',
+  `file_type` VARCHAR(20) NOT NULL DEFAULT 'image',
+  `mime_type` VARCHAR(100) NULL,
+  `file_size` INT NOT NULL DEFAULT 0,
+  `uploaded_by` INT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_media_folder (`folder`),
+  INDEX idx_media_type (`file_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `custom_pages` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `slug` VARCHAR(191) NOT NULL UNIQUE,
+  `title` VARCHAR(255) NOT NULL,
+  `meta_title` VARCHAR(255) NULL,
+  `meta_description` TEXT NULL,
+  `hero_badge` VARCHAR(255) NULL,
+  `hero_title` VARCHAR(255) NULL,
+  `hero_subtitle` TEXT NULL,
+  `hero_image` VARCHAR(500) NULL,
+  `hero_video` VARCHAR(500) NULL,
+  `hero_height` VARCHAR(50) DEFAULT 'medium',
+  `hero_overlay` VARCHAR(50) DEFAULT 'medium',
+  `theme_id` VARCHAR(100) DEFAULT 'default',
+  `layout_type` VARCHAR(50) DEFAULT 'full_width',
+  `sections_json` LONGTEXT NULL,
+  `status` ENUM('published', 'draft') DEFAULT 'published',
+  `is_in_nav` TINYINT(1) DEFAULT 0,
+  `nav_order` INT DEFAULT 99,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `theme_licenses` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `theme_slug` VARCHAR(100) NOT NULL UNIQUE,
+  `is_purchased` TINYINT(1) DEFAULT 0,
+  `is_active` TINYINT(1) DEFAULT 0,
+  `purchase_date` DATETIME NULL,
+  `custom_styles_json` LONGTEXT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+

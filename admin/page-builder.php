@@ -1,0 +1,485 @@
+<?php
+/**
+ * Indra Hotel - Dynamic Visual Page Builder
+ */
+
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/helpers.php';
+require_once __DIR__ . '/../includes/theme-engine.php';
+require_once __DIR__ . '/../includes/auth.php';
+
+Auth::requireLogin();
+$pdo = getDB();
+
+$pageId = (int)($_GET['id'] ?? 0);
+$page = null;
+
+if ($pageId > 0) {
+    $stmt = $pdo->prepare("SELECT * FROM custom_pages WHERE id = ?");
+    $stmt->execute([$pageId]);
+    $page = $stmt->fetch();
+}
+
+$message = '';
+$messageType = '';
+
+// Handle Form Save
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrf = $_POST['csrf_token'] ?? '';
+    if (Auth::verifyCsrf($csrf)) {
+        $title = trim($_POST['title'] ?? '');
+        $rawSlug = trim($_POST['slug'] ?? '');
+        $slug = slugify(!empty($rawSlug) ? $rawSlug : $title);
+        $metaTitle = trim($_POST['meta_title'] ?? '');
+        $metaDesc = trim($_POST['meta_description'] ?? '');
+
+        $heroBadge = trim($_POST['hero_badge'] ?? '');
+        $heroTitle = trim($_POST['hero_title'] ?? '');
+        $heroSubtitle = trim($_POST['hero_subtitle'] ?? '');
+        $heroImage = trim($_POST['hero_image'] ?? '');
+        $heroVideo = trim($_POST['hero_video'] ?? '');
+        $heroHeight = trim($_POST['hero_height'] ?? 'medium');
+        $heroOverlay = trim($_POST['hero_overlay'] ?? 'medium');
+
+        $themeId = trim($_POST['theme_id'] ?? 'default');
+        $layoutType = trim($_POST['layout_type'] ?? 'full_width');
+        $status = trim($_POST['status'] ?? 'published');
+
+        $sectionsRaw = $_POST['sections_json'] ?? '[]';
+        // Validate JSON
+        $decodedSec = json_decode($sectionsRaw, true);
+        $sectionsJson = is_array($decodedSec) ? json_encode($decodedSec) : '[]';
+
+        if (empty($title)) {
+            $message = 'Page title cannot be empty.';
+            $messageType = 'error';
+        } else {
+            try {
+                if ($pageId > 0 && $page) {
+                    $stmt = $pdo->prepare("UPDATE custom_pages SET slug = ?, title = ?, meta_title = ?, meta_description = ?, hero_badge = ?, hero_title = ?, hero_subtitle = ?, hero_image = ?, hero_video = ?, hero_height = ?, hero_overlay = ?, theme_id = ?, layout_type = ?, sections_json = ?, status = ? WHERE id = ?");
+                    $stmt->execute([$slug, $title, $metaTitle, $metaDesc, $heroBadge, $heroTitle, $heroSubtitle, $heroImage, $heroVideo, $heroHeight, $heroOverlay, $themeId, $layoutType, $sectionsJson, $status, $pageId]);
+                    $message = 'Dynamic page updated successfully!';
+                    $messageType = 'success';
+                } else {
+                    $stmt = $pdo->prepare("INSERT INTO custom_pages (slug, title, meta_title, meta_description, hero_badge, hero_title, hero_subtitle, hero_image, hero_video, hero_height, hero_overlay, theme_id, layout_type, sections_json, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$slug, $title, $metaTitle, $metaDesc, $heroBadge, $heroTitle, $heroSubtitle, $heroImage, $heroVideo, $heroHeight, $heroOverlay, $themeId, $layoutType, $sectionsJson, $status]);
+                    $pageId = (int)$pdo->lastInsertId();
+                    $message = 'New dynamic page created successfully!';
+                    $messageType = 'success';
+                }
+
+                // Refresh Page Data
+                $stmt = $pdo->prepare("SELECT * FROM custom_pages WHERE id = ?");
+                $stmt->execute([$pageId]);
+                $page = $stmt->fetch();
+            } catch (Throwable $e) {
+                $message = 'Error saving page: ' . $e->getMessage();
+                $messageType = 'error';
+            }
+        }
+    }
+}
+
+$availableThemes = get_available_themes();
+$existingSections = !empty($page['sections_json']) ? json_decode($page['sections_json'], true) : [];
+
+$adminTitle = ($page ? 'Edit Page: ' . e($page['title']) : 'Create Custom Dynamic Page') . ' | CMS Admin';
+require_once __DIR__ . '/../includes/admin-header.php';
+?>
+
+<form action="<?= BASE_URL ?>/admin/page-builder.php<?= $pageId > 0 ? '?id=' . $pageId : '' ?>" method="POST" id="page-builder-form" class="space-y-6">
+    <input type="hidden" name="csrf_token" value="<?= Auth::generateCsrf() ?>">
+    <input type="hidden" name="sections_json" id="input_sections_json" value="<?= e(json_encode($existingSections)) ?>">
+
+    <!-- Top Action Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#343c0a]">
+                <a href="<?= BASE_URL ?>/admin/pages.php" class="hover:underline flex items-center gap-1">
+                    <span class="material-symbols-outlined text-base">arrow_back</span>
+                    <span>All Pages</span>
+                </a>
+                <span>/</span>
+                <span>Visual Builder</span>
+            </div>
+            <h1 class="font-headline font-bold text-2xl text-onyx-charcoal mt-1">
+                <?= $page ? 'Edit Page: ' . e($page['title']) : 'Create Custom Dynamic Page' ?>
+            </h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <?php if ($page): ?>
+                <a href="<?= BASE_URL ?>/page.php?slug=<?= e($page['slug']) ?>" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold transition">
+                    <span class="material-symbols-outlined text-base">open_in_new</span>
+                    <span>Preview Page</span>
+                </a>
+            <?php endif; ?>
+            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold transition shadow-md btn-shimmer cursor-pointer">
+                <span class="material-symbols-outlined text-base">save</span>
+                <span>Save Changes</span>
+            </button>
+        </div>
+    </div>
+
+    <?php if (!empty($message)): ?>
+    <div class="p-4 rounded-xl text-xs font-bold <?= $messageType === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200' ?>">
+        <?= e($message) ?>
+    </div>
+    <?php endif; ?>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left 8 Cols: Hero Banner & Dynamic Block Builder -->
+        <div class="lg:col-span-8 space-y-6">
+
+            <!-- 1. Page Title & Slug Card -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
+                <h3 class="font-headline font-bold text-base text-onyx-charcoal border-b border-stone-100 pb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#343c0a]">title</span>
+                    <span>Page Title & URL Permalink</span>
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Page Title *</label>
+                        <input type="text" name="title" id="page_title" value="<?= e($page['title'] ?? '') ?>" required placeholder="e.g. Sustainability & Green Living" class="w-full border border-stone-300 rounded-lg p-2.5 text-xs font-bold focus:ring-2 focus:ring-[#343c0a]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 uppercase mb-1">URL Slug</label>
+                        <div class="flex items-center">
+                            <span class="bg-stone-100 border border-r-0 border-stone-300 rounded-l-lg px-2.5 py-2.5 text-[11px] text-stone-500 font-mono">/page.php?slug=</span>
+                            <input type="text" name="slug" value="<?= e($page['slug'] ?? '') ?>" placeholder="sustainability" class="w-full border border-stone-300 rounded-r-lg p-2.5 text-xs font-mono focus:ring-2 focus:ring-[#343c0a]">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Hero Banner Settings Card -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
+                <h3 class="font-headline font-bold text-base text-onyx-charcoal border-b border-stone-100 pb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#343c0a]">add_photo_alternate</span>
+                    <span>Page Hero Banner Header</span>
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Badge Slogan</label>
+                        <input type="text" name="hero_badge" value="<?= e($page['hero_badge'] ?? '') ?>" placeholder="e.g. Environmental Commitment" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Headline Title</label>
+                        <input type="text" name="hero_title" value="<?= e($page['hero_title'] ?? '') ?>" placeholder="e.g. Eco-Luxury & Green Practices" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Subtitle Description</label>
+                    <textarea name="hero_subtitle" rows="2" placeholder="Brief narrative paragraph under headline..." class="w-full border border-stone-300 rounded-lg p-2 text-xs"><?= e($page['hero_subtitle'] ?? '') ?></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <?= render_image_uploader_field('hero_image', $page['hero_image'] ?? '', 'Hero Background Image', 'general', ['required' => false]) ?>
+                    </div>
+                    <div>
+                        <?= render_video_uploader_field('hero_video', $page['hero_video'] ?? '', 'Hero Ambient Video Loop', 'videos', ['required' => false]) ?>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Banner Height Preset</label>
+                        <select name="hero_height" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
+                            <option value="compact" <?= ($page['hero_height'] ?? '') === 'compact' ? 'selected' : '' ?>>Compact (35vh)</option>
+                            <option value="medium" <?= ($page['hero_height'] ?? 'medium') === 'medium' ? 'selected' : '' ?>>Medium Standard (50vh)</option>
+                            <option value="tall" <?= ($page['hero_height'] ?? '') === 'tall' ? 'selected' : '' ?>>Tall (70vh)</option>
+                            <option value="fullscreen" <?= ($page['hero_height'] ?? '') === 'fullscreen' ? 'selected' : '' ?>>Fullscreen (100vh)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Dark Overlay Opacity</label>
+                        <select name="hero_overlay" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
+                            <option value="none" <?= ($page['hero_overlay'] ?? '') === 'none' ? 'selected' : '' ?>>Minimal Tint (15%)</option>
+                            <option value="light" <?= ($page['hero_overlay'] ?? '') === 'light' ? 'selected' : '' ?>>Light Overlay (35%)</option>
+                            <option value="medium" <?= ($page['hero_overlay'] ?? 'medium') === 'medium' ? 'selected' : '' ?>>Medium Standard (60%)</option>
+                            <option value="dark" <?= ($page['hero_overlay'] ?? '') === 'dark' ? 'selected' : '' ?>>High Contrast Dark (80%)</option>
+                            <option value="deep" <?= ($page['hero_overlay'] ?? '') === 'deep' ? 'selected' : '' ?>>Deep Blackout (95%)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Dynamic Section Building Blocks Engine -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
+                <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                    <h3 class="font-headline font-bold text-base text-onyx-charcoal flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#343c0a]">view_quilt</span>
+                        <span>Content Building Blocks</span>
+                    </h3>
+
+                    <!-- Add Block Dropdown -->
+                    <div class="flex items-center gap-2">
+                        <select id="add-block-type-select" class="border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold">
+                            <option value="rich_text">📝 Rich Text / HTML</option>
+                            <option value="features_grid">🎨 Feature Highlights Grid</option>
+                            <option value="gallery">🖼️ Photo Gallery & Lightbox</option>
+                            <option value="cta">📢 Call-to-Action Banner</option>
+                            <option value="testimonials">💬 Testimonials & Reviews</option>
+                            <option value="faq">❓ FAQ Accordion List</option>
+                        </select>
+                        <button type="button" onclick="addNewSectionBlock()" class="px-3 py-1.5 rounded-lg bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold transition cursor-pointer flex items-center gap-1 shadow-2xs">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                            <span>Add Block</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Blocks Container -->
+                <div id="section-blocks-container" class="space-y-4 pt-2">
+                    <!-- Dynamic Blocks Injected Via JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right 4 Cols: Theme Customizer & Publishing Settings -->
+        <div class="lg:col-span-4 space-y-6">
+
+            <!-- Theme Customizer & Palette Selector -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
+                <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                    <h3 class="font-headline font-bold text-base text-onyx-charcoal flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#343c0a]">palette</span>
+                        <span>Page Theme & Styling</span>
+                    </h3>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Select Theme Style</label>
+                    <select name="theme_id" id="theme_id_select" onchange="updateThemePreviewCard()" class="w-full border border-stone-300 rounded-lg p-2.5 text-xs font-bold">
+                        <?php foreach ($availableThemes as $tSlug => $tData): ?>
+                            <option value="<?= e($tSlug) ?>" <?= ($page['theme_id'] ?? 'default') === $tSlug ? 'selected' : '' ?>>
+                                <?= e($tData['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+
+                <!-- Live Theme Card Preview -->
+                <div id="theme-card-preview-box" class="p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-3">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Page Meta & SEO Settings Card -->
+            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
+                <h3 class="font-headline font-bold text-base text-onyx-charcoal border-b border-stone-100 pb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#343c0a]">search</span>
+                    <span>SEO & Publishing</span>
+                </h3>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 uppercase mb-1">Publication Status</label>
+                    <select name="status" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold">
+                        <option value="published" <?= ($page['status'] ?? 'published') === 'published' ? 'selected' : '' ?>>Published (Live on site)</option>
+                        <option value="draft" <?= ($page['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Draft (Hidden)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 uppercase mb-1">SEO Meta Title</label>
+                    <input type="text" name="meta_title" value="<?= e($page['meta_title'] ?? '') ?>" placeholder="e.g. Green Living | Indra Hotel" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 uppercase mb-1">SEO Meta Description</label>
+                    <textarea name="meta_description" rows="3" placeholder="Search engine description preview..." class="w-full border border-stone-300 rounded-lg p-2 text-xs"><?= e($page['meta_description'] ?? '') ?></textarea>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+<script>
+let availableThemesData = <?= json_encode($availableThemes) ?>;
+let activeSections = <?= json_encode($existingSections) ?>;
+
+function renderAllSectionBlocks() {
+    const container = document.getElementById('section-blocks-container');
+    container.innerHTML = '';
+
+    if (!activeSections || activeSections.length === 0) {
+        container.innerHTML = `
+            <div class="p-8 text-center border-2 border-dashed border-stone-200 rounded-xl text-stone-400">
+                <span class="material-symbols-outlined text-3xl">post_add</span>
+                <p class="text-xs font-bold text-stone-600 mt-1">No content building blocks added yet.</p>
+                <p class="text-[11px]">Select a block type above and click "Add Block" to construct your page.</p>
+            </div>
+        `;
+        return;
+    }
+
+    activeSections.forEach((block, index) => {
+        const card = document.createElement('div');
+        card.className = 'bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-3 relative group';
+        
+        let blockTitle = block.type.replace('_', ' ').toUpperCase();
+        let fieldsHTML = '';
+
+        if (block.type === 'rich_text') {
+            fieldsHTML = `
+                <div class="space-y-2">
+                    <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Section Title (Optional)" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                    <input type="text" value="${escapeHtml(block.subtitle || '')}" oninput="activeSections[${index}].subtitle = this.value; syncSectionsJSON();" placeholder="Section Subtitle (Optional)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
+                    <textarea rows="5" oninput="activeSections[${index}].content = this.value; syncSectionsJSON();" placeholder="Enter HTML content or paragraph text..." class="w-full border border-stone-300 rounded-lg p-2 text-xs font-mono bg-white">${escapeHtml(block.content || '')}</textarea>
+                </div>
+            `;
+        } else if (block.type === 'cta') {
+            fieldsHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="CTA Headline Title" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                    <input type="text" value="${escapeHtml(block.subtitle || '')}" oninput="activeSections[${index}].subtitle = this.value; syncSectionsJSON();" placeholder="CTA Subtitle Narrative" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
+                    <input type="text" value="${escapeHtml(block.btn_text || '')}" oninput="activeSections[${index}].btn_text = this.value; syncSectionsJSON();" placeholder="Button Text (e.g. Contact Us)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
+                    <input type="text" value="${escapeHtml(block.btn_link || '')}" oninput="activeSections[${index}].btn_link = this.value; syncSectionsJSON();" placeholder="Button Link URL (/contact.php)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
+                    <input type="text" value="${escapeHtml(block.image || '')}" oninput="activeSections[${index}].image = this.value; syncSectionsJSON();" placeholder="Background Image URL (https://...)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white sm:col-span-2 font-mono">
+                </div>
+            `;
+        } else {
+            fieldsHTML = `
+                <div class="space-y-2">
+                    <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Section Title" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                    <input type="text" value="${escapeHtml(block.subtitle || '')}" oninput="activeSections[${index}].subtitle = this.value; syncSectionsJSON();" placeholder="Section Subtitle" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
+                    <p class="text-[11px] text-stone-400 font-mono">Configured with default starter item layout.</p>
+                </div>
+            `;
+        }
+
+        card.innerHTML = `
+            <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#343c0a] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">view_compact</span>
+                    <span>Block ${index + 1}: ${blockTitle}</span>
+                </span>
+                <div class="flex items-center gap-1">
+                    <button type="button" onclick="moveBlock(${index}, -1)" ${index === 0 ? 'disabled' : ''} class="p-1 rounded text-stone-400 hover:text-stone-700 disabled:opacity-30">
+                        <span class="material-symbols-outlined text-base">arrow_upward</span>
+                    </button>
+                    <button type="button" onclick="moveBlock(${index}, 1)" ${index === activeSections.length - 1 ? 'disabled' : ''} class="p-1 rounded text-stone-400 hover:text-stone-700 disabled:opacity-30">
+                        <span class="material-symbols-outlined text-base">arrow_downward</span>
+                    </button>
+                    <button type="button" onclick="removeBlock(${index})" class="p-1 rounded text-rose-500 hover:bg-rose-50">
+                        <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+                </div>
+            </div>
+            ${fieldsHTML}
+        `;
+        container.appendChild(card);
+    });
+}
+
+function addNewSectionBlock() {
+    const select = document.getElementById('add-block-type-select');
+    const type = select.value;
+    let newBlock = { type: type, title: '', subtitle: '' };
+
+    if (type === 'rich_text') {
+        newBlock.content = '<p>Enter your content narrative here...</p>';
+    } else if (type === 'cta') {
+        newBlock.title = 'Ready to Reserve Your Stay?';
+        newBlock.subtitle = 'Experience personalized Cambodian luxury at Indra Hotel.';
+        newBlock.btn_text = 'Book Now';
+        newBlock.btn_link = '<?= BASE_URL ?>/rooms.php';
+    } else if (type === 'features_grid') {
+        newBlock.title = 'Key Features & Amenities';
+        newBlock.columns = 3;
+        newBlock.items = [
+            { title: 'Feature 1', description: 'Description detail text...', icon: 'star' },
+            { title: 'Feature 2', description: 'Description detail text...', icon: 'park' },
+            { title: 'Feature 3', description: 'Description detail text...', icon: 'pool' }
+        ];
+    } else if (type === 'gallery') {
+        newBlock.title = 'Photo Showcase';
+        newBlock.photos = [
+            'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+            'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80'
+        ];
+    } else if (type === 'testimonials') {
+        newBlock.title = 'Guest Testimonials';
+        newBlock.reviews = [
+            { quote: 'Exceptional hospitality and peaceful ambiance.', author: 'Sarah Jenkins', location: 'Singapore' }
+        ];
+    } else if (type === 'faq') {
+        newBlock.title = 'Frequently Asked Questions';
+        newBlock.faqs = [
+            { q: 'What is the check-in time?', a: 'Standard check-in is from 2:00 PM.' }
+        ];
+    }
+
+    activeSections.push(newBlock);
+    syncSectionsJSON();
+    renderAllSectionBlocks();
+}
+
+function removeBlock(index) {
+    activeSections.splice(index, 1);
+    syncSectionsJSON();
+    renderAllSectionBlocks();
+}
+
+function moveBlock(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= activeSections.length) return;
+    const temp = activeSections[index];
+    activeSections[index] = activeSections[target];
+    activeSections[target] = temp;
+    syncSectionsJSON();
+    renderAllSectionBlocks();
+}
+
+function syncSectionsJSON() {
+    document.getElementById('input_sections_json').value = JSON.stringify(activeSections);
+}
+
+function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function updateThemePreviewCard() {
+    const select = document.getElementById('theme_id_select');
+    const slug = select.value;
+    const t = availableThemesData[slug] || availableThemesData['default'];
+    const box = document.getElementById('theme-card-preview-box');
+
+    box.innerHTML = `
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-stone-200">
+                <img src="${t.preview_thumbnail || ''}" class="w-full h-full object-cover">
+            </div>
+            <div>
+                <h4 class="font-bold text-xs text-onyx-charcoal">${t.name}</h4>
+                <p class="text-[10px] text-stone-400">${t.author || 'Design Studio'}</p>
+            </div>
+        </div>
+        <p class="text-[11px] text-stone-500 leading-relaxed">${t.description}</p>
+        <div class="flex items-center gap-2 pt-1 border-t border-stone-200">
+            <span class="text-[10px] font-bold text-stone-400">Palette:</span>
+            <span class="w-4 h-4 rounded-full inline-block border border-stone-300" style="background-color: ${t.colors.primary}"></span>
+            <span class="w-4 h-4 rounded-full inline-block border border-stone-300" style="background-color: ${t.colors.accent}"></span>
+            <span class="w-4 h-4 rounded-full inline-block border border-stone-300" style="background-color: ${t.colors.dark}"></span>
+        </div>
+    `;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderAllSectionBlocks();
+    updateThemePreviewCard();
+});
+</script>
+
+<?php require_once __DIR__ . '/../includes/admin-footer.php'; ?>

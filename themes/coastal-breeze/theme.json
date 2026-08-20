@@ -1,0 +1,22 @@
+{
+    "slug": "coastal-breeze",
+    "name": "Coastal Breeze & Oasis",
+    "description": "Refreshing tropical resort design with deep oceanic blue tones, turquoise accents, and crisp modern typography.",
+    "version": "1.0.0",
+    "author": "Indra Design Studio",
+    "price": 0.00,
+    "is_free": true,
+    "preview_thumbnail": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
+    "colors": {
+        "primary": "#0f4c81",
+        "primary_hover": "#093358",
+        "accent": "#76d7c4",
+        "dark": "#0c1b2a",
+        "bg": "#f4f8fb",
+        "card_bg": "#ffffff"
+    },
+    "fonts": {
+        "headline": "Montserrat, sans-serif",
+        "body": "Lato, sans-serif"
+    }
+}

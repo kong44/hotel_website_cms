@@ -51,7 +51,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             } catch (Throwable $t) {}
 
             set_flash('success', 'Thank you! Your message has been received. Our concierge team will respond promptly, and an email acknowledgment has been sent.');
-            header('Location: ' . BASE_URL . '/contact.php');
+            header('Location: ' . url('/contact'));
             exit;
         } catch (Throwable $e) {
             set_flash('error', 'Unable to submit your message right now. Please call us directly.');
@@ -70,17 +70,14 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Hero Header -->
-<section class="bg-onyx-charcoal text-white py-16 sm:py-20 relative overflow-hidden">
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#dfe8a6] block mb-2">We Are Here For You</span>
-        <h1 class="font-headline text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            Contact Sanctuary
-        </h1>
-        <p class="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed">
-            Have a question regarding reservations, dining, or special requests? Reach out to our dedicated concierge.
-        </p>
-    </div>
-</section>
+<?= render_public_page_hero('contact', [
+    'badge' => 'We Are Here For You',
+    'title' => 'Contact Sanctuary',
+    'subtitle' => 'Have a question regarding reservations, dining, or special requests? Reach out to our dedicated concierge.',
+    'image' => 'https://images.unsplash.com/photo-1596524430615-b46475ddff6e?auto=format&fit=crop&w=1600&q=80',
+    'icon' => 'mail'
+]) ?>
+
 
 <!-- Contact Info & Interactive Form Section -->
 <section class="py-16 bg-[#f9f9f9]">
@@ -147,7 +144,7 @@ require_once __DIR__ . '/includes/header.php';
                         <p class="text-xs text-stone-500 mt-1">Please provide your details below and our team will get back to you promptly.</p>
                     </div>
 
-                    <form action="<?= BASE_URL ?>/contact.php" method="POST" class="space-y-4">
+                    <form action="<?= url('/contact') ?>" method="POST" class="space-y-4">
                         <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

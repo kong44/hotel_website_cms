@@ -23,21 +23,14 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Hero Header -->
-<section class="bg-onyx-charcoal text-white py-16 sm:py-20 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-30">
-        <img src="https://lh3.googleusercontent.com/aida/AP1WRLuptPITXoiXpQR1wIOmYOuIMSUpJR1sTCXJga7uhGTXxKzccE6d21YAs-Fz3vugKf8Di3bkOx3Z2SAFqzNx65b_Uw7N7kpd85zK1LmfmQdCORWGDlOrtH72JS6rhGzsyzxnD8WonzUh6ObvlE7ID6Qbn5drvwWEj2vxz-cViALFQ0lhcHoW29UYsHXJWpGDyXLv5D6oiMwysDWC5sB1LzkdFz773ymQ3ZZ8FBQ4aSJgr2zufcudA_X7GzK5" 
-             alt="Fitness and Wellness at Indra Hotel" class="w-full h-full object-cover">
-    </div>
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#dfe8a6] block mb-2">Restoration & Vitality</span>
-        <h1 class="font-headline text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            Gym & Wellness
-        </h1>
-        <p class="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed">
-            Stay fit with our state-of-the-art gym, take a dip in our serene saltwater pool, and soothe tension with traditional Khmer herbal therapy.
-        </p>
-    </div>
-</section>
+<?= render_public_page_hero('wellness', [
+    'badge' => 'Rejuvenation & Mindful Living',
+    'title' => 'Gym, Pool & Wellness',
+    'subtitle' => 'Revitalize your body and mind in our state-of-the-art fitness center and serene outdoor saltwater swimming pool.',
+    'image' => 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80',
+    'icon' => 'fitness_center'
+]) ?>
+
 
 <!-- Facilities & Spa Menu Section -->
 <section class="py-16 bg-[#f9f9f9]">
@@ -87,7 +80,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="pt-6 border-t border-stone-200 flex flex-wrap gap-4">
-                    <a href="<?= BASE_URL ?>/contact.php?subject=Spa+Booking" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded text-sm font-semibold transition btn-shimmer">
+                    <a href="<?= url('/contact', ['subject' => 'Spa Booking']) ?>" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded text-sm font-semibold transition btn-shimmer">
                         Book a Treatment
                     </a>
                     <a href="<?= e(get_booking_url()) ?>" target="<?= e(get_booking_target()) ?>" class="border border-stone-300 hover:border-stone-400 text-stone-700 px-5 py-2.5 rounded text-sm font-medium transition flex items-center gap-2">

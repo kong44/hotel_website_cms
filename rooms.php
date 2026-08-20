@@ -45,28 +45,21 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Page Header Hero -->
-<section class="bg-onyx-charcoal text-white py-16 sm:py-20 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-20">
-        <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1600&q=80" 
-             alt="Indra Hotel Rooms Background" class="w-full h-full object-cover">
-    </div>
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#dfe8a6] block mb-2"><?= __t('rooms_badge', 'Contemporary Sanctuary') ?></span>
-        <h1 class="font-headline text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            <?= __t('rooms_title', 'Rooms, Suites & Spaces') ?>
-        </h1>
-        <p class="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed">
-            <?= __t('rooms_subtitle', 'Thoughtfully designed accommodations, luxury suites, and executive conference spaces catering to the needs of discerning business and leisure guests.') ?>
-        </p>
-    </div>
-</section>
+<?= render_public_page_hero('rooms', [
+    'badge' => __t('rooms_badge', 'Contemporary Sanctuary'),
+    'title' => __t('rooms_title', 'Rooms, Suites & Spaces'),
+    'subtitle' => __t('rooms_subtitle', 'Thoughtfully designed accommodations, luxury suites, and executive conference spaces catering to the needs of discerning business and leisure guests.'),
+    'image' => 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1600&q=80',
+    'icon' => 'bed'
+]) ?>
+
 
 <!-- Filter Tabs by Room Type -->
 <section class="bg-white border-b border-stone-200 sticky top-20 z-30 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between py-4 overflow-x-auto gap-4">
             <div class="flex items-center gap-2 text-sm font-medium shrink-0">
-                <a href="<?= BASE_URL ?>/rooms.php" 
+                <a href="<?= url('/rooms') ?>" 
                    class="px-4 py-2 rounded-full transition text-xs font-bold flex items-center gap-1.5 <?= ($selectedCategory === 'all') ? 'bg-[#343c0a] text-white shadow-xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
                     <span class="material-symbols-outlined text-sm">apps</span>
                     <span><?= __t('rooms_view_all', 'All Accommodations') ?></span>
@@ -75,7 +68,7 @@ require_once __DIR__ . '/includes/header.php';
                 <?php foreach ($availableTypes as $rt): 
                     $isActive = (strcasecmp($selectedCategory, $rt['name']) === 0 || strcasecmp($selectedCategory, $rt['slug']) === 0);
                 ?>
-                <a href="<?= BASE_URL ?>/rooms.php?category=<?= urlencode($rt['name']) ?>" 
+                <a href="<?= url('/rooms', ['category' => $rt['name']]) ?>" 
                    class="px-4 py-2 rounded-full transition text-xs font-bold flex items-center gap-1.5 <?= $isActive ? 'bg-[#343c0a] text-white shadow-xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
                     <span class="material-symbols-outlined text-sm"><?= e($rt['icon']) ?></span>
                     <span><?= e($rt['name']) ?></span>
@@ -145,7 +138,7 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
 
                         <h2 class="font-headline font-bold text-2xl sm:text-3xl text-onyx-charcoal mt-4 mb-1.5">
-                            <a href="<?= BASE_URL ?>/room.php?slug=<?= urlencode($room['slug']) ?>" class="hover:text-[#4B5320] transition">
+                            <a href="<?= url('/room/' . urlencode($room['slug'])) ?>" class="hover:text-[#4B5320] transition">
                                 <?= e($roomTitle) ?>
                             </a>
                         </h2>
@@ -187,12 +180,12 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <a href="<?= BASE_URL ?>/room.php?slug=<?= urlencode($room['slug']) ?>" 
+                            <a href="<?= url('/room/' . urlencode($room['slug'])) ?>" 
                                class="flex-1 sm:flex-initial text-center px-4 py-2.5 border border-stone-300 hover:border-stone-400 text-stone-700 rounded-xl text-xs font-bold transition">
                                 Details & Photos
                             </a>
                             <a href="<?= e(get_booking_url((int)$room['id'])) ?>" target="<?= e(get_booking_target()) ?>" 
-                               class="flex-1 sm:flex-initial text-center px-6 py-2.5 bg-[#343c0a] hover:bg-deep-olive text-white rounded-xl text-xs font-bold tracking-wide transition shadow-sm cursor-pointer btn-shimmer">
+                                class="flex-1 sm:flex-initial text-center px-6 py-2.5 bg-[#343c0a] hover:bg-deep-olive text-white rounded-xl text-xs font-bold tracking-wide transition shadow-sm cursor-pointer btn-shimmer">
                                 <?= e(get_booking_button_text('Book Now')) ?>
                             </a>
                         </div>
@@ -209,7 +202,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
                 <h3 class="font-headline font-bold text-xl text-onyx-charcoal">No Accommodations Found</h3>
                 <p class="text-xs text-stone-500 max-w-md mx-auto">There are currently no accommodations listed under the "<?= e($selectedCategory) ?>" category.</p>
-                <a href="<?= BASE_URL ?>/rooms.php" class="inline-flex items-center gap-1 text-xs font-bold text-[#343c0a] hover:underline">
+                <a href="<?= url('/rooms') ?>" class="inline-flex items-center gap-1 text-xs font-bold text-[#343c0a] hover:underline">
                     <span>View All Accommodations</span>
                     <span class="material-symbols-outlined text-sm">arrow_forward</span>
                 </a>

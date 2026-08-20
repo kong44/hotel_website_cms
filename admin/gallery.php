@@ -12,9 +12,17 @@ Auth::requireAuth();
 $pdo = getDB();
 $adminTitle = 'Photo Gallery Manager';
 
-// Handle Add Photo
+// Handle Add Photo / Hero Settings
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    if (!empty($_POST['hero_page_keys']) || isset($_POST['save_hero_settings'])) {
+        process_hero_settings_post();
+        set_flash('success', 'Photo Gallery page hero updated.');
+        header('Location: ' . BASE_URL . '/admin/gallery.php');
+        exit;
+    }
+
     $title = trim($_POST['title'] ?? '');
+
     $category = $_POST['category'] ?? 'rooms';
     $imageUrl = trim($_POST['image_url'] ?? '');
     $caption = trim($_POST['caption'] ?? '');
@@ -56,6 +64,35 @@ require_once __DIR__ . '/../includes/admin-header.php';
             <span>Add New Photo</span>
         </button>
     </div>
+
+    <!-- Page Heroes Editor Collapsible Card -->
+    <details class="bg-stone-900 text-white rounded-2xl border border-stone-800 shadow-md overflow-hidden">
+        <summary class="px-6 py-4 font-bold text-xs uppercase tracking-wider text-[#dfe8a6] cursor-pointer flex items-center justify-between hover:bg-stone-800 transition">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">view_day</span>
+                <span>Edit Photo Gallery Page Hero Banner</span>
+            </div>
+            <span class="text-[10px] text-stone-400 font-normal">Click to expand / collapse</span>
+        </summary>
+        <div class="p-6 bg-stone-50 text-stone-900 border-t border-stone-800 space-y-6">
+            <form action="<?= BASE_URL ?>/admin/gallery.php" method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="<?= Auth::generateCsrf() ?>">
+                <?= render_admin_hero_editor_card('gallery', 'Photo Gallery', [
+                    'badge' => 'Visual Showcase',
+                    'title' => 'Photo Gallery',
+                    'subtitle' => 'Immerse yourself in the serene architecture, contemporary rooms, and world-class amenities of Indra Hotel.',
+                    'image' => 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80'
+                ]) ?>
+                <div class="flex justify-end">
+                    <button type="submit" name="save_hero_settings" value="1" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded-lg text-xs font-bold transition shadow flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-base">save</span>
+                        <span>Save Photo Gallery Hero</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </details>
+
 
     <!-- Gallery Photos Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

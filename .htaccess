@@ -1,3 +1,28 @@
+# ========================================================
+# Indra Hotel - Clean URL Rewriting & Server Configuration
+# ========================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Prevent direct access to sensitive files
+    <FilesMatch "\.(sqlite|sql|env|ini|log|md|git.*)$">
+        Require all denied
+    </FilesMatch>
+
+    # Allow direct access to existing physical files and folders (CSS, JS, images, uploads, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route all other URLs to the front controller index.php
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# ========================================================
+# PHP Environment Adjustments
+# ========================================================
 <IfModule mod_php.c>
     php_value upload_max_filesize 128M
     php_value post_max_size 128M

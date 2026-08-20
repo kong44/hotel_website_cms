@@ -33,7 +33,7 @@ if (!$spot) {
 }
 
 if (!$spot) {
-    header('Location: ' . BASE_URL . '/location.php');
+    header('Location: ' . url('/location'));
     exit;
 }
 
@@ -91,9 +91,9 @@ require_once __DIR__ . '/includes/header.php';
         
         <!-- Breadcrumb Navigation -->
         <nav class="flex items-center gap-2 text-xs text-stone-400 mb-6">
-            <a href="<?= BASE_URL ?>/index.php" class="hover:text-white transition">Home</a>
+            <a href="<?= url('/home') ?>" class="hover:text-white transition">Home</a>
             <span>/</span>
-            <a href="<?= BASE_URL ?>/location.php" class="hover:text-white transition">Prime Location</a>
+            <a href="<?= url('/location') ?>" class="hover:text-white transition">Prime Location</a>
             <span>/</span>
             <span class="text-[#dfe8a6] font-semibold"><?= e($spotTitle) ?></span>
         </nav>
@@ -138,7 +138,7 @@ require_once __DIR__ . '/includes/header.php';
                 <!-- Main Featured Photo with Lightbox Trigger -->
                 <div class="bg-white rounded-2xl overflow-hidden border border-stone-200 shadow-sm space-y-3 p-3">
                     <div class="relative h-[360px] sm:h-[460px] rounded-xl overflow-hidden cursor-pointer group"
-                         onclick="openPhotoLightbox(<?= json_encode($currentGallery) ?>, 0, <?= json_encode($spotTitle) ?>)">
+                         onclick="openPhotoPreview(<?= e(json_encode($currentGallery)) ?>, 0, <?= e(json_encode($spotTitle)) ?>)">
                         <img src="<?= e($currentGallery[0]) ?>" alt="<?= e($spotTitle) ?>" class="w-full h-full object-cover group-hover:scale-103 transition duration-500">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-6">
                             <span class="inline-flex items-center gap-2 bg-black/70 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-lg">
@@ -153,13 +153,14 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
                         <?php foreach ($currentGallery as $idx => $photo): ?>
                         <div class="h-20 rounded-lg overflow-hidden border border-stone-200 cursor-pointer hover:opacity-80 transition"
-                             onclick="openPhotoLightbox(<?= json_encode($currentGallery) ?>, <?= (int)$idx ?>, <?= json_encode($spotTitle) ?>)">
+                             onclick="openPhotoPreview(<?= e(json_encode($currentGallery)) ?>, <?= (int)$idx ?>, <?= e(json_encode($spotTitle)) ?>)">
                             <img src="<?= e($photo) ?>" alt="Thumb" class="w-full h-full object-cover">
                         </div>
                         <?php endforeach; ?>
                     </div>
                     <?php endif; ?>
                 </div>
+
 
                 <!-- Comprehensive Description Narrative -->
                 <div class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-2xs space-y-6">
@@ -310,7 +311,7 @@ require_once __DIR__ . '/includes/header.php';
                     <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#4B5320]">More to Explore</span>
                     <h2 class="font-headline text-2xl font-bold text-onyx-charcoal mt-1">Other Phnom Penh Attractions</h2>
                 </div>
-                <a href="<?= BASE_URL ?>/location.php" class="text-xs font-bold text-[#343c0a] hover:underline flex items-center gap-1">
+                <a href="<?= url('/location') ?>" class="text-xs font-bold text-[#343c0a] hover:underline flex items-center gap-1">
                     <span>View All Landmarks</span>
                     <span class="material-symbols-outlined text-sm">arrow_forward</span>
                 </a>
@@ -324,7 +325,7 @@ require_once __DIR__ . '/includes/header.php';
                     $osSlug = !empty($os['slug']) ? $os['slug'] : $os['id'];
                     $osImg = !empty($os['image_url']) ? $os['image_url'] : 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=800&q=80';
                 ?>
-                <a href="<?= BASE_URL ?>/location-detail.php?slug=<?= e($osSlug) ?>" 
+                <a href="<?= url('/location/' . urlencode($osSlug)) ?>" 
                    class="bg-white rounded-2xl overflow-hidden border border-stone-200 shadow-2xs hover:shadow-xl hover:border-[#343c0a]/40 transition duration-300 flex flex-col justify-between group">
                     <div>
                         <!-- Photo on Top of Card -->

@@ -35,9 +35,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['save_location
         $stmt->execute([$k, $v]);
     }
 
+    process_hero_settings_post();
+
     get_setting('__refresh__');
     set_flash('success', 'Location overview settings updated successfully.');
     header('Location: ' . BASE_URL . '/admin/locations.php');
+
     exit;
 }
 
@@ -232,6 +235,23 @@ require_once __DIR__ . '/../includes/admin-header.php';
                            class="w-full text-xs font-mono border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#343c0a]">
                 </div>
             </div>
+
+            <input type="hidden" name="hero_page_keys[]" value="location">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-stone-100">
+                <div>
+                    <?= render_image_uploader_field("hero_location_image", get_hero_setting('location', 'image', 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=1600&q=80'), 'Location Hero Background Image', 'brand', [
+                        'required' => false,
+                        'helper' => 'Banner image for Location & City Guide page'
+                    ]) ?>
+                </div>
+                <div>
+                    <?= render_video_uploader_field("hero_location_video", get_hero_setting('location', 'video', ''), 'Location Hero Background Video', 'videos', [
+                        'required' => false,
+                        'helper' => 'Optional video loop for Location & City Guide hero'
+                    ]) ?>
+                </div>
+            </div>
+
 
             <div class="flex justify-end pt-2 border-t border-stone-100">
                 <button type="submit" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow transition cursor-pointer">
@@ -477,11 +497,18 @@ require_once __DIR__ . '/../includes/admin-header.php';
                         <label class="block font-bold text-stone-700 uppercase">Additional Gallery Photos</label>
                         <p class="text-[11px] text-stone-400">Upload multiple photos for the attraction photo gallery preview.</p>
                     </div>
-                    <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold cursor-pointer transition shadow-2xs">
-                        <span class="material-symbols-outlined text-sm">add_photo_alternate</span>
-                        <span>Add Photo</span>
-                        <input type="file" accept="image/*" class="hidden" onchange="uploadSpotGalleryPhoto(this)">
-                    </label>
+                    <div class="flex items-center gap-2">
+                        <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold cursor-pointer transition shadow-2xs">
+                            <span class="material-symbols-outlined text-sm">cloud_upload</span>
+                            <span>Upload File</span>
+                            <input type="file" accept="image/*" class="hidden" onchange="uploadSpotGalleryPhoto(this)">
+                        </label>
+                        <button type="button" onclick="openMediaLibraryPicker('spot_gallery_append', 'image', 'locations')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold transition cursor-pointer shadow-2xs">
+                            <span class="material-symbols-outlined text-sm text-[#343c0a]">photo_library</span>
+                            <span>Choose from Library</span>
+                        </button>
+                    </div>
+
                 </div>
 
                 <div id="spot-gallery-container" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 pt-1">
@@ -641,8 +668,9 @@ function switchSpotLang(field, lang) {
     });
 }
 
-function appendSpotGalleryCard(url) {
+window.appendSpotGalleryCard = function(url) {
     const container = document.getElementById('spot-gallery-container');
+    if (!container) return;
     const card = document.createElement('div');
     card.className = 'relative bg-white rounded-lg border border-stone-200 overflow-hidden group h-20 shadow-2xs';
     card.innerHTML = `
@@ -653,7 +681,8 @@ function appendSpotGalleryCard(url) {
         </button>
     `;
     container.appendChild(card);
-}
+};
+
 
 async function uploadSpotGalleryPhoto(input) {
     if (!input.files || !input.files[0]) return;

@@ -60,6 +60,9 @@ window.openPhotoPreview = function (images, index = 0, defaultTitle = 'Indra Hot
     }
 };
 
+window.openPhotoLightbox = window.openPhotoPreview;
+
+
 function renderLightboxActivePhoto() {
     if (!currentGalleryImages || currentGalleryImages.length === 0) return;
     const photo = currentGalleryImages[currentPhotoIndex];

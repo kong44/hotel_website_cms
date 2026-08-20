@@ -123,14 +123,14 @@ require_once __DIR__ . '/includes/header.php';
                             <div class="text-[11px] text-[#dfe8a6] font-mono"><?= e($guest['email']) ?></div>
                         </div>
 
-                        <a href="<?= BASE_URL ?>/api/guest-logout.php" 
+                        <a href="<?= url('/api/guest-logout') ?>" 
                            class="ml-2 px-3 py-1.5 rounded-lg bg-black/40 hover:bg-black text-stone-200 hover:text-white text-xs font-semibold transition border border-white/10 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">logout</span>
                             <span>Sign Out</span>
                         </a>
                     </div>
                 <?php elseif (GoogleAuth::isEnabled()): ?>
-                    <a href="<?= BASE_URL ?>/api/guest-google-login.php" 
+                    <a href="<?= url('/api/guest-google-login') ?>" 
                        class="bg-white hover:bg-stone-100 text-stone-900 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition shadow-lg flex items-center gap-3 border border-white/20 btn-shimmer">
                         <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -192,17 +192,17 @@ require_once __DIR__ . '/includes/header.php';
 
                     <!-- Filter Tabs -->
                     <div class="flex items-center gap-1.5 text-xs font-semibold overflow-x-auto">
-                        <a href="<?= BASE_URL ?>/my-booking.php?filter=all" class="px-3.5 py-2 rounded-xl transition <?= $filter === 'all' ? 'bg-[#343c0a] text-white shadow-2xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
+                        <a href="<?= url('/my-booking', ['filter' => 'all']) ?>" class="px-3.5 py-2 rounded-xl transition <?= $filter === 'all' ? 'bg-[#343c0a] text-white shadow-2xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
                             All (<?= $totalGuestBookings ?>)
                         </a>
-                        <a href="<?= BASE_URL ?>/my-booking.php?filter=upcoming" class="px-3.5 py-2 rounded-xl transition <?= $filter === 'upcoming' ? 'bg-[#343c0a] text-white shadow-2xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
+                        <a href="<?= url('/my-booking', ['filter' => 'upcoming']) ?>" class="px-3.5 py-2 rounded-xl transition <?= $filter === 'upcoming' ? 'bg-[#343c0a] text-white shadow-2xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
                             Upcoming (<?= $upcomingGuestBookings ?>)
                         </a>
-                        <a href="<?= BASE_URL ?>/my-booking.php?filter=completed" class="px-3.5 py-2 rounded-xl transition <?= $filter === 'completed' ? 'bg-[#343c0a] text-white shadow-2xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
+                        <a href="<?= url('/my-booking', ['filter' => 'completed']) ?>" class="px-3.5 py-2 rounded-xl transition <?= $filter === 'completed' ? 'bg-[#343c0a] text-white shadow-2xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
                             Completed (<?= $completedGuestBookings ?>)
                         </a>
                         <?php if ($cancelledGuestBookings > 0): ?>
-                        <a href="<?= BASE_URL ?>/my-booking.php?filter=cancelled" class="px-3.5 py-2 rounded-xl transition <?= $filter === 'cancelled' ? 'bg-[#343c0a] text-white shadow-2xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
+                        <a href="<?= url('/my-booking', ['filter' => 'cancelled']) ?>" class="px-3.5 py-2 rounded-xl transition <?= $filter === 'cancelled' ? 'bg-[#343c0a] text-white shadow-2xs' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">
                             Cancelled (<?= $cancelledGuestBookings ?>)
                         </a>
                         <?php endif; ?>
@@ -247,7 +247,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </div>
 
                                     <h3 class="font-headline font-bold text-xl text-onyx-charcoal">
-                                        <a href="<?= BASE_URL ?>/room.php?slug=<?= urlencode($b['room_slug']) ?>" class="hover:text-[#4B5320] transition">
+                                        <a href="<?= url('/room/' . urlencode($b['room_slug'])) ?>" class="hover:text-[#4B5320] transition">
                                             <?= e($b['room_name']) ?>
                                         </a>
                                     </h3>
@@ -279,13 +279,13 @@ require_once __DIR__ . '/includes/header.php';
                                 </div>
 
                                 <div class="flex items-center gap-2">
-                                    <a href="<?= BASE_URL ?>/my-booking.php?ref=<?= urlencode($b['booking_reference']) ?>" 
+                                    <a href="<?= url('/my-booking', ['ref' => $b['booking_reference']]) ?>" 
                                        class="px-4 py-2 rounded-xl text-xs font-bold bg-[#343c0a] hover:bg-deep-olive text-white transition flex items-center gap-1 shadow-2xs btn-shimmer">
                                         <span class="material-symbols-outlined text-sm">receipt_long</span>
                                         <span>View Voucher</span>
                                     </a>
 
-                                    <a href="<?= BASE_URL ?>/book.php?room_id=<?= (int)$b['room_id'] ?>" 
+                                    <a href="<?= url('/book', ['room_id' => (int)$b['room_id']]) ?>" 
                                        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-stone-100 text-stone-700 transition border border-stone-300 flex items-center gap-1">
                                         <span class="material-symbols-outlined text-sm">repeat</span>
                                         <span>Re-book</span>
@@ -305,7 +305,7 @@ require_once __DIR__ . '/includes/header.php';
                         <p class="text-xs text-stone-500 max-w-md mx-auto">
                             There are currently no reservations under <strong><?= e($guest['email']) ?></strong> for the "<?= e($filter) ?>" filter.
                         </p>
-                        <a href="<?= BASE_URL ?>/rooms.php" class="inline-flex items-center gap-1 text-xs font-bold text-[#343c0a] hover:underline pt-2">
+                        <a href="<?= url('/rooms') ?>" class="inline-flex items-center gap-1 text-xs font-bold text-[#343c0a] hover:underline pt-2">
                             <span>Browse Accommodations & Book Your Next Stay</span>
                             <span class="material-symbols-outlined text-sm">arrow_forward</span>
                         </a>
@@ -319,75 +319,103 @@ require_once __DIR__ . '/includes/header.php';
         <!-- =======================================================
              CASE 2: Single Booking Voucher View (Searched via Ref)
              ======================================================= -->
-        <?php if ($singleBooking): ?>
-        <div class="bg-white rounded-3xl shadow-xl border border-stone-200 overflow-hidden p-8 sm:p-12 space-y-8 print:shadow-none print:border-none">
+        <?php if ($singleBooking): 
+            $b = $singleBooking;
+            $isPaid = ($b['payment_status'] === 'paid');
+            $statusColors = [
+                'confirmed' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                'pending' => 'bg-amber-100 text-amber-800 border-amber-300',
+                'checked_in' => 'bg-blue-100 text-blue-800 border-blue-300',
+                'checked_out' => 'bg-stone-100 text-stone-800 border-stone-300',
+                'cancelled' => 'bg-rose-100 text-rose-800 border-rose-300'
+            ];
+            $statusBadge = $statusColors[$b['status']] ?? 'bg-stone-100 text-stone-800 border-stone-200';
+        ?>
+        <div class="bg-white rounded-3xl border border-stone-200 shadow-xl overflow-hidden p-6 sm:p-10 space-y-8 print:shadow-none print:border-none print:p-0">
             
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-200">
-                <div>
-                    <span class="text-xs font-bold uppercase tracking-widest text-[#4B5320]">Official Reservation Voucher</span>
-                    <h2 class="font-headline text-3xl font-bold text-onyx-charcoal mt-1"><?= e($singleBooking['room_name']) ?></h2>
-                    <div class="text-xs text-stone-500 mt-1 font-mono">Confirmation Reference: <strong class="text-stone-900"><?= e($singleBooking['booking_reference']) ?></strong></div>
+            <!-- Voucher Header Banner -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-stone-200">
+                <div class="flex items-center gap-4">
+                    <?php if ($logoImg = hotel_logo_url()): ?>
+                        <img src="<?= e($logoImg) ?>" alt="<?= e(hotel_name()) ?> Logo" class="h-12 w-auto object-contain">
+                    <?php else: ?>
+                        <div class="w-12 h-12 rounded-xl bg-[#343c0a] text-white flex items-center justify-center font-headline font-bold text-xl">
+                            <?= strtoupper(substr(hotel_name(), 0, 2)) ?>
+                        </div>
+                    <?php endif; ?>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#4B5320] block">Official Reservation Voucher</span>
+                        <h2 class="font-headline font-bold text-2xl text-onyx-charcoal"><?= e(hotel_name()) ?></h2>
+                    </div>
                 </div>
 
-                <div>
-                    <?php
-                    $statusBadge = match($singleBooking['status']) {
-                        'confirmed' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
-                        'checked_in' => 'bg-blue-100 text-blue-800 border-blue-300',
-                        'checked_out' => 'bg-stone-100 text-stone-800 border-stone-300',
-                        'cancelled' => 'bg-rose-100 text-rose-800 border-rose-300',
-                        default => 'bg-amber-100 text-amber-800 border-amber-300'
-                    };
-                    ?>
-                    <span class="inline-block px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border <?= $statusBadge ?>">
-                        <?= strtoupper(str_replace('_', ' ', $singleBooking['status'])) ?>
-                    </span>
+                <div class="text-left sm:text-right">
+                    <span class="text-xs text-stone-400 uppercase tracking-wider block">Booking Reference</span>
+                    <span class="font-mono font-bold text-xl sm:text-2xl text-[#343c0a] tracking-wider"><?= e($b['booking_reference']) ?></span>
+                    <div class="mt-1">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border <?= $statusBadge ?> capitalize">
+                            <?= str_replace('_', ' ', e($b['status'])) ?>
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Booking Specifications Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-xs text-stone-600 bg-stone-50 p-6 rounded-2xl border border-stone-200">
-                <div>
-                    <span class="font-bold uppercase text-stone-400 block mb-1">Check-in Date</span>
-                    <div class="font-headline font-bold text-sm text-stone-900"><?= format_date($singleBooking['check_in_date']) ?></div>
-                    <div class="text-stone-500">From <?= HOTEL_CHECKIN_TIME ?></div>
-                </div>
-                <div>
-                    <span class="font-bold uppercase text-stone-400 block mb-1">Check-out Date</span>
-                    <div class="font-headline font-bold text-sm text-stone-900"><?= format_date($singleBooking['check_out_date']) ?></div>
-                    <div class="text-stone-500">Until <?= HOTEL_CHECKOUT_TIME ?></div>
-                </div>
-                <div>
-                    <span class="font-bold uppercase text-stone-400 block mb-1">Duration & Guests</span>
-                    <div class="font-headline font-bold text-sm text-stone-900"><?= $singleBooking['nights'] ?> Night(s)</div>
-                    <div class="text-stone-500"><?= $singleBooking['adults'] ?> Adults, <?= $singleBooking['children'] ?> Child</div>
-                </div>
-                <div>
-                    <span class="font-bold uppercase text-stone-400 block mb-1">Total Rate</span>
-                    <div class="font-headline font-bold text-base text-[#343c0a]"><?= format_price($singleBooking['total_price']) ?></div>
-                    <div class="text-stone-500 capitalize font-medium">Payment: <?= e($singleBooking['payment_status']) ?></div>
-                </div>
-            </div>
+            <!-- Booking Overview Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- Guest & Stay Specs -->
+                <div class="space-y-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400 block mb-2">Guest Information</span>
+                        <div class="bg-stone-50 rounded-2xl p-5 border border-stone-200 space-y-2 text-xs">
+                            <div class="flex justify-between"><span class="text-stone-500">Guest Name:</span><strong class="text-stone-900"><?= e($b['guest_name']) ?></strong></div>
+                            <div class="flex justify-between"><span class="text-stone-500">Email:</span><strong class="text-stone-900"><?= e($b['guest_email']) ?></strong></div>
+                            <div class="flex justify-between"><span class="text-stone-500">Phone:</span><strong class="text-stone-900"><?= e($b['guest_phone']) ?: 'N/A' ?></strong></div>
+                            <div class="flex justify-between"><span class="text-stone-500">Country / Origin:</span><strong class="text-stone-900"><?= e($b['guest_country']) ?: 'N/A' ?></strong></div>
+                        </div>
+                    </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-stone-700">
-                <div class="space-y-1">
-                    <span class="text-xs font-bold uppercase text-stone-400">Guest Information</span>
-                    <div class="font-bold text-stone-900"><?= e($singleBooking['guest_name']) ?></div>
-                    <div class="text-xs text-stone-500 font-mono"><?= e($singleBooking['guest_email']) ?> | <?= e($singleBooking['guest_phone']) ?></div>
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400 block mb-2">Stay Details</span>
+                        <div class="bg-stone-50 rounded-2xl p-5 border border-stone-200 space-y-2 text-xs">
+                            <div class="flex justify-between"><span class="text-stone-500">Check-in:</span><strong class="text-stone-900"><?= format_date($b['check_in_date']) ?> (From 14:00)</strong></div>
+                            <div class="flex justify-between"><span class="text-stone-500">Check-out:</span><strong class="text-stone-900"><?= format_date($b['check_out_date']) ?> (Until 12:00)</strong></div>
+                            <div class="flex justify-between"><span class="text-stone-500">Total Duration:</span><strong class="text-stone-900"><?= (int)$b['nights'] ?> Night(s)</strong></div>
+                            <div class="flex justify-between"><span class="text-stone-500">Guests:</span><strong class="text-stone-900"><?= (int)$b['adults'] ?> Adults, <?= (int)$b['children'] ?> Children</strong></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="space-y-1">
-                    <span class="text-xs font-bold uppercase text-stone-400">Sanctuary Address</span>
-                    <div class="font-bold text-stone-900"><?= HOTEL_NAME ?></div>
-                    <div class="text-xs text-stone-500"><?= HOTEL_ADDRESS_STREET ?>, <?= HOTEL_ADDRESS_DISTRICT ?>, Phnom Penh, Cambodia</div>
-                </div>
-            </div>
 
-            <?php if (!empty($singleBooking['special_requests'])): ?>
-            <div class="p-4 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-600 space-y-1">
-                <span class="font-bold text-stone-800 uppercase block">Special Requests</span>
-                <p><?= e($singleBooking['special_requests']) ?></p>
+                <!-- Suite & Financial Breakdown -->
+                <div class="space-y-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400 block mb-2">Reserved Accommodation</span>
+                        <div class="bg-stone-50 rounded-2xl p-5 border border-stone-200 flex gap-4 items-center">
+                            <img src="<?= e($b['room_image']) ?>" alt="<?= e($b['room_name']) ?>" class="w-24 h-20 rounded-xl object-cover">
+                            <div>
+                                <h4 class="font-headline font-bold text-base text-onyx-charcoal"><?= e($b['room_name']) ?></h4>
+                                <span class="text-xs text-stone-500"><?= e($b['bed_type']) ?> • <?= (int)$b['size_sqm'] ?> m²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400 block mb-2">Billing Summary</span>
+                        <div class="bg-stone-50 rounded-2xl p-5 border border-stone-200 space-y-2.5 text-xs">
+                            <div class="flex justify-between"><span class="text-stone-500">Room Rate:</span><span class="font-mono"><?= format_price($b['room_price']) ?> / night</span></div>
+                            <?php if ($b['discount_amount'] > 0): ?>
+                            <div class="flex justify-between text-emerald-700"><span>Special Promo Applied:</span><span class="font-mono font-bold">-<?= format_price($b['discount_amount']) ?></span></div>
+                            <?php endif; ?>
+                            <div class="flex justify-between text-stone-500"><span>Taxes & Service Charges:</span><span>Included</span></div>
+                            <div class="flex justify-between pt-2 border-t border-stone-200 text-base font-headline font-bold text-stone-900">
+                                <span>Grand Total:</span>
+                                <span class="text-[#343c0a] font-mono text-xl"><?= format_price($b['total_price']) ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <?php endif; ?>
 
             <!-- Action buttons -->
             <div class="pt-6 border-t border-stone-200 flex flex-wrap gap-4 justify-between items-center print:hidden">
@@ -397,7 +425,7 @@ require_once __DIR__ . '/includes/header.php';
                 </a>
                 <div class="flex items-center gap-3">
                     <?php if ($isGuest): ?>
-                        <a href="<?= BASE_URL ?>/my-booking.php" class="px-5 py-2.5 border border-stone-300 hover:bg-stone-50 text-stone-700 rounded-xl text-xs font-bold transition">
+                        <a href="<?= url('/my-booking') ?>" class="px-5 py-2.5 border border-stone-300 hover:bg-stone-50 text-stone-700 rounded-xl text-xs font-bold transition">
                             Back to All Stays
                         </a>
                     <?php endif; ?>
@@ -423,7 +451,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
                 <p class="text-xs text-stone-500">Have a reservation confirmation number? Enter it below to retrieve the voucher.</p>
                 
-                <form action="<?= BASE_URL ?>/my-booking.php" method="GET" class="flex flex-col sm:flex-row gap-3">
+                <form action="<?= url('/my-booking') ?>" method="GET" class="flex flex-col sm:flex-row gap-3">
                     <input type="text" name="ref" value="<?= e($ref) ?>" required placeholder="e.g. IND-2026-8492"
                            class="flex-1 uppercase font-mono text-xs border border-stone-300 rounded-xl p-3 focus:ring-2 focus:ring-[#343c0a]">
                     <button type="submit" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-3 rounded-xl font-bold text-xs tracking-wide transition shadow btn-shimmer cursor-pointer">
@@ -452,7 +480,7 @@ require_once __DIR__ . '/includes/header.php';
                     </p>
                 </div>
 
-                <a href="<?= BASE_URL ?>/api/guest-google-login.php" 
+                <a href="<?= url('/api/guest-google-login') ?>" 
                    class="bg-white hover:bg-stone-100 text-stone-900 px-6 py-3.5 rounded-xl font-bold text-xs tracking-wide transition shadow-lg flex items-center justify-center gap-3 border border-white/20 btn-shimmer cursor-pointer">
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

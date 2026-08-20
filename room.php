@@ -27,7 +27,7 @@ if (!empty($slug)) {
 }
 
 if (!$room) {
-    header('Location: ' . BASE_URL . '/rooms.php');
+    header('Location: ' . url('/rooms'));
     exit;
 }
 
@@ -57,9 +57,9 @@ require_once __DIR__ . '/includes/header.php';
 <div class="bg-white border-b border-stone-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <nav class="flex items-center space-x-2 text-xs font-medium text-stone-500">
-            <a href="<?= BASE_URL ?>/index.php" class="hover:text-[#343c0a]">Home</a>
+            <a href="<?= url('/home') ?>" class="hover:text-[#343c0a]">Home</a>
             <span class="text-stone-300">/</span>
-            <a href="<?= BASE_URL ?>/rooms.php" class="hover:text-[#343c0a]">Accommodations</a>
+            <a href="<?= url('/rooms') ?>" class="hover:text-[#343c0a]">Accommodations</a>
             <span class="text-stone-300">/</span>
             <span class="text-stone-900 font-semibold"><?= e($room['name']) ?></span>
         </nav>
@@ -248,7 +248,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
 
                     <!-- Direct Reservation Form -->
-                    <form action="<?= BASE_URL ?>/book.php" method="GET" target="<?= e(get_booking_target()) ?>" class="space-y-4">
+                    <form action="<?= url('/book') ?>" method="GET" target="<?= e(get_booking_target()) ?>" class="space-y-4">
                         <input type="hidden" name="room_id" value="<?= $room['id'] ?>" id="booking_room_select" data-price="<?= $room['price_per_night'] ?>">
                         
                         <div>

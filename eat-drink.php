@@ -23,21 +23,14 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Hero Header -->
-<section class="bg-onyx-charcoal text-white py-16 sm:py-20 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-30">
-        <img src="https://lh3.googleusercontent.com/aida/AP1WRLu4xqDm5eXV-bc_ApYrUK1GnN0Euq-6ES4WN642l6K8VhewdBb_YkEtWSSt-tybo0AKJFBQh2oRWlfCx42rbsSmJsLPSmn2ODfXDog-y3cHuE5NTuWtSDiZptOZNk-bMlpk3s-xS7TRQHWRaUeUH0_bRiicGwQeGjy6gBDbaO4KosbM7QsKUNWT0PhQSHXUnhupahrd4i6fqtDtt53ZX2XGRn06_VQba3YHrkQ1BSNwkc5KeAJ3nMpX63ho" 
-             alt="Indra Hotel Bistro Background" class="w-full h-full object-cover">
-    </div>
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#dfe8a6] block mb-2">Culinary Artistry</span>
-        <h1 class="font-headline text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            Eat & Drink
-        </h1>
-        <p class="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed">
-            From artisanal morning coffee to sunset cocktails and fine Asian-fusion dining, indulge in an elevated gastronomic atmosphere.
-        </p>
-    </div>
-</section>
+<?= render_public_page_hero('dining', [
+    'badge' => 'Culinary Artistry',
+    'title' => 'Eat & Drink',
+    'subtitle' => 'From artisanal morning coffee to sunset cocktails and fine Asian-fusion dining, indulge in an elevated gastronomic atmosphere.',
+    'image' => 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80',
+    'icon' => 'restaurant'
+]) ?>
+
 
 <!-- Dining Venues & Menu Lists -->
 <section class="py-16 bg-[#f9f9f9]">
@@ -87,7 +80,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="pt-6 border-t border-stone-200 flex flex-wrap gap-4">
-                    <a href="<?= BASE_URL ?>/contact.php?subject=Table+Reservation" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded text-sm font-semibold transition btn-shimmer">
+                    <a href="<?= url('/contact', ['subject' => 'Table Reservation']) ?>" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded text-sm font-semibold transition btn-shimmer">
                         Reserve a Table
                     </a>
                     <a href="tel:<?= HOTEL_PHONE_RAW ?>" class="border border-stone-300 hover:border-stone-400 text-stone-700 px-5 py-2.5 rounded text-sm font-medium transition flex items-center gap-2">

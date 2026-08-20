@@ -23,17 +23,14 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Hero Header -->
-<section class="bg-onyx-charcoal text-white py-16 sm:py-20 relative overflow-hidden">
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#dfe8a6] block mb-2">Visual Showcase</span>
-        <h1 class="font-headline text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            Photo Gallery
-        </h1>
-        <p class="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed">
-            Immerse yourself in the serene architecture, contemporary rooms, and world-class amenities of Indra Hotel.
-        </p>
-    </div>
-</section>
+<?= render_public_page_hero('gallery', [
+    'badge' => 'Visual Showcase',
+    'title' => 'Photo Gallery',
+    'subtitle' => 'Immerse yourself in the serene architecture, contemporary rooms, and world-class amenities of Indra Hotel.',
+    'image' => 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80',
+    'icon' => 'photo_library'
+]) ?>
+
 
 <!-- Category Tabs -->
 <section class="bg-white border-b border-stone-200 sticky top-20 z-30 shadow-xs">

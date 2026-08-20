@@ -1,0 +1,22 @@
+{
+    "slug": "royal-khmer",
+    "name": "Royal Khmer Palace",
+    "description": "Opulent royal palace theme featuring rich bronze gold accents, deep dark mahogany backgrounds, and regal serif headlines.",
+    "version": "2.0.0",
+    "author": "Angkor Heritage Themes",
+    "price": 0.00,
+    "is_free": true,
+    "preview_thumbnail": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80",
+    "colors": {
+        "primary": "#8c6239",
+        "primary_hover": "#6e4b29",
+        "accent": "#f7e7ce",
+        "dark": "#1a120b",
+        "bg": "#faf7f2",
+        "card_bg": "#ffffff"
+    },
+    "fonts": {
+        "headline": "Cormorant Garamond, serif",
+        "body": "Outfit, sans-serif"
+    }
+}

@@ -89,11 +89,85 @@ class Database {
             } else {
                 // Ensure translations_json column exists in tables
                 self::migrateTranslationsColumn($pdo, $driver);
+                self::ensureCustomPagesAndThemesExist($pdo, $driver);
             }
         } catch (Throwable $e) {
             self::initializeDatabase($pdo, $driver);
         }
     }
+
+    private static function ensureCustomPagesAndThemesExist(PDO $pdo, string $driver): void {
+        try {
+            if ($driver === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `custom_pages` (
+                  `id` INT AUTO_INCREMENT PRIMARY KEY,
+                  `slug` VARCHAR(191) NOT NULL UNIQUE,
+                  `title` VARCHAR(255) NOT NULL,
+                  `meta_title` VARCHAR(255) NULL,
+                  `meta_description` TEXT NULL,
+                  `hero_badge` VARCHAR(255) NULL,
+                  `hero_title` VARCHAR(255) NULL,
+                  `hero_subtitle` TEXT NULL,
+                  `hero_image` VARCHAR(500) NULL,
+                  `hero_video` VARCHAR(500) NULL,
+                  `hero_height` VARCHAR(50) DEFAULT 'medium',
+                  `hero_overlay` VARCHAR(50) DEFAULT 'medium',
+                  `theme_id` VARCHAR(100) DEFAULT 'default',
+                  `layout_type` VARCHAR(50) DEFAULT 'full_width',
+                  `sections_json` LONGTEXT NULL,
+                  `status` ENUM('published', 'draft') DEFAULT 'published',
+                  `is_in_nav` TINYINT(1) DEFAULT 0,
+                  `nav_order` INT DEFAULT 99,
+                  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `theme_licenses` (
+                  `id` INT AUTO_INCREMENT PRIMARY KEY,
+                  `theme_slug` VARCHAR(100) NOT NULL UNIQUE,
+                  `is_purchased` TINYINT(1) DEFAULT 0,
+                  `is_active` TINYINT(1) DEFAULT 0,
+                  `purchase_date` DATETIME NULL,
+                  `custom_styles_json` LONGTEXT NULL,
+                  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS custom_pages (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  slug TEXT NOT NULL UNIQUE,
+                  title TEXT NOT NULL,
+                  meta_title TEXT,
+                  meta_description TEXT,
+                  hero_badge TEXT,
+                  hero_title TEXT,
+                  hero_subtitle TEXT,
+                  hero_image TEXT,
+                  hero_video TEXT,
+                  hero_height TEXT DEFAULT 'medium',
+                  hero_overlay TEXT DEFAULT 'medium',
+                  theme_id TEXT DEFAULT 'default',
+                  layout_type TEXT DEFAULT 'full_width',
+                  sections_json TEXT,
+                  status TEXT DEFAULT 'published',
+                  is_in_nav INTEGER DEFAULT 0,
+                  nav_order INTEGER DEFAULT 99,
+                  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );");
+
+                $pdo->exec("CREATE TABLE IF NOT EXISTS theme_licenses (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  theme_slug TEXT NOT NULL UNIQUE,
+                  is_purchased INTEGER DEFAULT 0,
+                  is_active INTEGER DEFAULT 0,
+                  purchase_date DATETIME,
+                  custom_styles_json TEXT,
+                  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );");
+            }
+        } catch (Throwable $t) {}
+    }
+
 
     private static function migrateTranslationsColumn(PDO $pdo, string $driver): void {
         $tables = ['rooms', 'dining_wellness', 'special_offers'];
@@ -707,7 +781,119 @@ class Database {
         } catch (Throwable $t) {
             // Ignore migration error
         }
+        self::migrateMediaUploadsTable($pdo, $driver);
     }
+
+    private static function migrateMediaUploadsTable(PDO $pdo, string $driver): void {
+        try {
+            if ($driver === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `media_uploads` (
+                    `id` INT AUTO_INCREMENT PRIMARY KEY,
+                    `filename` VARCHAR(255) NOT NULL,
+                    `original_name` VARCHAR(255) NULL,
+                    `file_path` VARCHAR(255) NOT NULL,
+                    `url` TEXT NOT NULL,
+                    `folder` VARCHAR(50) NOT NULL DEFAULT 'general',
+                    `file_type` VARCHAR(20) NOT NULL DEFAULT 'image',
+                    `mime_type` VARCHAR(100) NULL,
+                    `file_size` INT NOT NULL DEFAULT 0,
+                    `uploaded_by` INT NULL,
+                    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX `idx_media_folder` (`folder`),
+                    INDEX `idx_media_type` (`file_type`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS media_uploads (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    filename TEXT NOT NULL,
+                    original_name TEXT NULL,
+                    file_path TEXT NOT NULL,
+                    url TEXT NOT NULL,
+                    folder TEXT NOT NULL DEFAULT 'general',
+                    file_type TEXT NOT NULL DEFAULT 'image',
+                    mime_type TEXT NULL,
+                    file_size INTEGER NOT NULL DEFAULT 0,
+                    uploaded_by INTEGER NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )");
+            }
+
+            self::syncUploadsFolderToDatabase($pdo);
+        } catch (Throwable $t) {
+            // Ignore migration error
+        }
+    }
+
+    public static function syncUploadsFolderToDatabase(PDO $pdo): void {
+        try {
+            $uploadsDir = ROOT_PATH . '/uploads';
+            if (!is_dir($uploadsDir)) return;
+
+            $items = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($uploadsDir, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::SELF_FIRST
+            );
+
+            $stmtCheck = $pdo->prepare("SELECT id FROM media_uploads WHERE filename = ? LIMIT 1");
+            $stmtInsert = $pdo->prepare("INSERT INTO media_uploads (filename, original_name, file_path, url, folder, file_type, mime_type, file_size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+            $imageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'ico'];
+            $videoExts = ['mp4', 'webm', 'ogv', 'mov', 'm4v'];
+
+            foreach ($items as $item) {
+                if ($item->isFile()) {
+                    $filename = $item->getFilename();
+                    if (str_ends_with($filename, '.part') || str_starts_with($filename, '.')) {
+                        continue;
+                    }
+
+                    $stmtCheck->execute([$filename]);
+                    if ($stmtCheck->fetch()) {
+                        continue;
+                    }
+
+                    $fullPath = $item->getPathname();
+                    $relPath = str_replace(ROOT_PATH, '', $fullPath);
+                    $relPath = ltrim(str_replace('\\', '/', $relPath), '/');
+                    
+                    $subPath = str_replace('uploads/', '', $relPath);
+                    $parts = explode('/', $subPath);
+                    $folder = count($parts) > 1 ? $parts[0] : 'general';
+
+                    if ($folder === 'chunks') continue;
+
+                    $url = BASE_URL . '/' . $relPath;
+                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+                    $fileType = 'other';
+                    if (in_array($ext, $imageExts, true)) {
+                        $fileType = 'image';
+                    } elseif (in_array($ext, $videoExts, true)) {
+                        $fileType = 'video';
+                    }
+
+                    $mimeType = function_exists('mime_content_type') ? @mime_content_type($fullPath) : null;
+                    $size = $item->getSize();
+                    $mtime = date('Y-m-d H:i:s', $item->getMTime());
+
+                    $stmtInsert->execute([
+                        $filename,
+                        $filename,
+                        $relPath,
+                        $url,
+                        $folder,
+                        $fileType,
+                        $mimeType ?: null,
+                        $size,
+                        $mtime
+                    ]);
+                }
+            }
+        } catch (Throwable $e) {}
+    }
+
 
     /**
      * Run Schema & Initial Seed
@@ -841,6 +1027,39 @@ class Database {
               setting_key TEXT PRIMARY KEY,
               setting_value TEXT,
               updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS custom_pages (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              slug TEXT NOT NULL UNIQUE,
+              title TEXT NOT NULL,
+              meta_title TEXT,
+              meta_description TEXT,
+              hero_badge TEXT,
+              hero_title TEXT,
+              hero_subtitle TEXT,
+              hero_image TEXT,
+              hero_video TEXT,
+              hero_height TEXT DEFAULT 'medium',
+              hero_overlay TEXT DEFAULT 'medium',
+              theme_id TEXT DEFAULT 'default',
+              layout_type TEXT DEFAULT 'full_width',
+              sections_json TEXT,
+              status TEXT DEFAULT 'published',
+              is_in_nav INTEGER DEFAULT 0,
+              nav_order INTEGER DEFAULT 99,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS theme_licenses (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              theme_slug TEXT NOT NULL UNIQUE,
+              is_purchased INTEGER DEFAULT 0,
+              is_active INTEGER DEFAULT 0,
+              purchase_date DATETIME,
+              custom_styles_json TEXT,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
             ";
             $pdo->exec($sqliteSchema);

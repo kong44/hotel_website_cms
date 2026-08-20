@@ -4,6 +4,21 @@
  */
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/router.php';
+
+/**
+ * Generate URL for a named route
+ */
+function route(string $name, array $params = [], array $query = []): string {
+    return Router::route($name, $params, $query);
+}
+
+/**
+ * Generate URL from direct path
+ */
+function url(string $path = '', array $query = []): string {
+    return Router::url($path, $query);
+}
 
 /**
  * Escape HTML output safely (XSS prevention)
@@ -75,11 +90,10 @@ function get_flash(): ?array {
 }
 
 /**
- * Active navigation helper
+ * Active navigation helper supporting clean routes and legacy file names
  */
-function is_active_nav(string $path): string {
-    $current = basename($_SERVER['PHP_SELF'] ?? '');
-    return ($current === $path) ? 'text-[#4B5320] font-semibold border-b-2 border-[#4B5320]' : 'text-stone-700 hover:text-[#4B5320]';
+function is_active_nav(string|array $routes): string {
+    return Router::isActive($routes) ? 'text-[#4B5320] font-semibold border-b-2 border-[#4B5320]' : 'text-stone-700 hover:text-[#4B5320]';
 }
 
 /**
@@ -231,12 +245,19 @@ function render_image_uploader_field(string $inputName, string $currentValue = '
                         <input type="file" accept="image/*,.svg,.ico" class="hidden image-file-input" onchange="handleImageFileSelect(this, '<?= $uniqueId ?>', '<?= e($folder) ?>')">
                     </label>
 
+                    <!-- Select from Media Library Button -->
+                    <button type="button" onclick="openMediaLibraryPicker('<?= $uniqueId ?>', 'image', '<?= e($folder) ?>')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold transition cursor-pointer shadow-2xs">
+                        <span class="material-symbols-outlined text-base text-[#343c0a]">photo_library</span>
+                        <span>Choose from Library</span>
+                    </button>
+
                     <!-- Remove / Clear Button -->
                     <button type="button" onclick="clearImageUpload('<?= $uniqueId ?>')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100 text-stone-600 text-xs font-semibold transition cursor-pointer">
                         <span class="material-symbols-outlined text-sm text-rose-500">delete</span>
                         <span>Clear</span>
                     </button>
                 </div>
+
 
                 <!-- URL Direct Input -->
                 <div class="relative">
@@ -310,12 +331,19 @@ function render_video_uploader_field(string $inputName, string $currentValue = '
                         <input type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.mov" class="hidden video-file-input" onchange="handleVideoFileSelect(this, '<?= $uniqueId ?>', '<?= e($folder) ?>')">
                     </label>
 
+                    <!-- Select from Media Library Button -->
+                    <button type="button" onclick="openMediaLibraryPicker('<?= $uniqueId ?>', 'video', '<?= e($folder) ?>')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold transition cursor-pointer shadow-2xs">
+                        <span class="material-symbols-outlined text-base text-[#343c0a]">perm_media</span>
+                        <span>Choose from Library</span>
+                    </button>
+
                     <!-- Remove / Clear Button -->
                     <button type="button" onclick="clearVideoUpload('<?= $uniqueId ?>')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100 text-stone-600 text-xs font-semibold transition cursor-pointer">
                         <span class="material-symbols-outlined text-sm text-rose-500">delete</span>
                         <span>Clear</span>
                     </button>
                 </div>
+
 
                 <!-- URL Direct Input -->
                 <div class="relative">
@@ -532,8 +560,7 @@ function get_booking_url(?int $roomId = null, ?string $checkIn = null, ?string $
     if ($adults) $params['adults'] = $adults;
     if ($promo) $params['promo'] = $promo;
     
-    $query = !empty($params) ? '?' . http_build_query($params) : '';
-    return BASE_URL . '/book.php' . $query;
+    return url('/book', $params);
 }
 
 /**
@@ -699,9 +726,278 @@ function is_guest_logged_in(): bool {
 /**
  * Get current signed-in public guest details
  */
+/**
+ * Get current signed-in public guest details
+ */
 function get_logged_in_guest(): ?array {
     return is_guest_logged_in() ? $_SESSION['guest_user'] : null;
 }
+
+/**
+ * Retrieve Page Hero Setting with Fallbacks
+ */
+function get_hero_setting(string $pageKey, string $field, string $default = ''): string {
+    $settingKey = "hero_{$pageKey}_{$field}";
+    
+    // Backward compatibility mapping
+    if ($pageKey === 'home') {
+        if ($field === 'badge') $settingKey = 'home_hero_badge';
+        if ($field === 'title') $settingKey = 'home_hero_title';
+        if ($field === 'subtitle') $settingKey = 'home_hero_subtitle';
+        if ($field === 'image') $settingKey = 'home_hero_image';
+        if ($field === 'video') $settingKey = 'home_hero_video_url';
+    } elseif ($pageKey === 'location') {
+        if ($field === 'badge') $settingKey = 'location_badge';
+        if ($field === 'title') $settingKey = 'location_title';
+        if ($field === 'subtitle') $settingKey = 'location_subtitle';
+    }
+
+    return get_setting($settingKey, $default);
+}
+
+/**
+ * Persist Page Hero Setting
+ */
+function set_hero_setting(string $pageKey, string $field, string $value): bool {
+    $settingKey = "hero_{$pageKey}_{$field}";
+    
+    if ($pageKey === 'home') {
+        if ($field === 'badge') $settingKey = 'home_hero_badge';
+        if ($field === 'title') $settingKey = 'home_hero_title';
+        if ($field === 'subtitle') $settingKey = 'home_hero_subtitle';
+        if ($field === 'image') $settingKey = 'home_hero_image';
+        if ($field === 'video') $settingKey = 'home_hero_video_url';
+    } elseif ($pageKey === 'location') {
+        if ($field === 'badge') $settingKey = 'location_badge';
+        if ($field === 'title') $settingKey = 'location_title';
+        if ($field === 'subtitle') $settingKey = 'location_subtitle';
+    }
+
+    return set_setting($settingKey, $value);
+}
+
+/**
+ * Render Public Page Hero Banner Component with Dynamic Height & Overlay Opacity Support
+ */
+function render_public_page_hero(string $pageKey, array $defaults = []): string {
+    $badge = get_hero_setting($pageKey, 'badge', $defaults['badge'] ?? '');
+    $title = get_hero_setting($pageKey, 'title', $defaults['title'] ?? 'Welcome');
+    $subtitle = get_hero_setting($pageKey, 'subtitle', $defaults['subtitle'] ?? '');
+    $image = get_hero_setting($pageKey, 'image', $defaults['image'] ?? '');
+    $video = get_hero_setting($pageKey, 'video', $defaults['video'] ?? '');
+    $height = get_hero_setting($pageKey, 'height', $defaults['height'] ?? 'medium');
+    $customHeight = get_hero_setting($pageKey, 'custom_height', $defaults['custom_height'] ?? '');
+    $overlay = get_hero_setting($pageKey, 'overlay', $defaults['overlay'] ?? 'medium');
+    $customOverlay = get_hero_setting($pageKey, 'custom_overlay', $defaults['custom_overlay'] ?? '');
+    $icon = $defaults['icon'] ?? 'sparkles';
+
+    // Dynamic Height calculation
+    $heightClass = 'py-16 sm:py-24 min-h-[50vh]';
+    $styleAttr = '';
+
+    if ($height === 'compact') {
+        $heightClass = 'py-12 sm:py-16 min-h-[35vh]';
+    } elseif ($height === 'medium') {
+        $heightClass = 'py-16 sm:py-24 min-h-[50vh]';
+    } elseif ($height === 'tall') {
+        $heightClass = 'py-24 sm:py-36 min-h-[70vh]';
+    } elseif ($height === 'fullscreen') {
+        $heightClass = 'min-h-screen py-24 sm:py-32';
+    } elseif ($height === 'custom' && !empty($customHeight)) {
+        $heightClass = 'py-12 sm:py-16';
+        $styleAttr = ' style="min-height: ' . e($customHeight) . ';"';
+    }
+
+    // Dynamic Overlay Opacity calculation
+    $overlayClass = 'bg-gradient-to-b from-stone-950/75 via-stone-900/50 to-onyx-charcoal';
+    $overlayStyle = '';
+
+    if ($overlay === 'none') {
+        $overlayClass = 'bg-black/15';
+    } elseif ($overlay === 'light') {
+        $overlayClass = 'bg-gradient-to-b from-stone-950/40 via-stone-900/25 to-stone-950/40';
+    } elseif ($overlay === 'medium') {
+        $overlayClass = 'bg-gradient-to-b from-stone-950/75 via-stone-900/50 to-onyx-charcoal';
+    } elseif ($overlay === 'dark') {
+        $overlayClass = 'bg-gradient-to-b from-stone-950/90 via-stone-900/80 to-stone-950/90';
+    } elseif ($overlay === 'deep') {
+        $overlayClass = 'bg-gradient-to-b from-black/95 via-black/90 to-black/95';
+    } elseif ($overlay === 'custom' && is_numeric($customOverlay)) {
+        $alpha = min(100, max(0, (float)$customOverlay)) / 100;
+        $overlayClass = '';
+        $overlayStyle = ' style="background-color: rgba(12, 12, 12, ' . $alpha . ');"';
+    }
+
+    ob_start();
+    ?>
+    <section class="bg-onyx-charcoal text-white relative overflow-hidden flex flex-col justify-center <?= $heightClass ?>"<?= $styleAttr ?>>
+        <!-- Background Video Loop -->
+        <?php if (!empty($video)): ?>
+            <div class="absolute inset-0 opacity-40 z-0 overflow-hidden">
+                <video src="<?= e($video) ?>" autoplay loop muted playsinline class="w-full h-full object-cover"></video>
+            </div>
+        <?php elseif (!empty($image)): ?>
+            <div class="absolute inset-0 opacity-30 z-0">
+                <img src="<?= e($image) ?>" alt="<?= e($title) ?>" class="w-full h-full object-cover">
+            </div>
+        <?php endif; ?>
+
+        <!-- Dynamic Gradient Dark Overlay -->
+        <div class="absolute inset-0 z-0 <?= $overlayClass ?>"<?= $overlayStyle ?>></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center my-auto">
+            <?php if (!empty($badge)): ?>
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.2em] bg-white/10 backdrop-blur-md border border-white/20 text-[#dfe8a6] mb-4">
+                    <span class="material-symbols-outlined text-sm"><?= e($icon) ?></span>
+                    <span><?= e($badge) ?></span>
+                </span>
+            <?php endif; ?>
+
+            <?php if (!empty($title)): ?>
+                <h1 class="font-headline text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-4 leading-tight">
+                    <?= e($title) ?>
+                </h1>
+            <?php endif; ?>
+
+            <?php if (!empty($subtitle)): ?>
+                <p class="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed">
+                    <?= e($subtitle) ?>
+                </p>
+            <?php endif; ?>
+        </div>
+    </section>
+    <?php
+    return ob_get_clean();
+}
+
+/**
+ * Render Reusable Admin Hero Form Box for Content Pages
+ */
+function render_admin_hero_editor_card(string $pageKey, string $pageTitle, array $defaults = []): string {
+    $badge = get_hero_setting($pageKey, 'badge', $defaults['badge'] ?? '');
+    $title = get_hero_setting($pageKey, 'title', $defaults['title'] ?? '');
+    $subtitle = get_hero_setting($pageKey, 'subtitle', $defaults['subtitle'] ?? '');
+    $image = get_hero_setting($pageKey, 'image', $defaults['image'] ?? '');
+    $video = get_hero_setting($pageKey, 'video', $defaults['video'] ?? '');
+    $height = get_hero_setting($pageKey, 'height', $defaults['height'] ?? 'medium');
+    $customHeight = get_hero_setting($pageKey, 'custom_height', $defaults['custom_height'] ?? '');
+    $overlay = get_hero_setting($pageKey, 'overlay', $defaults['overlay'] ?? 'medium');
+    $customOverlay = get_hero_setting($pageKey, 'custom_overlay', $defaults['custom_overlay'] ?? '');
+
+    ob_start();
+    ?>
+    <div class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-2xs space-y-6">
+        <div class="flex items-center justify-between pb-4 border-b border-stone-200">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#dfe8a6]/30 text-[#343c0a] flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-xl">view_day</span>
+                </div>
+                <div>
+                    <h3 class="font-headline font-bold text-base text-onyx-charcoal"><?= e($pageTitle) ?> Hero Banner & Header</h3>
+                    <p class="text-xs text-stone-500">Configure title, tagline, banner height, overlay opacity, background imagery, and video loop for this page.</p>
+                </div>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full">Page Hero</span>
+        </div>
+
+        <input type="hidden" name="hero_page_keys[]" value="<?= e($pageKey) ?>">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
+            <div>
+                <label class="block font-bold text-stone-700 uppercase mb-1">Hero Badge / Slogan</label>
+                <input type="text" name="hero_<?= e($pageKey) ?>_badge" value="<?= e($badge) ?>" placeholder="e.g. Contemporary Sanctuary" class="w-full border border-stone-300 rounded-lg p-2.5 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-[#343c0a]">
+            </div>
+
+            <div>
+                <label class="block font-bold text-stone-700 uppercase mb-1">Hero Headline Title *</label>
+                <input type="text" name="hero_<?= e($pageKey) ?>_title" value="<?= e($title) ?>" placeholder="e.g. Rooms, Suites & Spaces" class="w-full border border-stone-300 rounded-lg p-2.5 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-[#343c0a]">
+            </div>
+        </div>
+
+        <div>
+            <label class="block font-bold text-stone-700 uppercase mb-1 text-xs">Hero Subtitle / Description Narrative</label>
+            <textarea name="hero_<?= e($pageKey) ?>_subtitle" rows="2" placeholder="Write a short subhead narrative..." class="w-full text-xs border border-stone-300 rounded-lg p-2.5 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-[#343c0a]"><?= e($subtitle) ?></textarea>
+        </div>
+
+        <!-- Dynamic Height & Overlay Controls -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 text-xs pt-2 border-t border-stone-100">
+            <div>
+                <label class="block font-bold text-stone-700 uppercase mb-1">Hero Banner Height</label>
+                <select name="hero_<?= e($pageKey) ?>_height" class="w-full border border-stone-300 rounded-lg p-2.5 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-[#343c0a]">
+                    <option value="compact" <?= $height === 'compact' ? 'selected' : '' ?>>Compact (35vh)</option>
+                    <option value="medium" <?= $height === 'medium' ? 'selected' : '' ?>>Medium (50vh - Default)</option>
+                    <option value="tall" <?= $height === 'tall' ? 'selected' : '' ?>>Tall (70vh)</option>
+                    <option value="fullscreen" <?= $height === 'fullscreen' ? 'selected' : '' ?>>Fullscreen (100vh)</option>
+                    <option value="custom" <?= $height === 'custom' ? 'selected' : '' ?>>Custom CSS Height</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-bold text-stone-700 uppercase mb-1">Custom Height (px / vh)</label>
+                <input type="text" name="hero_<?= e($pageKey) ?>_custom_height" value="<?= e($customHeight) ?>" placeholder="e.g. 450px or 60vh" class="w-full border border-stone-300 rounded-lg p-2.5 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-[#343c0a]">
+            </div>
+
+            <div>
+                <label class="block font-bold text-stone-700 uppercase mb-1">Dark Overlay Opacity</label>
+                <select name="hero_<?= e($pageKey) ?>_overlay" class="w-full border border-stone-300 rounded-lg p-2.5 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-[#343c0a]">
+                    <option value="none" <?= $overlay === 'none' ? 'selected' : '' ?>>Minimal Tint (15%)</option>
+                    <option value="light" <?= $overlay === 'light' ? 'selected' : '' ?>>Light Overlay (35%)</option>
+                    <option value="medium" <?= $overlay === 'medium' ? 'selected' : '' ?>>Medium Standard (60%)</option>
+                    <option value="dark" <?= $overlay === 'dark' ? 'selected' : '' ?>>High Contrast Dark (80%)</option>
+                    <option value="deep" <?= $overlay === 'deep' ? 'selected' : '' ?>>Deep Blackout (95%)</option>
+                    <option value="custom" <?= $overlay === 'custom' ? 'selected' : '' ?>>Custom Opacity %</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-bold text-stone-700 uppercase mb-1">Custom Opacity (0-100%)</label>
+                <input type="number" name="hero_<?= e($pageKey) ?>_custom_overlay" value="<?= e($customOverlay) ?>" min="0" max="100" placeholder="e.g. 45 or 75" class="w-full border border-stone-300 rounded-lg p-2.5 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-[#343c0a]">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2 border-t border-stone-100">
+            <div>
+                <?= render_image_uploader_field("hero_{$pageKey}_image", $image, 'Hero Background Image', 'brand', [
+                    'required' => false,
+                    'helper' => 'High-res image banner with Media Library picker'
+                ]) ?>
+            </div>
+            <div>
+                <?= render_video_uploader_field("hero_{$pageKey}_video", $video, 'Hero Background Video', 'videos', [
+                    'required' => false,
+                    'helper' => 'Optional ambient video loop (MP4/WebM)'
+                ]) ?>
+            </div>
+        </div>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+
+/**
+ * Process POST request for Hero settings
+ */
+function process_hero_settings_post(): void {
+    $keys = $_POST['hero_page_keys'] ?? [];
+    foreach ($keys as $pk) {
+        $pk = preg_replace('/[^a-zA-Z0-9_-]/', '', $pk);
+        if (empty($pk)) continue;
+
+        if (isset($_POST["hero_{$pk}_badge"])) set_hero_setting($pk, 'badge', trim($_POST["hero_{$pk}_badge"]));
+        if (isset($_POST["hero_{$pk}_title"])) set_hero_setting($pk, 'title', trim($_POST["hero_{$pk}_title"]));
+        if (isset($_POST["hero_{$pk}_subtitle"])) set_hero_setting($pk, 'subtitle', trim($_POST["hero_{$pk}_subtitle"]));
+        if (isset($_POST["hero_{$pk}_image"])) set_hero_setting($pk, 'image', trim($_POST["hero_{$pk}_image"]));
+        if (isset($_POST["hero_{$pk}_video"])) set_hero_setting($pk, 'video', trim($_POST["hero_{$pk}_video"]));
+        if (isset($_POST["hero_{$pk}_height"])) set_hero_setting($pk, 'height', trim($_POST["hero_{$pk}_height"]));
+        if (isset($_POST["hero_{$pk}_custom_height"])) set_hero_setting($pk, 'custom_height', trim($_POST["hero_{$pk}_custom_height"]));
+        if (isset($_POST["hero_{$pk}_overlay"])) set_hero_setting($pk, 'overlay', trim($_POST["hero_{$pk}_overlay"]));
+        if (isset($_POST["hero_{$pk}_custom_overlay"])) set_hero_setting($pk, 'custom_overlay', trim($_POST["hero_{$pk}_custom_overlay"]));
+    }
+}
+
+
+
+
 
 
 

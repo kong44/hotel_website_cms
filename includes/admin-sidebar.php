@@ -24,7 +24,11 @@ try {
 if (!function_exists('is_admin_active')) {
     function is_admin_active(string|array $files, string $current): string {
         $fileList = is_array($files) ? $files : [$files];
-        return in_array($current, $fileList, true) 
+        $isActive = in_array($current, $fileList, true);
+        if (!$isActive && class_exists('Router')) {
+            $isActive = Router::isActive($fileList);
+        }
+        return $isActive 
             ? 'bg-[#343c0a] text-[#dfe8a6] font-semibold shadow-sm' 
             : 'text-stone-300 hover:bg-stone-800/80 hover:text-white';
     }
@@ -119,8 +123,27 @@ if (!function_exists('is_admin_active')) {
 
         <a href="<?= BASE_URL ?>/admin/gallery.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('gallery.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">photo_library</span>
-            <span>Gallery & Media</span>
+            <span>Photo Gallery</span>
         </a>
+
+        <a href="<?= BASE_URL ?>/admin/media.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('media.php', $currentScript) ?>">
+            <span class="material-symbols-outlined text-lg">perm_media</span>
+            <span>Media Library</span>
+        </a>
+
+        <a href="<?= BASE_URL ?>/admin/page-heroes.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('page-heroes.php', $currentScript) ?>">
+            <span class="material-symbols-outlined text-lg">view_day</span>
+            <span>Page Heroes & Banners</span>
+        </a>
+
+        <a href="<?= BASE_URL ?>/admin/pages.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active(['pages.php', 'page-builder.php'], $currentScript) ?>">
+            <span class="material-symbols-outlined text-lg">auto_stories</span>
+            <span>Custom Dynamic Pages</span>
+        </a>
+
+
+
+
 
         <a href="<?= BASE_URL ?>/admin/locations.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('locations.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">pin_drop</span>

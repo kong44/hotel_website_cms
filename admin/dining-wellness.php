@@ -14,7 +14,15 @@ $adminTitle = 'Dining & Wellness Editor';
 
 // Handle Save / Update
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    if (!empty($_POST['hero_page_keys']) || isset($_POST['save_hero_settings'])) {
+        process_hero_settings_post();
+        set_flash('success', 'Dining & Wellness page heroes updated.');
+        header('Location: ' . BASE_URL . '/admin/dining-wellness.php');
+        exit;
+    }
+
     $itemId = (int)($_POST['item_id'] ?? 0);
+
     $type = $_POST['type'] ?? 'dining';
     $title = trim($_POST['title'] ?? '');
     $subtitle = trim($_POST['subtitle'] ?? '');
@@ -91,6 +99,41 @@ require_once __DIR__ . '/../includes/admin-header.php';
             <span>Add Venue / Service</span>
         </button>
     </div>
+
+    <!-- Page Heroes Editor Collapsible Card -->
+    <details class="bg-stone-900 text-white rounded-2xl border border-stone-800 shadow-md overflow-hidden">
+        <summary class="px-6 py-4 font-bold text-xs uppercase tracking-wider text-[#dfe8a6] cursor-pointer flex items-center justify-between hover:bg-stone-800 transition">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">view_day</span>
+                <span>Edit Dining & Wellness Page Hero Banners</span>
+            </div>
+            <span class="text-[10px] text-stone-400 font-normal">Click to expand / collapse</span>
+        </summary>
+        <div class="p-6 bg-stone-50 text-stone-900 border-t border-stone-800 space-y-6">
+            <form action="<?= BASE_URL ?>/admin/dining-wellness.php" method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="<?= Auth::generateCsrf() ?>">
+                <?= render_admin_hero_editor_card('dining', 'Dining & Bistro', [
+                    'badge' => 'Culinary Artistry',
+                    'title' => 'Eat & Drink',
+                    'subtitle' => 'From artisanal morning coffee to sunset cocktails and fine Asian-fusion dining, indulge in an elevated gastronomic atmosphere.',
+                    'image' => 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80'
+                ]) ?>
+                <?= render_admin_hero_editor_card('wellness', 'Gym, Pool & Wellness', [
+                    'badge' => 'Rejuvenation & Mindful Living',
+                    'title' => 'Gym, Pool & Wellness',
+                    'subtitle' => 'Revitalize your body and mind in our state-of-the-art fitness center and serene outdoor saltwater swimming pool.',
+                    'image' => 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80'
+                ]) ?>
+                <div class="flex justify-end">
+                    <button type="submit" name="save_hero_settings" value="1" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded-lg text-xs font-bold transition shadow flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-base">save</span>
+                        <span>Save Hero Banners</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </details>
+
 
     <!-- Items Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -87,12 +87,17 @@ if (isset($_POST['chunk_index'])) {
         fclose($out);
 
         $publicUrl = BASE_URL . '/uploads/' . ($folder ? $folder . '/' : '') . $finalFilename;
+        
+        // Record in media_uploads database
+        Uploader::recordMedia($finalFilename, $originalName, $folder, $publicUrl);
+
         echo json_encode([
             'success' => true,
             'url' => $publicUrl,
             'filename' => $finalFilename
         ]);
         exit;
+
     } else {
         // Intermediate chunk saved
         echo json_encode([

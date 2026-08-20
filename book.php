@@ -228,7 +228,7 @@ require_once __DIR__ . '/includes/header.php';
                     <span class="material-symbols-outlined text-base">print</span>
                     <span>Print Confirmation Voucher</span>
                 </button>
-                <a href="<?= BASE_URL ?>/index.php" class="border border-stone-300 hover:bg-stone-100 text-stone-700 px-6 py-3 rounded-lg font-semibold text-sm transition">
+                <a href="<?= url('/home') ?>" class="border border-stone-300 hover:bg-stone-100 text-stone-700 px-6 py-3 rounded-lg font-semibold text-sm transition">
                     Return to Homepage
                 </a>
             </div>
@@ -247,7 +247,7 @@ require_once __DIR__ . '/includes/header.php';
                         <p class="text-xs text-stone-500 mt-1">Please provide the primary guest details for reservation registration.</p>
                     </div>
 
-                    <form action="<?= BASE_URL ?>/book.php" method="POST" class="space-y-4" id="booking_checkout_form">
+                    <form action="<?= url('/book') ?>" method="POST" class="space-y-4" id="booking_checkout_form">
                         <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
                         <input type="hidden" name="submit_booking" value="1">
                         <input type="hidden" name="room_id" value="<?= $selectedRoomId ?>">
@@ -364,7 +364,7 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="pt-4 border-t border-stone-100">
                         <details class="text-xs">
                             <summary class="cursor-pointer text-[#4B5320] font-semibold hover:underline">Change Dates or Room Type</summary>
-                            <form action="<?= BASE_URL ?>/book.php" method="GET" class="mt-3 space-y-3">
+                            <form action="<?= url('/book') ?>" method="GET" class="mt-3 space-y-3">
                                 <div>
                                     <label class="block text-stone-500 mb-1">Room Type</label>
                                     <select name="room_id" class="w-full border border-stone-300 rounded p-2 text-xs">

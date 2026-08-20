@@ -33,7 +33,7 @@ if (!$offer) {
 }
 
 if (!$offer) {
-    header('Location: ' . BASE_URL . '/offers.php');
+    header('Location: ' . url('/offers'));
     exit;
 }
 
@@ -46,6 +46,45 @@ $validTo = !empty($offer['valid_to']) ? $offer['valid_to'] : null;
 $imageUrl = !empty($offer['image_url']) ? $offer['image_url'] : 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80';
 $bookingUrl = get_offer_booking_url($offer);
 $bookingTarget = get_booking_target();
+
+// Dynamic Inclusions & Terms
+$inclusionsText = __td($offer, 'inclusions', '');
+$inclusionsList = [];
+if (!empty($inclusionsText)) {
+    $lines = explode("\n", $inclusionsText);
+    foreach ($lines as $line) {
+        $clean = trim($line);
+        if (!empty($clean)) $inclusionsList[] = $clean;
+    }
+}
+if (empty($inclusionsList)) {
+    $inclusionsList = [
+        'Daily Gourmet Breakfast for all registered guests',
+        'Signature Welcome Drink & chilled refreshment upon arrival',
+        '15% Privilege Savings at Khmer Spa & Wellness Center',
+        'Late Check-out until 2:00 PM (subject to availability)',
+        'Saltwater Pool & Gym unlimited private sanctuary access',
+        'High-Speed Fiber Wi-Fi in all suites and public grounds'
+    ];
+}
+
+$termsText = __td($offer, 'terms', '');
+$termsList = [];
+if (!empty($termsText)) {
+    $lines = explode("\n", $termsText);
+    foreach ($lines as $line) {
+        $clean = trim($line);
+        if (!empty($clean)) $termsList[] = $clean;
+    }
+}
+if (empty($termsList)) {
+    $termsList = [
+        'Offer is valid for direct online bookings made via our official portal or authorized engine.',
+        'Promotion cannot be combined with other ongoing vouchers or group tour rates.',
+        'Subject to room category availability at the time of reservation.',
+        'Free cancellation up to 48 hours prior to 2:00 PM check-in date.'
+    ];
+}
 
 // Fetch other active offers
 $stmtOther = $pdo->prepare("SELECT * FROM special_offers WHERE is_active = 1 AND id != ? ORDER BY display_order ASC, id ASC LIMIT 2");
@@ -67,9 +106,9 @@ require_once __DIR__ . '/includes/header.php';
 <div class="bg-stone-100 border-b border-stone-200 py-3">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav class="flex items-center text-xs font-medium text-stone-500 space-x-2">
-            <a href="<?= BASE_URL ?>/index.php" class="hover:text-[#343c0a] transition"><?= __t('nav_home', 'Home') ?></a>
+            <a href="<?= url('/home') ?>" class="hover:text-[#343c0a] transition"><?= __t('nav_home', 'Home') ?></a>
             <span class="material-symbols-outlined text-xs">chevron_right</span>
-            <a href="<?= BASE_URL ?>/offers.php" class="hover:text-[#343c0a] transition"><?= __t('nav_offers', 'Special Offers') ?></a>
+            <a href="<?= url('/offers') ?>" class="hover:text-[#343c0a] transition"><?= __t('nav_offers', 'Special Offers') ?></a>
             <span class="material-symbols-outlined text-xs">chevron_right</span>
             <span class="text-stone-800 font-semibold truncate max-w-[200px] sm:max-w-md"><?= e($offerTitle) ?></span>
         </nav>
@@ -126,16 +165,31 @@ require_once __DIR__ . '/includes/header.php';
             <!-- Left Column: Image, Narrative & Package Inclusions -->
             <div class="lg:col-span-8 space-y-10 reveal reveal-left">
                 
-                <!-- Main Featured Photo Banner -->
-                <div class="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-sm">
-                    <div class="relative h-[320px] sm:h-[440px] overflow-hidden">
-                        <img src="<?= e($imageUrl) ?>" alt="<?= e($offerTitle) ?>" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700">
-                        <div class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm text-white text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-sm text-[#dfe8a6]">loyalty</span>
-                            <span>Exclusive Package</span>
+                <?php
+                $offerImageFit = 'object-contain';
+                if (!empty($offer['translations_json'])) {
+                    $tData = json_decode($offer['translations_json'], true);
+                    if (($tData['en']['image_fit'] ?? '') === 'cover') {
+                        $offerImageFit = 'object-cover';
+                    }
+                }
+                ?>
+                <!-- Main Featured Photo Banner with Lightbox Trigger -->
+                <div class="bg-transparent rounded-3xl overflow-hidden cursor-pointer group relative p-0 border-0 shadow-none"
+                     onclick="openPhotoPreview([<?= e(json_encode($imageUrl)) ?>], 0, <?= e(json_encode($offerTitle)) ?>)">
+                    <div class="relative w-full h-64 sm:h-[480px] flex items-center justify-center bg-transparent rounded-2xl overflow-hidden border-0 shadow-none">
+                        <img src="<?= e($imageUrl) ?>" alt="<?= e($offerTitle) ?>" class="w-full h-full <?= $offerImageFit ?> rounded-2xl group-hover:scale-102 transition-transform duration-500 border-0 shadow-none">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-2xl flex items-end p-6">
+                            <span class="inline-flex items-center gap-2 bg-black/75 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-lg border border-white/20">
+                                <span class="material-symbols-outlined text-base">fullscreen</span>
+                                <span>Click to View Fullscreen Photo Banner</span>
+                            </span>
                         </div>
                     </div>
                 </div>
+
+
+
 
                 <!-- Package Narrative & Overview -->
                 <div class="bg-white rounded-3xl p-6 sm:p-10 border border-stone-200 shadow-sm space-y-6">
@@ -156,30 +210,12 @@ require_once __DIR__ . '/includes/header.php';
                         </h3>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs sm:text-sm">
+                            <?php foreach ($inclusionsList as $inc): ?>
                             <div class="flex items-start gap-2.5 p-3 rounded-xl bg-stone-50 border border-stone-100">
                                 <span class="material-symbols-outlined text-base text-emerald-700 mt-0.5">check_circle</span>
-                                <span class="text-stone-700"><strong>Daily Gourmet Breakfast</strong> for all registered guests</span>
+                                <span class="text-stone-700"><?= e($inc) ?></span>
                             </div>
-                            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-stone-50 border border-stone-100">
-                                <span class="material-symbols-outlined text-base text-emerald-700 mt-0.5">check_circle</span>
-                                <span class="text-stone-700"><strong>Signature Welcome Drink</strong> & chilled refreshment upon arrival</span>
-                            </div>
-                            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-stone-50 border border-stone-100">
-                                <span class="material-symbols-outlined text-base text-emerald-700 mt-0.5">check_circle</span>
-                                <span class="text-stone-700"><strong>15% Privilege Savings</strong> at the Khmer Spa & Wellness Center</span>
-                            </div>
-                            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-stone-50 border border-stone-100">
-                                <span class="material-symbols-outlined text-base text-emerald-700 mt-0.5">check_circle</span>
-                                <span class="text-stone-700"><strong>Late Check-out</strong> until 2:00 PM (subject to availability)</span>
-                            </div>
-                            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-stone-50 border border-stone-100">
-                                <span class="material-symbols-outlined text-base text-emerald-700 mt-0.5">check_circle</span>
-                                <span class="text-stone-700"><strong>Saltwater Pool & Gym</strong> unlimited private sanctuary access</span>
-                            </div>
-                            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-stone-50 border border-stone-100">
-                                <span class="material-symbols-outlined text-base text-emerald-700 mt-0.5">check_circle</span>
-                                <span class="text-stone-700"><strong>High-Speed Fiber Wi-Fi</strong> in all suites and public grounds</span>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
@@ -187,16 +223,16 @@ require_once __DIR__ . '/includes/header.php';
                     <div class="pt-6 border-t border-stone-100">
                         <h3 class="font-headline font-bold text-base text-onyx-charcoal mb-2">Terms & Reservation Policy</h3>
                         <ul class="list-disc list-inside text-xs text-stone-500 space-y-1.5 leading-relaxed">
-                            <li>Offer is valid for direct online bookings made via our official portal or authorized engine.</li>
-                            <li>Promotion cannot be combined with other ongoing vouchers or group tour rates.</li>
-                            <li>Subject to room category availability at the time of reservation.</li>
-                            <li>Free cancellation up to 48 hours prior to 2:00 PM check-in date.</li>
+                            <?php foreach ($termsList as $term): ?>
+                                <li><?= e($term) ?></li>
+                            <?php endforeach; ?>
                         </ul>
                     </div>
 
                 </div>
 
             </div>
+
 
             <!-- Right Column: Booking Widget & Promo Code Sidebar -->
             <div class="lg:col-span-4 space-y-6 lg:sticky lg:top-28 reveal reveal-right">
@@ -277,7 +313,7 @@ require_once __DIR__ . '/includes/header.php';
                 <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#4B5320] block mb-1">More Privileges</span>
                 <h2 class="font-headline text-2xl sm:text-3xl font-bold text-onyx-charcoal">Other Special Offers</h2>
             </div>
-            <a href="<?= BASE_URL ?>/offers.php" class="text-xs font-bold text-[#343c0a] hover:underline flex items-center gap-1">
+            <a href="<?= url('/offers') ?>" class="text-xs font-bold text-[#343c0a] hover:underline flex items-center gap-1">
                 <span>View All Offers</span>
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
             </a>
@@ -302,7 +338,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
 
                     <div class="flex items-center gap-2 pt-2">
-                        <a href="<?= BASE_URL ?>/offer-detail.php?id=<?= $other['id'] ?>" class="flex-1 text-center px-3 py-2 border border-stone-300 hover:border-stone-400 text-stone-700 rounded-lg text-xs font-bold transition">
+                        <a href="<?= url('/offer/' . $other['id']) ?>" class="flex-1 text-center px-3 py-2 border border-stone-300 hover:border-stone-400 text-stone-700 rounded-lg text-xs font-bold transition">
                             View Details
                         </a>
                         <a href="<?= e(get_offer_booking_url($other)) ?>" target="<?= e(get_booking_target()) ?>" class="flex-1 text-center px-3 py-2 bg-[#343c0a] hover:bg-deep-olive text-white rounded-lg text-xs font-bold transition">

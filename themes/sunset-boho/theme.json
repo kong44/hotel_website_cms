@@ -1,0 +1,22 @@
+{
+    "slug": "sunset-boho",
+    "name": "Sunset Terracotta Luxe",
+    "description": "Earthy boutique aesthetic featuring warm terracotta clay tones, amber gold highlights, and elegant serif typography.",
+    "version": "1.0.0",
+    "author": "Indra Design Studio",
+    "price": 0.00,
+    "is_free": true,
+    "preview_thumbnail": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=600&q=80",
+    "colors": {
+        "primary": "#a04726",
+        "primary_hover": "#7e351b",
+        "accent": "#f4d06f",
+        "dark": "#1e130c",
+        "bg": "#faf5f0",
+        "card_bg": "#ffffff"
+    },
+    "fonts": {
+        "headline": "Lora, serif",
+        "body": "Open Sans, sans-serif"
+    }
+}

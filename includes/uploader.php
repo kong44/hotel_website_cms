@@ -91,6 +91,10 @@ class Uploader {
 
         if ($moved) {
             $publicUrl = BASE_URL . '/uploads/' . ($safeFolder ? $safeFolder . '/' : '') . $uniqueFilename;
+            
+            // Record in media_uploads database
+            self::recordMedia($uniqueFilename, $originalName, $safeFolder, $publicUrl);
+
             return [
                 'success' => true,
                 'url' => $publicUrl,
@@ -101,4 +105,49 @@ class Uploader {
 
         return ['success' => false, 'error' => 'Failed to move uploaded file to destination.'];
     }
+
+    /**
+     * Record uploaded file metadata in media_uploads table
+     */
+    public static function recordMedia(string $filename, string $originalName, string $folder, string $publicUrl): int {
+        try {
+            require_once __DIR__ . '/db.php';
+            $pdo = getDB();
+            $safeFolder = preg_replace('/[^a-zA-Z0-9_-]/', '', $folder);
+            $relPath = 'uploads/' . ($safeFolder ? $safeFolder . '/' : '') . $filename;
+            $fullPath = ROOT_PATH . '/' . $relPath;
+
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $imageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'ico'];
+            $videoExts = ['mp4', 'webm', 'ogv', 'mov', 'm4v'];
+
+            $fileType = 'other';
+            if (in_array($ext, $imageExts, true)) {
+                $fileType = 'image';
+            } elseif (in_array($ext, $videoExts, true)) {
+                $fileType = 'video';
+            }
+
+            $mimeType = function_exists('mime_content_type') && file_exists($fullPath) ? @mime_content_type($fullPath) : null;
+            $size = file_exists($fullPath) ? filesize($fullPath) : 0;
+            $userId = class_exists('Auth') && Auth::check() ? (Auth::id() ?: null) : null;
+
+            $stmt = $pdo->prepare("INSERT INTO media_uploads (filename, original_name, file_path, url, folder, file_type, mime_type, file_size, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $filename,
+                $originalName ?: $filename,
+                $relPath,
+                $publicUrl,
+                $safeFolder ?: 'general',
+                $fileType,
+                $mimeType ?: null,
+                $size,
+                $userId
+            ]);
+            return (int)$pdo->lastInsertId();
+        } catch (Throwable $e) {
+            return 0;
+        }
+    }
 }
+

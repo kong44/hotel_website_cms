@@ -4,6 +4,15 @@
  */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/router.php';
+
+// If this request was rewritten to index.php for a route other than home, dispatch it
+$reqPath = Router::getRequestPath();
+if ($reqPath !== '/' && $reqPath !== '/home' && $reqPath !== '/index.php') {
+    Router::dispatch();
+    exit;
+}
+
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/helpers.php';
 require_once __DIR__ . '/includes/seo.php';
@@ -123,7 +132,7 @@ require_once __DIR__ . '/includes/header.php';
         <!-- Quick Booking Bar Widget -->
         <?php if (get_setting('home_hero_show_search', '1') === '1'): ?>
         <div class="bg-white text-stone-900 rounded-xl shadow-2xl p-4 sm:p-6 max-w-4xl mx-auto border border-stone-200 reveal reveal-scale stagger-2">
-            <form action="<?= BASE_URL ?>/book.php" method="GET" target="<?= e(get_booking_target()) ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+            <form action="<?= url('/book') ?>" method="GET" target="<?= e(get_booking_target()) ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
                 <!-- Check In -->
                 <div>
                     <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1"><?= __t('search_checkin', 'Check-in') ?></label>
@@ -303,7 +312,7 @@ $roomsBtnText = get_setting('home_rooms_btn_text', __t('rooms_view_all', 'View A
                 <?php endif; ?>
             </div>
             <div class="mt-6 md:mt-0">
-                <a href="<?= BASE_URL ?>/rooms.php" class="inline-flex items-center gap-2 text-sm font-semibold text-[#343c0a] hover:text-deep-olive group">
+                <a href="<?= url('/rooms') ?>" class="inline-flex items-center gap-2 text-sm font-semibold text-[#343c0a] hover:text-deep-olive group">
                     <span><?= e($roomsBtnText) ?></span>
                     <span class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </a>
@@ -337,7 +346,7 @@ $roomsBtnText = get_setting('home_rooms_btn_text', __t('rooms_view_all', 'View A
                         </div>
 
                         <h3 class="font-headline font-bold text-xl text-onyx-charcoal mb-2">
-                            <a href="<?= BASE_URL ?>/room.php?slug=<?= urlencode($room['slug']) ?>" class="hover:text-[#4B5320] transition">
+                            <a href="<?= url('/room/' . urlencode($room['slug'])) ?>" class="hover:text-[#4B5320] transition">
                                 <?= e(__td($room, 'name', $room['name'])) ?>
                             </a>
                         </h3>
@@ -348,7 +357,7 @@ $roomsBtnText = get_setting('home_rooms_btn_text', __t('rooms_view_all', 'View A
                     </div>
 
                     <div class="pt-4 border-t border-stone-200 flex items-center justify-between">
-                        <a href="<?= BASE_URL ?>/room.php?slug=<?= urlencode($room['slug']) ?>" class="text-sm font-semibold text-stone-700 hover:text-[#343c0a] transition flex items-center gap-1">
+                        <a href="<?= url('/room/' . urlencode($room['slug'])) ?>" class="text-sm font-semibold text-stone-700 hover:text-[#343c0a] transition flex items-center gap-1">
                             <span><?= __t('rooms_details', 'Details') ?></span>
                             <span class="material-symbols-outlined text-base">arrow_forward</span>
                         </a>
@@ -372,14 +381,14 @@ $diningTitle = get_setting('home_dining_title', __t('dining_title', 'The Bistro 
 $diningDesc = get_setting('home_dining_desc', __t('dining_desc', 'Indulge in an exquisite culinary journey featuring international and Asian-fusion cuisine with a contemporary twist.'));
 $diningImg = get_setting('home_dining_image', 'https://lh3.googleusercontent.com/aida/AP1WRLu4xqDm5eXV-bc_ApYrUK1GnN0Euq-6ES4WN642l6K8VhewdBb_YkEtWSSt-tybo0AKJFBQh2oRWlfCx42rbsSmJsLPSmn2ODfXDog-y3cHuE5NTuWtSDiZptOZNk-bMlpk3s-xS7TRQHWRaUeUH0_bRiicGwQeGjy6gBDbaO4KosbM7QsKUNWT0PhQSHXUnhupahrd4i6fqtDtt53ZX2XGRn06_VQba3YHrkQ1BSNwkc5KeAJ3nMpX63ho');
 $diningBtnText = get_setting('home_dining_btn_text', __t('dining_explore', 'Explore Dining Menus'));
-$diningBtnUrl = get_setting('home_dining_btn_url', 'eat-drink.php');
+$diningBtnUrl = get_setting('home_dining_btn_url', '/eat-drink');
 
 $wellnessBadge = get_setting('home_wellness_badge', 'Health & Vitality');
 $wellnessTitle = get_setting('home_wellness_title', 'Fitness Center, Pool & Spa');
 $wellnessDesc = get_setting('home_wellness_desc', 'Stay invigorated with our state-of-the-art training gear, workout machines, and our serene outdoor saltwater pool open daily from 7:00 AM to 9:00 PM. Unwind afterwards with authentic Khmer herbal massage treatments designed to soothe mind and body.');
 $wellnessImg = get_setting('home_wellness_image', 'https://lh3.googleusercontent.com/aida/AP1WRLuptPITXoiXpQR1wIOmYOuIMSUpJR1sTCXJga7uhGTXxKzccE6d21YAs-Fz3vugKf8Di3bkOx3Z2SAFqzNx65b_Uw7N7kpd85zK1LmfmQdCORWGDlOrtH72JS6rhGzsyzxnD8WonzUh6ObvlE7ID6Qbn5drvwWEj2vxz-cViALFQ0lhcHoW29UYsHXJWpGDyXLv5D6oiMwysDWC5sB1LzkdFz773ymQ3ZZ8FBQ4aSJgr2zufcudA_X7GzK5');
 $wellnessBtnText = get_setting('home_wellness_btn_text', 'Discover Wellness');
-$wellnessBtnUrl = get_setting('home_wellness_btn_url', 'wellness.php');
+$wellnessBtnUrl = get_setting('home_wellness_btn_url', '/wellness');
 ?>
 <section class="py-20 bg-[#f3f3f4]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -502,7 +511,7 @@ try {
                     $spotSlug = !empty($spot['slug']) ? $spot['slug'] : $spot['id'];
                     $spotImg = !empty($spot['image_url']) ? $spot['image_url'] : 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=800&q=80';
                 ?>
-                <a href="<?= BASE_URL ?>/location-detail.php?slug=<?= e($spotSlug) ?>" 
+                <a href="<?= url('/location/' . urlencode($spotSlug)) ?>" 
                    class="bg-white rounded-2xl overflow-hidden border border-stone-200 shadow-2xs hover:shadow-xl hover:border-[#343c0a]/40 transition duration-300 flex flex-col justify-between group reveal reveal-scale stagger-<?= $j++ ?>">
                     <div>
                         <!-- Photo on Top of Card -->
@@ -542,7 +551,7 @@ try {
         </div>
 
         <div class="text-center mt-12 reveal reveal-up">
-            <a href="<?= BASE_URL ?>/location.php" class="inline-flex items-center gap-2 bg-[#343c0a] hover:bg-deep-olive text-white px-7 py-3 rounded text-sm font-semibold tracking-wide transition shadow-sm hover:shadow btn-shimmer">
+            <a href="<?= url('/location') ?>" class="inline-flex items-center gap-2 bg-[#343c0a] hover:bg-deep-olive text-white px-7 py-3 rounded text-sm font-semibold tracking-wide transition shadow-sm hover:shadow btn-shimmer">
                 <span><?= e($locBtnText) ?></span>
                 <span class="material-symbols-outlined text-base">explore</span>
             </a>

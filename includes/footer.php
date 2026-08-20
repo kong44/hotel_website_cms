@@ -57,11 +57,11 @@ require_once __DIR__ . '/i18n.php';
                 <div>
                     <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;"><?= __t('nav_rooms', 'Accommodations') ?></h3>
                     <ul class="space-y-2.5 text-sm text-stone-300">
-                        <li><a href="<?= BASE_URL ?>/rooms.php" class="hover:text-white transition">All Rooms & Suites</a></li>
-                        <li><a href="<?= BASE_URL ?>/room.php?slug=deluxe-king" class="hover:text-white transition">Deluxe King Room</a></li>
-                        <li><a href="<?= BASE_URL ?>/room.php?slug=junior-suite" class="hover:text-white transition">Junior Suite with Balcony</a></li>
-                        <li><a href="<?= BASE_URL ?>/room.php?slug=indra-suite" class="hover:text-white transition">Indra Suite with Balcony</a></li>
-                        <li><a href="<?= BASE_URL ?>/offers.php" class="hover:text-white transition">Special Offers & Deals</a></li>
+                        <li><a href="<?= url('/rooms') ?>" class="hover:text-white transition">All Rooms & Suites</a></li>
+                        <li><a href="<?= url('/room/deluxe-king') ?>" class="hover:text-white transition">Deluxe King Room</a></li>
+                        <li><a href="<?= url('/room/junior-suite') ?>" class="hover:text-white transition">Junior Suite with Balcony</a></li>
+                        <li><a href="<?= url('/room/indra-suite') ?>" class="hover:text-white transition">Indra Suite with Balcony</a></li>
+                        <li><a href="<?= url('/offers') ?>" class="hover:text-white transition">Special Offers & Deals</a></li>
                     </ul>
                 </div>
 
@@ -69,11 +69,11 @@ require_once __DIR__ . '/i18n.php';
                 <div>
                     <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;">Experiences</h3>
                     <ul class="space-y-2.5 text-sm text-stone-300">
-                        <li><a href="<?= BASE_URL ?>/eat-drink.php" class="hover:text-white transition">The Bistro & Cafe</a></li>
-                        <li><a href="<?= BASE_URL ?>/wellness.php" class="hover:text-white transition">Fitness Center & Pool</a></li>
-                        <li><a href="<?= BASE_URL ?>/wellness.php#spa" class="hover:text-white transition">Traditional Khmer Spa</a></li>
-                        <li><a href="<?= BASE_URL ?>/location.php" class="hover:text-white transition">Phnom Penh City Guide</a></li>
-                        <li><a href="<?= BASE_URL ?>/gallery.php" class="hover:text-white transition">Photo Gallery</a></li>
+                        <li><a href="<?= url('/about') ?>" class="hover:text-white transition">About Indra Sanctuary</a></li>
+                        <li><a href="<?= url('/eat-drink') ?>" class="hover:text-white transition">The Bistro & Cafe</a></li>
+                        <li><a href="<?= url('/wellness') ?>" class="hover:text-white transition">Fitness Center & Pool</a></li>
+                        <li><a href="<?= url('/location') ?>" class="hover:text-white transition">Phnom Penh City Guide</a></li>
+                        <li><a href="<?= url('/gallery') ?>" class="hover:text-white transition">Photo Gallery</a></li>
                     </ul>
                 </div>
 
@@ -94,7 +94,7 @@ require_once __DIR__ . '/i18n.php';
                             <a href="mailto:<?= e(hotel_email()) ?>" class="hover:text-white transition"><?= e(hotel_email()) ?></a>
                         </li>
                         <li class="pt-2">
-                            <a href="<?= BASE_URL ?>/my-booking.php" class="inline-flex items-center gap-1.5 text-xs hover:underline font-medium" style="color: <?= e(hotel_brand_color('highlight')) ?>;">
+                            <a href="<?= url('/my-booking') ?>" class="inline-flex items-center gap-1.5 text-xs hover:underline font-medium" style="color: <?= e(hotel_brand_color('highlight')) ?>;">
                                 <span class="material-symbols-outlined text-sm">manage_accounts</span>
                                 Lookup Existing Reservation
                             </a>
@@ -110,9 +110,9 @@ require_once __DIR__ . '/i18n.php';
                     <p>© <?= date('Y') ?> <?= e(hotel_name()) ?>. All Rights Reserved.</p>
                     <div class="hidden sm:inline text-stone-600">•</div>
                     <div class="flex items-center space-x-4">
-                        <a href="<?= BASE_URL ?>/sitemap.xml.php" class="hover:text-stone-200 transition">XML Sitemap</a>
+                        <a href="<?= url('/sitemap.xml') ?>" class="hover:text-stone-200 transition">XML Sitemap</a>
                         <span class="text-stone-600">•</span>
-                        <a href="<?= BASE_URL ?>/contact.php" class="hover:text-stone-200 transition">Help & Support</a>
+                        <a href="<?= url('/contact') ?>" class="hover:text-stone-200 transition">Help & Support</a>
                     </div>
                 </div>
 

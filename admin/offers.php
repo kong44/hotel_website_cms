@@ -14,7 +14,15 @@ $adminTitle = 'Special Offers & Promotions';
 
 // Handle Save
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    if (!empty($_POST['hero_page_keys']) || isset($_POST['save_hero_settings'])) {
+        process_hero_settings_post();
+        set_flash('success', 'Special Offers page hero updated.');
+        header('Location: ' . BASE_URL . '/admin/offers.php');
+        exit;
+    }
+
     $offerId = (int)($_POST['offer_id'] ?? 0);
+
     $title = trim($_POST['title'] ?? '');
     $promoCode = trim($_POST['promo_code'] ?? '');
     $discount = (int)($_POST['discount_percent'] ?? 0);
@@ -24,26 +32,40 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     $externalUrl = trim($_POST['external_url'] ?? '');
     $validTo = !empty($_POST['valid_to']) ? $_POST['valid_to'] : null;
 
+    $inclusions = trim($_POST['inclusions'] ?? '');
+    $terms = trim($_POST['terms'] ?? '');
+    $imageFit = in_array($_POST['image_fit'] ?? '', ['cover', 'contain']) ? $_POST['image_fit'] : 'contain';
+
     $translationsPayload = [
         'en' => [
             'title' => $title,
             'badge_text' => $badge,
-            'description' => $description
+            'description' => $description,
+            'inclusions' => $inclusions,
+            'terms' => $terms,
+            'image_fit' => $imageFit
         ],
+
         'km' => [
             'title' => trim($_POST['trans_km_title'] ?? ''),
             'badge_text' => trim($_POST['trans_km_badge'] ?? ''),
-            'description' => trim($_POST['trans_km_desc'] ?? '')
+            'description' => trim($_POST['trans_km_desc'] ?? ''),
+            'inclusions' => trim($_POST['trans_km_inclusions'] ?? ''),
+            'terms' => trim($_POST['trans_km_terms'] ?? '')
         ],
         'zh' => [
             'title' => trim($_POST['trans_zh_title'] ?? ''),
             'badge_text' => trim($_POST['trans_zh_badge'] ?? ''),
-            'description' => trim($_POST['trans_zh_desc'] ?? '')
+            'description' => trim($_POST['trans_zh_desc'] ?? ''),
+            'inclusions' => trim($_POST['trans_zh_inclusions'] ?? ''),
+            'terms' => trim($_POST['trans_zh_terms'] ?? '')
         ],
         'ko' => [
             'title' => trim($_POST['trans_ko_title'] ?? ''),
             'badge_text' => trim($_POST['trans_ko_badge'] ?? ''),
-            'description' => trim($_POST['trans_ko_desc'] ?? '')
+            'description' => trim($_POST['trans_ko_desc'] ?? ''),
+            'inclusions' => trim($_POST['trans_ko_inclusions'] ?? ''),
+            'terms' => trim($_POST['trans_ko_terms'] ?? '')
         ]
     ];
     $transJson = json_encode($translationsPayload, JSON_UNESCAPED_UNICODE);
@@ -59,6 +81,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             set_flash('success', "New offer '{$title}' created.");
         }
     }
+
     header('Location: ' . BASE_URL . '/admin/offers.php');
     exit;
 }
@@ -100,15 +123,44 @@ require_once __DIR__ . '/../includes/admin-header.php';
     
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h2 class="font-headline text-2xl font-bold text-onyx-charcoal">Promotional Offers & Codes</h2>
-            <p class="text-xs text-stone-500">Create promotional discount codes and special stay packages with active/inactive visibility controls.</p>
+            <h2 class="font-headline text-2xl font-bold text-onyx-charcoal">Special Offers & Promotions</h2>
+            <p class="text-xs text-stone-500">Manage promotional banners, direct discount promo codes, and stay packages.</p>
         </div>
-        <button onclick="openOfferModal(0, '', '', 15, '', 'Best Rate Guarantee', '', '', '{}', '')" 
+        <button onclick="openOfferModal(0, '', '', 0, '', 'Special Offer', '', '', '', '[]')" 
                 class="bg-[#343c0a] hover:bg-deep-olive text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide transition shadow flex items-center justify-center gap-2 cursor-pointer">
             <span class="material-symbols-outlined text-base">add</span>
             <span>Create New Offer</span>
         </button>
     </div>
+
+    <!-- Page Heroes Editor Collapsible Card -->
+    <details class="bg-stone-900 text-white rounded-2xl border border-stone-800 shadow-md overflow-hidden">
+        <summary class="px-6 py-4 font-bold text-xs uppercase tracking-wider text-[#dfe8a6] cursor-pointer flex items-center justify-between hover:bg-stone-800 transition">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">view_day</span>
+                <span>Edit Special Offers Page Hero Banner</span>
+            </div>
+            <span class="text-[10px] text-stone-400 font-normal">Click to expand / collapse</span>
+        </summary>
+        <div class="p-6 bg-stone-50 text-stone-900 border-t border-stone-800 space-y-6">
+            <form action="<?= BASE_URL ?>/admin/offers.php" method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="<?= Auth::generateCsrf() ?>">
+                <?= render_admin_hero_editor_card('offers', 'Special Offers & Packages', [
+                    'badge' => 'Exclusive Privilege',
+                    'title' => 'Special Offers & Packages',
+                    'subtitle' => 'Curated stay packages, seasonal discounts, and exclusive direct booking privileges at Indra Hotel.',
+                    'image' => 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1600&q=80'
+                ]) ?>
+                <div class="flex justify-end">
+                    <button type="submit" name="save_hero_settings" value="1" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded-lg text-xs font-bold transition shadow flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-base">save</span>
+                        <span>Save Special Offers Hero</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </details>
+
 
     <!-- Quick Status Filter Pills -->
     <div class="flex items-center gap-2 text-xs font-semibold">
@@ -288,7 +340,26 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <div id="offer-box-desc-ko" class="hidden"><textarea name="trans_ko_desc" id="modal_trans_ko_offer_desc" rows="3" placeholder="한국어 설명 (Korean Description - Optional)" class="w-full border border-stone-300 rounded p-2 text-xs"></textarea></div>
                 </div>
 
+                <!-- Package Inclusions Field (One inclusion per line) -->
+                <div class="bg-white p-3.5 rounded-lg border border-stone-200 space-y-1.5">
+                    <label class="font-bold text-stone-800 uppercase flex items-center justify-between">
+                        <span>Package Inclusions & Benefits</span>
+                        <span class="text-[10px] text-stone-400 font-normal">One item per line</span>
+                    </label>
+                    <textarea name="inclusions" id="modal_offer_inclusions" rows="3" placeholder="Daily Gourmet Breakfast for all guests&#10;Signature Welcome Drink & Refreshment&#10;15% Privilege Savings at Khmer Spa&#10;Late Check-out until 2:00 PM" class="w-full border border-stone-300 rounded p-2 text-xs font-mono"></textarea>
+                </div>
+
+                <!-- Terms & Conditions Field (One policy per line) -->
+                <div class="bg-white p-3.5 rounded-lg border border-stone-200 space-y-1.5">
+                    <label class="font-bold text-stone-800 uppercase flex items-center justify-between">
+                        <span>Terms & Reservation Policy</span>
+                        <span class="text-[10px] text-stone-400 font-normal">One rule per line</span>
+                    </label>
+                    <textarea name="terms" id="modal_offer_terms" rows="3" placeholder="Valid for direct online bookings only&#10;Cannot be combined with other vouchers&#10;Free cancellation up to 48 hours prior" class="w-full border border-stone-300 rounded p-2 text-xs font-mono"></textarea>
+                </div>
+
             </div>
+
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -319,11 +390,29 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <input type="date" name="valid_to" id="modal_offer_valid_to" class="w-full border border-stone-300 rounded-lg p-2.5 text-xs">
                 </div>
                 <div>
-                    <?= render_image_uploader_field('image_url', '', 'Banner Image File / URL', 'offers', [
-                        'required' => true,
-                        'helper' => 'Upload image file or paste URL'
-                    ]) ?>
+                    <label class="block font-bold text-stone-700 uppercase mb-1">Banner Image Fit Mode</label>
+                    <input type="hidden" name="image_fit" id="modal_offer_image_fit" value="contain">
+                    <div class="inline-flex p-0.5 bg-stone-100 rounded-lg border border-stone-200 w-full gap-0.5">
+                        <button type="button" id="btn-fit-contain" onclick="setImageFitMode('contain')" 
+                                class="flex-1 px-2 py-1 rounded text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer bg-[#343c0a] text-white shadow-2xs">
+                            <span class="material-symbols-outlined text-xs">fit_screen</span>
+                            <span>Uncropped</span>
+                        </button>
+                        <button type="button" id="btn-fit-cover" onclick="setImageFitMode('cover')" 
+                                class="flex-1 px-2 py-1 rounded text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer text-stone-600 hover:text-stone-900 hover:bg-white">
+                            <span class="material-symbols-outlined text-xs">crop</span>
+                            <span>Fill Box</span>
+                        </button>
+                    </div>
+
                 </div>
+            </div>
+
+            <div>
+                <?= render_image_uploader_field('image_url', '', 'Banner Image File / URL', 'offers', [
+                    'required' => true,
+                    'helper' => 'Upload image file or paste URL'
+                ]) ?>
             </div>
 
             <div class="pt-4 border-t border-stone-200 flex justify-end gap-3">
@@ -335,6 +424,26 @@ require_once __DIR__ . '/../includes/admin-header.php';
 </div>
 
 <script>
+function setImageFitMode(mode) {
+    const val = (mode === 'cover') ? 'cover' : 'contain';
+    document.getElementById('modal_offer_image_fit').value = val;
+    
+    const btnContain = document.getElementById('btn-fit-contain');
+    const btnCover = document.getElementById('btn-fit-cover');
+    
+    const activeClass = 'flex-1 px-2.5 py-1.5 rounded text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer bg-[#343c0a] text-white shadow-2xs';
+    const inactiveClass = 'flex-1 px-2.5 py-1.5 rounded text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer text-stone-600 hover:text-stone-900 hover:bg-white';
+
+    if (val === 'cover') {
+        btnCover.className = activeClass;
+        btnContain.className = inactiveClass;
+    } else {
+        btnContain.className = activeClass;
+        btnCover.className = inactiveClass;
+    }
+}
+
+
 function switchOfferLang(field, lang) {
     const langs = ['en', 'km', 'zh', 'ko'];
     langs.forEach(l => {
@@ -366,10 +475,10 @@ function openOfferModal(id, title, code, disc, desc, badge, img, validTo, transJ
     document.getElementById('modal_offer_badge').value = badge || '';
     document.getElementById('modal_offer_external_url').value = externalUrl || '';
     
-    const imgInput = document.querySelector('#offer-modal input[name="image_url"]');
-    if (imgInput) {
-        imgInput.value = img || '';
-        imgInput.dispatchEvent(new Event('input', { bubbles: true }));
+    if (img) {
+        handleImageUrlInput(img, 'image_url');
+    } else {
+        clearImageUpload('image_url');
     }
 
     document.getElementById('modal_offer_valid_to').value = validTo || '';
@@ -381,9 +490,18 @@ function openOfferModal(id, title, code, disc, desc, badge, img, validTo, transJ
         trans = typeof transJson === 'string' ? JSON.parse(transJson || '{}') : (transJson || {});
     } catch(e) { trans = {}; }
 
+    document.getElementById('modal_offer_inclusions').value = trans.en?.inclusions || '';
+    document.getElementById('modal_offer_terms').value = trans.en?.terms || '';
+    
+    const fitMode = trans.en?.image_fit || trans.image_fit || 'contain';
+    setImageFitMode(fitMode);
+
+
     document.getElementById('modal_trans_km_offer_title').value = trans.km?.title || '';
     document.getElementById('modal_trans_zh_offer_title').value = trans.zh?.title || '';
     document.getElementById('modal_trans_ko_offer_title').value = trans.ko?.title || '';
+
+
 
     document.getElementById('modal_trans_km_offer_badge').value = trans.km?.badge_text || '';
     document.getElementById('modal_trans_zh_offer_badge').value = trans.zh?.badge_text || '';

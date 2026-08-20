@@ -37,17 +37,14 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Hero Header -->
-<section class="bg-onyx-charcoal text-white py-16 sm:py-20 relative overflow-hidden">
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#dfe8a6] block mb-2"><?= e($locBadge) ?></span>
-        <h1 class="font-headline text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            <?= e($locTitle) ?>
-        </h1>
-        <p class="text-stone-300 text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed">
-            <?= e($locSubtitle) ?>
-        </p>
-    </div>
-</section>
+<?= render_public_page_hero('location', [
+    'badge' => $locBadge,
+    'title' => $locTitle,
+    'subtitle' => $locSubtitle,
+    'image' => 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=1600&q=80',
+    'icon' => 'pin_drop'
+]) ?>
+
 
 <!-- Location Information & Interactive Map Section -->
 <section class="py-16 bg-[#f9f9f9]">
@@ -123,7 +120,7 @@ require_once __DIR__ . '/includes/header.php';
                         $spotSlug = !empty($spot['slug']) ? $spot['slug'] : $spot['id'];
                         $spotImg = !empty($spot['image_url']) ? $spot['image_url'] : 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=800&q=80';
                     ?>
-                    <a href="<?= BASE_URL ?>/location-detail.php?slug=<?= e($spotSlug) ?>" 
+                    <a href="<?= url('/location/' . urlencode($spotSlug)) ?>" 
                        class="bg-white rounded-2xl overflow-hidden border border-stone-200 shadow-2xs hover:shadow-xl hover:border-[#343c0a]/40 transition duration-300 flex flex-col justify-between group reveal reveal-scale stagger-<?= ($n % 3) + 1; $n++; ?>">
                         <div>
                             <!-- Photo on Top of Card -->
@@ -131,17 +128,36 @@ require_once __DIR__ . '/includes/header.php';
                                 <img src="<?= e($spotImg) ?>" alt="<?= e($spotTitle) ?>" class="w-full h-full object-cover group-hover:scale-108 transition duration-500">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
                                 
-                                <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                                <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-1.5">
                                     <span class="inline-flex items-center gap-1 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full border border-white/20">
                                         <span class="material-symbols-outlined text-sm text-[#dfe8a6]"><?= e($spotIcon) ?></span>
                                         <span><?= e($spot['distance_time']) ?></span>
                                     </span>
+                                    <?php 
+                                    $spotGallery = [$spotImg];
+                                    if (!empty($spot['gallery_json'])) {
+                                        $gDecoded = json_decode($spot['gallery_json'], true);
+                                        if (is_array($gDecoded)) {
+                                            foreach ($gDecoded as $gUrl) {
+                                                if (!empty($gUrl) && !in_array($gUrl, $spotGallery)) $spotGallery[] = $gUrl;
+                                            }
+                                        }
+                                    }
+                                    ?>
+                                    <button type="button" 
+                                            onclick="event.preventDefault(); event.stopPropagation(); openPhotoPreview(<?= e(json_encode($spotGallery)) ?>, 0, <?= e(json_encode($spotTitle)) ?>)"
+                                            class="bg-black/60 hover:bg-black text-white text-xs font-bold px-2.5 py-1 rounded-full border border-white/20 backdrop-blur-md flex items-center gap-1 transition cursor-pointer"
+                                            title="View Fullscreen Photos">
+                                        <span class="material-symbols-outlined text-xs">fullscreen</span>
+                                        <span>View Photo</span>
+                                    </button>
                                 </div>
 
                                 <div class="absolute bottom-3 left-4 right-4 text-white">
                                     <h3 class="font-headline font-bold text-xl text-white group-hover:text-[#dfe8a6] transition"><?= e($spotTitle) ?></h3>
                                 </div>
                             </div>
+
 
                             <!-- Content Body -->
                             <div class="p-6 space-y-3">

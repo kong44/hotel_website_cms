@@ -1,0 +1,22 @@
+{
+    "slug": "default",
+    "name": "Indra Heritage Gold",
+    "description": "Signature luxury hotel design with deep olive accents, warm gold highlights, and classic typography.",
+    "version": "1.0.0",
+    "author": "Indra Design Studio",
+    "price": 0.00,
+    "is_free": true,
+    "preview_thumbnail": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
+    "colors": {
+        "primary": "#343c0a",
+        "primary_hover": "#262b07",
+        "accent": "#dfe8a6",
+        "dark": "#191c1d",
+        "bg": "#f9f9f9",
+        "card_bg": "#ffffff"
+    },
+    "fonts": {
+        "headline": "Cinzel, serif",
+        "body": "Plus Jakarta Sans, sans-serif"
+    }
+}

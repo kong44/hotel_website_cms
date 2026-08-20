@@ -51,7 +51,15 @@ $currentAmenities = !empty($room['amenities_json']) ? json_decode($room['ameniti
 $masterAmenities = get_all_master_amenities();
 $allAmenitiesList = array_unique(array_merge($masterAmenities, $currentAmenities));
 $transData = !empty($room['translations_json']) ? json_decode($room['translations_json'], true) : [];
+if (!is_array($transData)) {
+    $transData = [];
+}
 $availableRoomTypes = get_all_room_types();
+
+// English values with safe fallback to main room properties
+$enNameVal = !empty($transData['en']['name']) ? $transData['en']['name'] : ($room['name'] ?? '');
+$enTaglineVal = !empty($transData['en']['tagline']) ? $transData['en']['tagline'] : ($room['tagline'] ?? '');
+$enDescVal = !empty($transData['en']['description']) ? $transData['en']['description'] : ($room['description'] ?? '');
 
 // Handle Form Submission
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
@@ -80,9 +88,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     // Multi-Language Translations Payload
     $translationsPayload = [
         'en' => [
-            'name' => trim($_POST['trans_en_name'] ?? $name),
-            'tagline' => trim($_POST['trans_en_tagline'] ?? $tagline),
-            'description' => trim($_POST['trans_en_desc'] ?? $description)
+            'name' => !empty($_POST['trans_en_name']) ? trim($_POST['trans_en_name']) : $name,
+            'tagline' => !empty($_POST['trans_en_tagline']) ? trim($_POST['trans_en_tagline']) : $tagline,
+            'description' => !empty($_POST['trans_en_desc']) ? trim($_POST['trans_en_desc']) : $description
         ],
         'km' => [
             'name' => trim($_POST['trans_km_name'] ?? ''),
@@ -101,6 +109,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         ]
     ];
     $transJson = json_encode($translationsPayload, JSON_UNESCAPED_UNICODE);
+
 
     if (empty($slug)) {
         $slug = strtolower(preg_replace('/[^A-Za-z0-9-]+/', '-', $name));
@@ -212,10 +221,11 @@ require_once __DIR__ . '/../includes/admin-header.php';
 
                 <!-- Input EN (Primary) -->
                 <div class="field-input-box-name" id="field-box-name-en">
-                    <input type="text" name="name" value="<?= e($transData['en']['name'] ?? $room['name']) ?>" id="en_room_name" placeholder="e.g. Deluxe King Room"
+                    <input type="text" name="name" value="<?= e($enNameVal) ?>" id="en_room_name" placeholder="e.g. Deluxe King Room"
                            class="w-full text-sm font-medium border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#343c0a]">
                     <p class="text-[11px] text-stone-400 mt-1">Primary English name. Required.</p>
                 </div>
+
 
                 <!-- Input KM -->
                 <div class="field-input-box-name hidden" id="field-box-name-km">
@@ -275,9 +285,10 @@ require_once __DIR__ . '/../includes/admin-header.php';
 
                 <!-- Input EN (Primary) -->
                 <div class="field-input-box-tagline" id="field-box-tagline-en">
-                    <input type="text" name="tagline" value="<?= e($transData['en']['tagline'] ?? $room['tagline']) ?>" placeholder="e.g. Contemporary Sanctuary for Modern Travelers"
+                    <input type="text" name="tagline" value="<?= e($enTaglineVal) ?>" placeholder="e.g. Contemporary Sanctuary for Modern Travelers"
                            class="w-full text-sm font-medium border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#343c0a]">
                 </div>
+
 
                 <!-- Input KM -->
                 <div class="field-input-box-tagline hidden" id="field-box-tagline-km">
@@ -328,9 +339,10 @@ require_once __DIR__ . '/../includes/admin-header.php';
 
                 <!-- Input EN (Primary) -->
                 <div class="field-input-box-desc" id="field-box-desc-en">
-                    <textarea name="description" id="en_room_desc" rows="4" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#343c0a]"><?= e($transData['en']['description'] ?? $room['description']) ?></textarea>
+                    <textarea name="description" id="en_room_desc" rows="4" class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#343c0a]"><?= e($enDescVal) ?></textarea>
                     <p class="text-[11px] text-stone-400 mt-1">Primary English description. Required.</p>
                 </div>
+
 
                 <!-- Input KM -->
                 <div class="field-input-box-desc hidden" id="field-box-desc-km">
@@ -446,11 +458,18 @@ require_once __DIR__ . '/../includes/admin-header.php';
                         <label class="block text-xs font-bold text-stone-800 uppercase tracking-wider">Room Gallery Photos</label>
                         <p class="text-[11px] text-stone-500">Upload multiple photos for the room's interactive lightbox gallery.</p>
                     </div>
-                    <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold cursor-pointer transition shadow-2xs">
-                        <span class="material-symbols-outlined text-base">add_photo_alternate</span>
-                        <span>Add Gallery Photo</span>
-                        <input type="file" accept="image/*" class="hidden" onchange="uploadRoomGalleryPhoto(this)">
-                    </label>
+                    <div class="flex items-center gap-2">
+                        <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold cursor-pointer transition shadow-2xs">
+                            <span class="material-symbols-outlined text-sm">cloud_upload</span>
+                            <span>Upload File</span>
+                            <input type="file" accept="image/*" class="hidden" onchange="uploadRoomGalleryPhoto(this)">
+                        </label>
+                        <button type="button" onclick="openMediaLibraryPicker('room_gallery_append', 'image', 'rooms')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold transition cursor-pointer shadow-2xs">
+                            <span class="material-symbols-outlined text-sm text-[#343c0a]">photo_library</span>
+                            <span>Choose from Library</span>
+                        </button>
+                    </div>
+
                 </div>
 
                 <div id="room-gallery-container" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -615,6 +634,21 @@ function switchAllFieldsLang(lang) {
     });
 }
 
+window.appendRoomGalleryCard = function(url) {
+    const container = document.getElementById('room-gallery-container');
+    if (!container) return;
+    const card = document.createElement('div');
+    card.className = 'gallery-item-card relative bg-white rounded-lg border border-stone-200 overflow-hidden group h-24';
+    card.innerHTML = `
+        <img src="${url}" alt="Gallery" class="w-full h-full object-cover">
+        <input type="hidden" name="gallery_images[]" value="${url}">
+        <button type="button" onclick="this.parentElement.remove()" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center text-xs transition cursor-pointer" title="Remove Photo">
+            <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+    `;
+    container.appendChild(card);
+};
+
 // Upload Room Gallery Photo
 async function uploadRoomGalleryPhoto(fileInput) {
     if (!fileInput.files || fileInput.files.length === 0) return;
@@ -630,17 +664,7 @@ async function uploadRoomGalleryPhoto(fileInput) {
         });
         const data = await res.json();
         if (data.success && data.url) {
-            const container = document.getElementById('room-gallery-container');
-            const card = document.createElement('div');
-            card.className = 'gallery-item-card relative bg-white rounded-lg border border-stone-200 overflow-hidden group h-24';
-            card.innerHTML = `
-                <img src="${data.url}" alt="Gallery" class="w-full h-full object-cover">
-                <input type="hidden" name="gallery_images[]" value="${data.url}">
-                <button type="button" onclick="this.parentElement.remove()" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center text-xs transition cursor-pointer" title="Remove Photo">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                </button>
-            `;
-            container.appendChild(card);
+            window.appendRoomGalleryCard(data.url);
         } else {
             alert('Upload failed: ' + (data.error || 'Unknown error'));
         }

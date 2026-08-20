@@ -1,0 +1,22 @@
+{
+    "slug": "minimal-sanctuary",
+    "name": "Minimal Sanctuary",
+    "description": "Ultra-clean Scandinavian zen aesthetic with teal-slate tones, soft shadows, and modern typography.",
+    "version": "1.2.0",
+    "author": "Nordic Luxe Lab",
+    "price": 0.00,
+    "is_free": true,
+    "preview_thumbnail": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80",
+    "colors": {
+        "primary": "#116466",
+        "primary_hover": "#0d4b4d",
+        "accent": "#d9b08c",
+        "dark": "#2c3531",
+        "bg": "#f4f7f6",
+        "card_bg": "#ffffff"
+    },
+    "fonts": {
+        "headline": "Playfair Display, serif",
+        "body": "Inter, sans-serif"
+    }
+}
