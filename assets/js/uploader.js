@@ -3,22 +3,8 @@
  */
 
 window.getApiEndpoint = function(path) {
-    let baseUrl = window.BASE_URL || '';
-    if (window.location.protocol === 'https:') {
-        if (baseUrl.startsWith('http:')) {
-            baseUrl = baseUrl.replace(/^http:/, 'https:');
-        }
-        try {
-            if (baseUrl) {
-                const parsed = new URL(baseUrl, window.location.origin);
-                if (parsed.hostname === window.location.hostname) {
-                    return parsed.pathname.replace(/\/$/, '') + path;
-                }
-            }
-        } catch (e) {}
-        return path;
-    }
-    return (baseUrl ? baseUrl : '') + path;
+    if (!path) return '';
+    return path.startsWith('/') ? path : '/' + path;
 };
 
 // =======================================================

@@ -15,7 +15,7 @@ help:
 	@echo "  make logs        - Tail logs from K3s app pods"
 
 build:
-	docker build -t hotel-cms:latest .
+	docker build --no-cache -t hotel-cms:latest .
 
 up:
 	docker-compose up -d --build

@@ -11,7 +11,7 @@ NAMESPACE="hotel-cms"
 echo "========================================================"
 echo " 🛠️  Building Local Docker Image: ${IMAGE_NAME}"
 echo "========================================================"
-docker build -t ${IMAGE_NAME} .
+docker build --no-cache -t ${IMAGE_NAME} .
 
 echo "========================================================"
 echo " 🚚 Importing Image into K3s Containerd Engine"
