@@ -23,6 +23,18 @@ define('APP_NAME', 'Indra Hotel');
 define('APP_TAGLINE', 'Contemporary Sanctuary in Phnom Penh');
 define('APP_VERSION', '1.0.0');
 
+define('ROOT_PATH', __DIR__);
+
+// Database Configuration
+define('DB_DRIVER', getenv('DB_DRIVER') ?: 'mysql'); // 'mysql' or 'sqlite'
+define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
+define('DB_NAME', getenv('DB_NAME') ?: 'hotel_website');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+define('DB_CHARSET', 'utf8mb4');
+define('SQLITE_FILE', ROOT_PATH . '/database.sqlite');
+
 // Base URL detection & HTTPS protocol enforcement
 $isHttpsRequest = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (($_SERVER['SERVER_PORT'] ?? 80) == 443)
@@ -32,7 +44,31 @@ $isHttpsRequest = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (($_SERVER['HTTP_X_FORWARDED_PORT'] ?? '') == '443')
     || (strpos(strtolower($_SERVER['HTTP_CF_VISITOR'] ?? ''), 'https') !== false);
 
-$envBaseUrl = getenv('BASE_URL') ?: getenv('APP_URL');
+// Check if site_url setting is saved in database
+$dbSiteUrl = null;
+try {
+    $driver = DB_DRIVER;
+    $pdoTmp = null;
+    $sqlitePath = SQLITE_FILE;
+    if ($driver === 'sqlite' && file_exists($sqlitePath)) {
+        $pdoTmp = new PDO('sqlite:' . $sqlitePath, null, null, [PDO::ATTR_TIMEOUT => 1]);
+    } else {
+        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=%s', DB_HOST, DB_PORT, DB_NAME, DB_CHARSET);
+        $pdoTmp = new PDO($dsn, DB_USER, DB_PASS, [PDO::ATTR_TIMEOUT => 1]);
+    }
+    if ($pdoTmp) {
+        $st = $pdoTmp->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'site_url' LIMIT 1");
+        $st->execute();
+        $val = $st->fetchColumn();
+        if (!empty($val)) {
+            $dbSiteUrl = trim($val);
+        }
+    }
+} catch (Throwable $e) {
+    // Fall back smoothly if database is initializing
+}
+
+$envBaseUrl = !empty($dbSiteUrl) ? $dbSiteUrl : (getenv('BASE_URL') ?: getenv('APP_URL'));
 if (!empty($envBaseUrl)) {
     $baseUrl = rtrim($envBaseUrl, '/');
     if ($isHttpsRequest && strpos(strtolower($baseUrl), 'http:') === 0) {
@@ -54,17 +90,6 @@ if (!empty($envBaseUrl)) {
     }
     define('BASE_URL', $protocol . $host . $basePath);
 }
-define('ROOT_PATH', __DIR__);
-
-// Database Configuration
-define('DB_DRIVER', getenv('DB_DRIVER') ?: 'mysql'); // 'mysql' or 'sqlite'
-define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
-define('DB_PORT', getenv('DB_PORT') ?: '3306');
-define('DB_NAME', getenv('DB_NAME') ?: 'hotel_website');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
-define('DB_CHARSET', 'utf8mb4');
-define('SQLITE_FILE', ROOT_PATH . '/database.sqlite');
 
 // Hotel Contact & Business Information (for Rich SEO Schema & Site)
 define('HOTEL_NAME', 'Indra Hotel');

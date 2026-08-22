@@ -16,6 +16,7 @@ $adminTitle = 'Site & SEO Settings';
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['save_settings'])) {
     $settings = [
         'site_title' => trim($_POST['site_title'] ?? ''),
+        'site_url' => trim($_POST['site_url'] ?? ''),
         'site_meta_description' => trim($_POST['site_meta_description'] ?? ''),
         'site_meta_keywords' => trim($_POST['site_meta_keywords'] ?? ''),
         'google_analytics_id' => trim($_POST['google_analytics_id'] ?? ''),
@@ -122,6 +123,24 @@ require_once __DIR__ . '/../includes/admin-header.php';
                 <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Google Analytics Tracking ID</label>
                 <input type="text" name="google_analytics_id" value="<?= e(get_setting('google_analytics_id')) ?>" placeholder="e.g. G-XXXXXXX"
                        class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#343c0a]">
+            </div>
+        </div>
+
+        <!-- Primary Domain & Base URL Setting -->
+        <div class="pt-6 border-t border-stone-100 space-y-3">
+            <div>
+                <h3 class="font-headline font-bold text-lg text-onyx-charcoal flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#4B5320]">dns</span>
+                    <span>Primary Domain & Base URL</span>
+                </h3>
+                <p class="text-xs text-stone-500 mt-0.5">Configure your official site address used across the CMS for media uploads, API calls, and public links.</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Primary Site Base URL</label>
+                <input type="url" name="site_url" value="<?= e(get_setting('site_url')) ?>" placeholder="e.g. https://hotel.kong41.com"
+                       class="w-full text-sm border border-stone-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#343c0a]">
+                <p class="text-[11px] text-stone-400 mt-1">Leave empty to auto-detect domain dynamically from incoming requests. Protocol (https://) is enforced automatically on SSL connections.</p>
             </div>
         </div>
 
