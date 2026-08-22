@@ -271,7 +271,8 @@ async function fetchMediaList() {
     `;
 
     try {
-        const url = `${window.BASE_URL}/api/media-api.php?action=list&folder=${encodeURIComponent(currentMediaFolder)}&type=${encodeURIComponent(currentMediaType)}&q=${encodeURIComponent(currentMediaSearch)}&page=${currentMediaPage}&limit=24`;
+        const baseUrl = window.getApiEndpoint ? window.getApiEndpoint('') : '';
+        const url = `${baseUrl}/api/media-api.php?action=list&folder=${encodeURIComponent(currentMediaFolder)}&type=${encodeURIComponent(currentMediaType)}&q=${encodeURIComponent(currentMediaSearch)}&page=${currentMediaPage}&limit=24`;
         const res = await fetch(url);
         const data = await res.json();
 
@@ -377,7 +378,8 @@ async function confirmDeleteMedia() {
         formData.append('action', 'delete');
         formData.append('id', id);
 
-        const res = await fetch(`${window.BASE_URL}/api/media-api.php`, {
+        const baseUrl = window.getApiEndpoint ? window.getApiEndpoint('') : '';
+        const res = await fetch(`${baseUrl}/api/media-api.php`, {
             method: 'POST',
             body: formData
         });
@@ -445,7 +447,8 @@ async function handleMediaFilesSelected(files) {
                 formData.append('file', file);
                 formData.append('folder', folder);
 
-                const res = await fetch(`${window.BASE_URL}/api/media-api.php`, {
+                const baseUrl = window.getApiEndpoint ? window.getApiEndpoint('') : '';
+                const res = await fetch(`${baseUrl}/api/media-api.php`, {
                     method: 'POST',
                     body: formData
                 });

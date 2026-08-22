@@ -720,7 +720,8 @@ async function sendDiagnosticTestEmail() {
         const formData = new FormData();
         formData.append('email', recipient);
 
-        const response = await fetch((window.BASE_URL || '') + '/api/send-test-email.php', {
+        const endpointUrl = window.getApiEndpoint ? window.getApiEndpoint('/api/send-test-email.php') : '/api/send-test-email.php';
+        const response = await fetch(endpointUrl, {
             method: 'POST',
             body: formData
         });
