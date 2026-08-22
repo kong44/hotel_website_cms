@@ -80,10 +80,10 @@ class Database {
     public static function ensureTablesExist(PDO $pdo, string $driver): void {
         try {
             $tableCheck = ($driver === 'mysql') 
-                ? "SHOW TABLES LIKE 'rooms'" 
-                : "SELECT name FROM sqlite_master WHERE type='table' AND name='rooms'";
+                ? "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'rooms'" 
+                : "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='rooms'";
             $stmt = $pdo->query($tableCheck);
-            $hasRooms = $stmt && $stmt->fetch();
+            $hasRooms = $stmt && ((int)$stmt->fetchColumn() > 0);
 
             if (!$hasRooms) {
                 self::initializeDatabase($pdo, $driver);
@@ -900,23 +900,20 @@ class Database {
         if (!file_exists($filePath)) {
             return;
         }
-        $sql = file_get_contents($filePath);
-        if (empty(trim($sql))) {
+        $rawSql = file_get_contents($filePath);
+        if (empty(trim($rawSql))) {
             return;
         }
 
-        try {
-            $pdo->exec($sql);
-            while ($pdo->nextRowset()) {};
-        } catch (Throwable $t) {
-            $statements = array_filter(array_map('trim', explode(';', $sql)));
-            foreach ($statements as $stmt) {
-                if (!empty($stmt)) {
-                    try {
-                        $pdo->exec($stmt);
-                    } catch (Throwable $e) {
-                        // Continue executing remaining statements
-                    }
+        $sqlClean = preg_replace('/^--.*$/m', '', $rawSql);
+        $statements = array_filter(array_map('trim', explode(';', $sqlClean)));
+
+        foreach ($statements as $stmt) {
+            if (!empty($stmt)) {
+                try {
+                    $pdo->exec($stmt);
+                } catch (Throwable $e) {
+                    error_log("SQL Execution Notice: " . $e->getMessage());
                 }
             }
         }
