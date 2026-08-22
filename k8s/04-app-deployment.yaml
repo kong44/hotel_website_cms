@@ -20,6 +20,8 @@ spec:
       labels:
         app: hotel-cms-app
     spec:
+      securityContext:
+        fsGroup: 33
       containers:
         - name: app
           image: hotel-cms:latest

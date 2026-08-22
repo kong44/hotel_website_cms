@@ -19,28 +19,3 @@
     # Route all other URLs to the front controller index.php
     RewriteRule ^ index.php [QSA,L]
 </IfModule>
-
-# ========================================================
-# PHP Environment Adjustments
-# ========================================================
-<IfModule mod_php.c>
-    php_value upload_max_filesize 128M
-    php_value post_max_size 128M
-    php_value memory_limit 256M
-    php_value max_execution_time 300
-    php_value max_input_time 300
-</IfModule>
-<IfModule mod_php7.c>
-    php_value upload_max_filesize 128M
-    php_value post_max_size 128M
-    php_value memory_limit 256M
-    php_value max_execution_time 300
-    php_value max_input_time 300
-</IfModule>
-<IfModule mod_php8.c>
-    php_value upload_max_filesize 128M
-    php_value post_max_size 128M
-    php_value memory_limit 256M
-    php_value max_execution_time 300
-    php_value max_input_time 300
-</IfModule>

@@ -51,6 +51,7 @@ RUN { \
     echo 'date.timezone=Asia/Phnom_Penh'; \
     echo 'display_errors=Off'; \
     echo 'log_errors=On'; \
+    echo 'error_log=/dev/stderr'; \
 } > /usr/local/etc/php/conf.d/indra-production.ini
 
 # Custom Apache Configuration for Security & Clean URLs

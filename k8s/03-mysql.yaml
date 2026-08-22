@@ -93,4 +93,3 @@ spec:
       name: mysql
   selector:
     app: mysql
-  clusterIP: None
