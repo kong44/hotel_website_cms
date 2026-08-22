@@ -60,6 +60,7 @@ RUN { \
     echo '    Options -Indexes +FollowSymLinks'; \
     echo '    AllowOverride All'; \
     echo '    Require all granted'; \
+    echo '    Header always set Content-Security-Policy "upgrade-insecure-requests"'; \
     echo '</Directory>'; \
     echo 'ServerTokens Prod'; \
     echo 'ServerSignature Off'; \
