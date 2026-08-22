@@ -31,7 +31,8 @@ class Database {
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
+                PDO::MYSQL_ATTR_MULTI_STATEMENTS => true
             ];
             self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
             self::$activeDriver = 'mysql';
@@ -895,21 +896,39 @@ class Database {
     }
 
 
+    public static function executeSqlFile(PDO $pdo, string $filePath): void {
+        if (!file_exists($filePath)) {
+            return;
+        }
+        $sql = file_get_contents($filePath);
+        if (empty(trim($sql))) {
+            return;
+        }
+
+        try {
+            $pdo->exec($sql);
+            while ($pdo->nextRowset()) {};
+        } catch (Throwable $t) {
+            $statements = array_filter(array_map('trim', explode(';', $sql)));
+            foreach ($statements as $stmt) {
+                if (!empty($stmt)) {
+                    try {
+                        $pdo->exec($stmt);
+                    } catch (Throwable $e) {
+                        // Continue executing remaining statements
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Run Schema & Initial Seed
      */
     public static function initializeDatabase(PDO $pdo, string $driver): bool {
         if ($driver === 'mysql') {
-            $schemaFile = ROOT_PATH . '/schema.sql';
-            $seedFile = ROOT_PATH . '/seed.sql';
-            if (file_exists($schemaFile)) {
-                $sql = file_get_contents($schemaFile);
-                $pdo->exec($sql);
-            }
-            if (file_exists($seedFile)) {
-                $sql = file_get_contents($seedFile);
-                $pdo->exec($sql);
-            }
+            self::executeSqlFile($pdo, ROOT_PATH . '/schema.sql');
+            self::executeSqlFile($pdo, ROOT_PATH . '/seed.sql');
         } else {
             // SQLite schema
             $sqliteSchema = "
