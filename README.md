@@ -266,6 +266,7 @@ All manifests are located in the `k8s/` directory:
 | `make k3s-delete` | Remove all application resources from K3s cluster. |
 | `make status` | Check status of K3s pods, services, PVCs, and ingress. |
 | `make logs` | Tail live logs from K3s application pods. |
+| `make db-init` | Direct native CLI import of `schema.sql` and `seed.sql` into MySQL container. |
 
 ---
 

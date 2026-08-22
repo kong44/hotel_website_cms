@@ -39,6 +39,12 @@ echo "========================================================"
 kubectl rollout status statefulset/mysql -n ${NAMESPACE} --timeout=120s || true
 
 echo "========================================================"
+echo " 🗄️ Initializing & Importing MySQL Database Schema & Seed"
+echo "========================================================"
+kubectl exec -i -n ${NAMESPACE} statefulset/mysql -- mysql -u root -pmysql_root_k3s_secure_pass_2026 hotel_website < schema.sql || true
+kubectl exec -i -n ${NAMESPACE} statefulset/mysql -- mysql -u root -pmysql_root_k3s_secure_pass_2026 hotel_website < seed.sql || true
+
+echo "========================================================"
 echo " ⏳ Waiting for App Deployment to complete rollout..."
 echo "========================================================"
 kubectl rollout status deployment/hotel-cms-app -n ${NAMESPACE} --timeout=120s || true

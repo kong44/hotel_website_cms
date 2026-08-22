@@ -37,3 +37,7 @@ logs:
 
 restart:
 	kubectl rollout restart deployment/hotel-cms-app -n hotel-cms
+
+db-init:
+	kubectl exec -i -n hotel-cms statefulset/mysql -- mysql -u root -pmysql_root_k3s_secure_pass_2026 hotel_website < schema.sql
+	kubectl exec -i -n hotel-cms statefulset/mysql -- mysql -u root -pmysql_root_k3s_secure_pass_2026 hotel_website < seed.sql
