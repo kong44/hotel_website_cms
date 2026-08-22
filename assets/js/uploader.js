@@ -3,19 +3,27 @@
  */
 
 window.getApiEndpoint = function(path) {
-    if (!path) return '';
-    let endpoint = path.startsWith('/') ? path : '/' + path;
-    if (window.BASE_URL) {
-        let base = window.BASE_URL.replace(/\/+$/, '');
-        if (window.location.protocol === 'https:' && base.startsWith('http:')) {
-            base = base.replace(/^http:/, 'https:');
-        }
-        endpoint = base + endpoint;
+    let endpoint = (path || '');
+    if (endpoint && !endpoint.startsWith('/')) {
+        endpoint = '/' + endpoint;
     }
-    if (window.location.protocol === 'https:' && endpoint.startsWith('http:')) {
-        endpoint = endpoint.replace(/^http:/, 'https:');
+    
+    let origin = (window.location && window.location.origin) ? window.location.origin : '';
+    if (window.BASE_URL && window.BASE_URL.length > 0) {
+        origin = window.BASE_URL.replace(/\/+$/, '');
     }
-    return endpoint;
+
+    if (window.location.protocol === 'https:' && origin.startsWith('http:')) {
+        origin = origin.replace(/^http:/, 'https:');
+    }
+
+    let fullUrl = origin ? (origin + endpoint) : endpoint;
+
+    if (window.location.protocol === 'https:' && fullUrl.startsWith('http:')) {
+        fullUrl = fullUrl.replace(/^http:/, 'https:');
+    }
+
+    return fullUrl;
 };
 
 window.ensureHttpsUrl = function(url) {

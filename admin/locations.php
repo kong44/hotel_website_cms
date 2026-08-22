@@ -691,8 +691,10 @@ async function uploadSpotGalleryPhoto(input) {
     formData.append('image', file);
     formData.append('folder', 'locations');
 
-    try {
-        const endpointUrl = window.getApiEndpoint ? window.getApiEndpoint('/api/upload.php') : '/api/upload.php';
+        let endpointUrl = window.getApiEndpoint ? window.getApiEndpoint('/api/upload.php') : '/api/upload.php';
+        if (window.location.protocol === 'https:' && endpointUrl.startsWith('http:')) {
+            endpointUrl = endpointUrl.replace(/^http:/, 'https:');
+        }
         const res = await fetch(endpointUrl, {
             method: 'POST',
             body: formData
