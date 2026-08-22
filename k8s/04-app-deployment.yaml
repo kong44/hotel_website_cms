@@ -28,7 +28,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
-              hostPort: 127.0.0.1:8000
+              hostPort: 8000
               name: http
           envFrom:
             - configMapRef:
