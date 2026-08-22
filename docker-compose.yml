@@ -6,7 +6,7 @@ services:
     container_name: hotel_cms_app
     restart: always
     ports:
-      - "8000:80"
+      - "127.0.0.1:8000:80"
     environment:
       - APP_ENV=production
       - DB_DRIVER=mysql

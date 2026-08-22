@@ -175,17 +175,24 @@ sudo dnf install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.6
 curl -sfL https://get.k3s.io | sh -
 ```
 
-#### 2. Configure Firewalld Rules
-Allow Cloudflare Tunnel traffic on port `8000` and trust K3s container network interfaces:
-```bash
-# Allow Cloudflare Tunnel ingress port 8000
-sudo firewall-cmd --add-port=8000/tcp --permanent
+#### 2. Configure Firewalld Rules (Restrict Port 8000 to Localhost Only)
+Block LAN network access (`192.168.x.x` / `10.x.x.x`) to port `8000` while allowing `127.0.0.1` (localhost for Cloudflare Tunnel) and trusting K3s container network interfaces:
 
-# Trust K3s CNI interfaces for pod-to-pod communication
+```bash
+# 1. Remove open public port 8000 if previously added
+sudo firewall-cmd --permanent --remove-port=8000/tcp
+
+# 2. Allow port 8000 ONLY for local loopback (127.0.0.1 - Cloudflare Tunnel)
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="127.0.0.1" port port="8000" protocol="tcp" accept'
+
+# 3. Block/Drop all LAN attempts to port 8000
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" port port="8000" protocol="tcp" drop'
+
+# 4. Trust K3s CNI interfaces for pod-to-pod communication
 sudo firewall-cmd --zone=trusted --add-interface=cni0 --permanent
 sudo firewall-cmd --zone=trusted --add-interface=flannel.1 --permanent
 
-# Reload firewalld
+# 5. Reload firewalld
 sudo firewall-cmd --reload
 ```
 
