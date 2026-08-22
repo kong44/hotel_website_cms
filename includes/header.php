@@ -96,6 +96,12 @@ $currentLocale = I18n::getLocale();
         };
     </script>
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
+    <script>
+        window.BASE_URL = <?= json_encode(BASE_URL) ?>;
+        if (window.location.protocol === 'https:' && window.BASE_URL.startsWith('http:')) {
+            window.BASE_URL = window.BASE_URL.replace(/^http:/, 'https:');
+        }
+    </script>
 </head>
 <body class="bg-[#f9f9f9] text-[#1a1c1c] antialiased selection:bg-deep-olive selection:text-white flex flex-col min-h-screen">
 

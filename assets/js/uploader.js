@@ -4,7 +4,26 @@
 
 window.getApiEndpoint = function(path) {
     if (!path) return '';
-    return path.startsWith('/') ? path : '/' + path;
+    let endpoint = path.startsWith('/') ? path : '/' + path;
+    if (window.BASE_URL) {
+        let base = window.BASE_URL.replace(/\/+$/, '');
+        if (window.location.protocol === 'https:' && base.startsWith('http:')) {
+            base = base.replace(/^http:/, 'https:');
+        }
+        endpoint = base + endpoint;
+    }
+    if (window.location.protocol === 'https:' && endpoint.startsWith('http:')) {
+        endpoint = endpoint.replace(/^http:/, 'https:');
+    }
+    return endpoint;
+};
+
+window.ensureHttpsUrl = function(url) {
+    if (!url) return url;
+    if (window.location.protocol === 'https:' && typeof url === 'string' && url.startsWith('http:')) {
+        return url.replace(/^http:/, 'https:');
+    }
+    return url;
 };
 
 // =======================================================
@@ -89,13 +108,14 @@ window.handleImageFileSelect = async function (fileInput, widgetId, folder) {
         if (progressBar) progressBar.classList.add('hidden');
 
         if (data && data.success && data.url) {
+            const finalUrl = window.ensureHttpsUrl(data.url);
             if (textInput) {
-                textInput.value = data.url;
+                textInput.value = finalUrl;
                 textInput.dispatchEvent(new Event('input', { bubbles: true }));
                 textInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
             if (previewImg) {
-                previewImg.src = data.url;
+                previewImg.src = finalUrl;
                 previewImg.classList.remove('hidden');
             }
             if (placeholder) {
@@ -218,13 +238,14 @@ window.handleVideoFileSelect = async function (fileInput, widgetId, folder) {
         if (progressBar) progressBar.classList.add('hidden');
 
         if (data && data.success && data.url) {
+            const finalUrl = window.ensureHttpsUrl(data.url);
             if (textInput) {
-                textInput.value = data.url;
+                textInput.value = finalUrl;
                 textInput.dispatchEvent(new Event('input', { bubbles: true }));
                 textInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
             if (previewVideo) {
-                previewVideo.src = data.url;
+                previewVideo.src = finalUrl;
                 previewVideo.classList.remove('hidden');
                 try { previewVideo.load(); } catch(e){}
             }
@@ -445,16 +466,17 @@ function renderPickerGrid(items) {
 
     container.innerHTML = items.map(item => {
         const isVideo = item.file_type === 'video';
+        const itemUrl = window.ensureHttpsUrl(item.url);
         const thumb = isVideo 
             ? `<div class="w-full h-28 bg-stone-950 flex items-center justify-center relative">
-                 <video src="${item.url}" class="w-full h-full object-cover opacity-75" muted preload="metadata"></video>
+                 <video src="${itemUrl}" class="w-full h-full object-cover opacity-75" muted preload="metadata"></video>
                  <span class="material-symbols-outlined text-2xl text-white absolute">play_circle</span>
                </div>`
             : `<div class="w-full h-28 bg-stone-100 overflow-hidden">
-                 <img src="${item.url}" alt="${item.filename}" class="w-full h-full object-cover" loading="lazy">
+                 <img src="${itemUrl}" alt="${item.filename}" class="w-full h-full object-cover" loading="lazy">
                </div>`;
 
-        const escUrl = item.url.replace(/'/g, "\\'");
+        const escUrl = itemUrl.replace(/'/g, "\\'");
 
         return `
             <div onclick="selectPickerMediaItem('${escUrl}')" class="bg-white rounded-xl border border-stone-200 shadow-2xs overflow-hidden cursor-pointer hover:border-[#343c0a] hover:ring-2 hover:ring-[#343c0a]/20 transition group">
@@ -480,6 +502,8 @@ function updatePickerPagination(meta) {
 
 window.selectPickerMediaItem = function(mediaUrl) {
     if (!activePickerWidgetId) return;
+
+    mediaUrl = window.ensureHttpsUrl(mediaUrl);
 
     // Support gallery appending mode for location spots
     if (activePickerWidgetId === 'spot_gallery_append' && typeof window.appendSpotGalleryCard === 'function') {

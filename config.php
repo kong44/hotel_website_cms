@@ -23,21 +23,26 @@ define('APP_NAME', 'Indra Hotel');
 define('APP_TAGLINE', 'Contemporary Sanctuary in Phnom Penh');
 define('APP_VERSION', '1.0.0');
 
-// Base URL detection
+// Base URL detection & HTTPS protocol enforcement
+$isHttpsRequest = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? 80) == 443)
+    || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    || (strtolower($_SERVER['HTTP_X_FORWARDED_SCHEME'] ?? '') === 'https')
+    || (strtolower($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '') === 'on')
+    || (($_SERVER['HTTP_X_FORWARDED_PORT'] ?? '') == '443')
+    || (strpos(strtolower($_SERVER['HTTP_CF_VISITOR'] ?? ''), 'https') !== false);
+
 $envBaseUrl = getenv('BASE_URL') ?: getenv('APP_URL');
 if (!empty($envBaseUrl)) {
-    define('BASE_URL', rtrim($envBaseUrl, '/'));
+    $baseUrl = rtrim($envBaseUrl, '/');
+    if ($isHttpsRequest && strpos(strtolower($baseUrl), 'http:') === 0) {
+        $baseUrl = preg_replace('/^http:/i', 'https:', $baseUrl);
+    }
+    define('BASE_URL', $baseUrl);
 } else {
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost:8000';
     $isLocalhost = (bool)preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/i', $host);
-    $isHttps = !$isLocalhost
-        || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['SERVER_PORT'] ?? 80) == 443)
-        || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
-        || (strtolower($_SERVER['HTTP_X_FORWARDED_SCHEME'] ?? '') === 'https')
-        || (strtolower($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '') === 'on')
-        || (($_SERVER['HTTP_X_FORWARDED_PORT'] ?? '') == '443')
-        || (strpos(strtolower($_SERVER['HTTP_CF_VISITOR'] ?? ''), 'https') !== false);
+    $isHttps = $isHttpsRequest || !$isLocalhost;
 
     $protocol = $isHttps ? "https://" : "http://";
     $scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '');
