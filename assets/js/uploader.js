@@ -2,6 +2,14 @@
  * Indra Hotel - Universal Media & Video Uploader Client-Side Handler with Chunked Streaming & Progress
  */
 
+window.getApiEndpoint = function(path) {
+    let baseUrl = window.BASE_URL || '';
+    if (window.location.protocol === 'https:' && baseUrl.startsWith('http:')) {
+        baseUrl = baseUrl.replace(/^http:/, 'https:');
+    }
+    return baseUrl + path;
+};
+
 // =======================================================
 // Universal Chunked File Upload Engine (Supports 100MB+ Videos)
 // =======================================================
@@ -28,7 +36,7 @@ async function uploadMediaChunked(file, folder, onProgress) {
             onProgress(percent, 'Uploading... ' + percent + '%');
         }
 
-        const response = await fetch((window.BASE_URL || '') + '/api/upload.php', {
+        const response = await fetch(window.getApiEndpoint('/api/upload.php'), {
             method: 'POST',
             body: formData
         });
@@ -74,7 +82,7 @@ window.handleImageFileSelect = async function (fileInput, widgetId, folder) {
             formData.append('image', file);
             formData.append('folder', folder || 'general');
 
-            const response = await fetch((window.BASE_URL || '') + '/api/upload.php', {
+            const response = await fetch(window.getApiEndpoint('/api/upload.php'), {
                 method: 'POST',
                 body: formData
             });
@@ -203,7 +211,7 @@ window.handleVideoFileSelect = async function (fileInput, widgetId, folder) {
             formData.append('video', file);
             formData.append('folder', folder || 'videos');
 
-            const response = await fetch((window.BASE_URL || '') + '/api/upload.php', {
+            const response = await fetch(window.getApiEndpoint('/api/upload.php'), {
                 method: 'POST',
                 body: formData
             });
@@ -411,7 +419,7 @@ async function fetchPickerMediaList() {
     `;
 
     try {
-        const url = `${window.BASE_URL || ''}/api/media-api.php?action=list&folder=${encodeURIComponent(activePickerFolder)}&type=${encodeURIComponent(activePickerMediaType)}&q=${encodeURIComponent(activePickerSearch)}&page=${activePickerPage}&limit=20`;
+        const url = window.getApiEndpoint(`/api/media-api.php?action=list&folder=${encodeURIComponent(activePickerFolder)}&type=${encodeURIComponent(activePickerMediaType)}&q=${encodeURIComponent(activePickerSearch)}&page=${activePickerPage}&limit=20`);
         const res = await fetch(url);
         const data = await res.json();
 

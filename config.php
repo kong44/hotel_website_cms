@@ -24,11 +24,17 @@ define('APP_TAGLINE', 'Contemporary Sanctuary in Phnom Penh');
 define('APP_VERSION', '1.0.0');
 
 // Base URL detection
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost:8000';
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (($_SERVER['SERVER_PORT'] ?? 80) == 443)
-    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    || (strtolower($_SERVER['HTTP_X_FORWARDED_SCHEME'] ?? '') === 'https')
+    || (strtolower($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '') === 'on')
+    || (($_SERVER['HTTP_X_FORWARDED_PORT'] ?? '') == '443')
+    || (strpos(strtolower($_SERVER['HTTP_CF_VISITOR'] ?? ''), 'https') !== false)
+    || (!preg_match('/^(localhost|127\.0\.0\.1)/i', $host) && getenv('APP_ENV') === 'production');
+
 $protocol = $isHttps ? "https://" : "http://";
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost:8000';
 $scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '');
 $scriptDir = str_replace('\\', '/', $scriptDir);
 $basePath = preg_replace('/(\/admin|\/api).*$/i', '', $scriptDir);

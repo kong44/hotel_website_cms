@@ -657,8 +657,8 @@ async function uploadRoomGalleryPhoto(fileInput) {
     formData.append('image', file);
     formData.append('folder', 'rooms');
 
-    try {
-        const res = await fetch((window.BASE_URL || '') + '/api/upload.php', {
+        const endpointUrl = window.getApiEndpoint ? window.getApiEndpoint('/api/upload.php') : '/api/upload.php';
+        const res = await fetch(endpointUrl, {
             method: 'POST',
             body: formData
         });
