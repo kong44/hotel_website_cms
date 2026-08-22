@@ -152,9 +152,49 @@ When the database is initialized for the first time, default admin credentials a
 
 ### Prerequisites
 
-1. **Homelab Server**: Running Linux with K3s Kubernetes installed (`curl -sfL https://get.k3s.io | sh -`).
+1. **Homelab Server**: Fedora Server (or any Linux distribution) with K3s Kubernetes installed.
 2. **Cloudflare Tunnel**: `cloudflared` installed and running on the host, configured to route `hotel.kong41.com` to `http://localhost:8000`.
-3. **Docker**: Installed on the host server to build container images.
+3. **Docker**: Installed on the host server to build container images (`sudo dnf install -y docker`).
+
+---
+
+### 🎩 Fedora Server Specific Setup (SELinux & Firewalld)
+
+Fedora Server comes with **SELinux** (Enforcing mode) and **firewalld** enabled by default. Follow these steps to ensure smooth operation of K3s, Docker, and Cloudflare Tunnel:
+
+#### 1. Install K3s with SELinux Support
+Before installing K3s on Fedora Server, install the K3s SELinux policy package:
+```bash
+# Install SELinux container dependencies
+sudo dnf install -y container-selinux selinux-policy-base
+
+# Install K3s SELinux policy RPM
+sudo dnf install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.Stable.1/k3s-selinux-1.6-1.el8.noarch.rpm
+
+# Install K3s
+curl -sfL https://get.k3s.io | sh -
+```
+
+#### 2. Configure Firewalld Rules
+Allow Cloudflare Tunnel traffic on port `8000` and trust K3s container network interfaces:
+```bash
+# Allow Cloudflare Tunnel ingress port 8000
+sudo firewall-cmd --add-port=8000/tcp --permanent
+
+# Trust K3s CNI interfaces for pod-to-pod communication
+sudo firewall-cmd --zone=trusted --add-interface=cni0 --permanent
+sudo firewall-cmd --zone=trusted --add-interface=flannel.1 --permanent
+
+# Reload firewalld
+sudo firewall-cmd --reload
+```
+
+#### 3. Enable & Start Docker Service on Fedora
+```bash
+sudo dnf install -y docker
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+```
 
 ---
 
