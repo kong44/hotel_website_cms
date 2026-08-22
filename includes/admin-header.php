@@ -76,8 +76,11 @@ $flash = get_flash();
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <script>
         window.BASE_URL = <?= json_encode(BASE_URL) ?>;
+        if (window.location.protocol === 'https:' && window.BASE_URL.startsWith('http:')) {
+            window.BASE_URL = window.BASE_URL.replace(/^http:/, 'https:');
+        }
     </script>
-    <script src="<?= BASE_URL ?>/assets/js/uploader.js"></script>
+    <script src="<?= BASE_URL ?>/assets/js/uploader.js?v=<?= filemtime(ROOT_PATH . '/assets/js/uploader.js') ?>"></script>
     <style>
         .flat-card {
             background-color: #ffffff;
