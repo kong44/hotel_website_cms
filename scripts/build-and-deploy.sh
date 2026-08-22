@@ -18,8 +18,8 @@ echo " 🚚 Importing Image into K3s Containerd Engine"
 echo "========================================================"
 
 if command -v k3s &> /dev/null; then
-    echo "Importing image into K3s..."
-    docker save ${IMAGE_NAME} | sudo k3s ctr images import -
+    echo "Importing image into K3s (k8s.io namespace)..."
+    docker save ${IMAGE_NAME} | sudo k3s ctr -n k8s.io images import -
 elif command -v ctr &> /dev/null; then
     echo "Importing image into containerd k8s.io namespace..."
     docker save ${IMAGE_NAME} | sudo ctr -n k8s.io images import -
