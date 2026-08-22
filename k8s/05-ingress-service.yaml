@@ -1,0 +1,50 @@
+# Service exposing the hotel application internally and via NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: hotel-cms-service
+  namespace: hotel-cms
+  labels:
+    app: hotel-cms-app
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30800
+      name: http
+  selector:
+    app: hotel-cms-app
+
+---
+# K3s Traefik Ingress configuration for domain hotel.kong41.com
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hotel-cms-ingress
+  namespace: hotel-cms
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: hotel.kong41.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hotel-cms-service
+                port:
+                  number: 80
+    - host: localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hotel-cms-service
+                port:
+                  number: 80

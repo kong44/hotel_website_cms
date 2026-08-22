@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hotel-cms
+  labels:
+    name: hotel-cms
+    app.kubernetes.io/name: hotel-cms

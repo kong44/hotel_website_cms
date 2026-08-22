@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hotel_cms_app
+    restart: always
+    ports:
+      - "8000:80"
+    environment:
+      - APP_ENV=production
+      - DB_DRIVER=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=hotel_website
+      - DB_USER=hotel_user
+      - DB_PASS=hotel_secure_password_2026
+    volumes:
+      - uploads_data:/var/www/html/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    container_name: hotel_cms_db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_secure_password_2026
+      - MYSQL_DATABASE=hotel_website
+      - MYSQL_USER=hotel_user
+      - MYSQL_PASSWORD=hotel_secure_password_2026
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_secure_password_2026"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+  uploads_data:
