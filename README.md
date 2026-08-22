@@ -269,6 +269,34 @@ All manifests are located in the `k8s/` directory:
 
 ---
 
+## 🔄 How to Redeploy After Code Changes
+
+Whenever you edit PHP source code, templates, CSS/JS assets, or Kubernetes manifests:
+
+### 1. Full Redeploy (Code & Manifests)
+Run the one-command build script. It rebuilds the Docker image, imports it into K3s containerd, and triggers a zero-downtime rolling restart of your application pods:
+
+```bash
+make k3s-deploy
+```
+*or directly:*
+```bash
+./scripts/build-and-deploy.sh
+```
+
+---
+
+### 2. Restart Pods Only
+If you want to force all application pods to restart without re-building the image:
+
+```bash
+make restart
+# or
+kubectl rollout restart deployment/hotel-cms-app -n hotel-cms
+```
+
+---
+
 ## 📄 License
 
 This project is proprietary software created for Indra Hotel Phnom Penh Co., Ltd. All rights reserved.

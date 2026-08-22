@@ -34,3 +34,6 @@ status:
 
 logs:
 	kubectl logs -f -l app=hotel-cms-app -n hotel-cms --tail=100
+
+restart:
+	kubectl rollout restart deployment/hotel-cms-app -n hotel-cms

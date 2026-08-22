@@ -31,6 +31,7 @@ echo "========================================================"
 echo " 🚀 Applying K3s Kubernetes Manifests"
 echo "========================================================"
 kubectl apply -f k8s/
+kubectl rollout restart deployment/hotel-cms-app -n ${NAMESPACE}
 
 echo "========================================================"
 echo " ⏳ Waiting for MySQL StatefulSet to become ready..."
