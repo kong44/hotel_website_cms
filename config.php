@@ -10,6 +10,23 @@ if (defined('INDRA_CONFIG_LOADED')) {
 }
 define('INDRA_CONFIG_LOADED', true);
 
+define('ROOT_PATH', __DIR__);
+
+// Database Configuration (Defined before session initialization)
+define('DB_DRIVER', getenv('DB_DRIVER') ?: 'mysql'); // 'mysql' or 'sqlite'
+define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
+define('DB_NAME', getenv('DB_NAME') ?: 'hotel_website');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+define('DB_CHARSET', 'utf8mb4');
+define('SQLITE_FILE', ROOT_PATH . '/database.sqlite');
+
+// Application Settings
+define('APP_NAME', 'Indra Hotel');
+define('APP_TAGLINE', 'Contemporary Sanctuary in Phnom Penh');
+define('APP_VERSION', '1.0.0');
+
 // Start session securely if not already started
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.gc_maxlifetime', 604800); // 7 days
@@ -30,7 +47,7 @@ if (session_status() === PHP_SESSION_NONE) {
         'samesite' => 'Lax'
     ]);
 
-    if (defined('DB_DRIVER') && DB_DRIVER === 'mysql') {
+    if (DB_DRIVER === 'mysql') {
         require_once __DIR__ . '/includes/db.php';
         require_once __DIR__ . '/includes/session_handler.php';
         if (class_exists('PdoSessionHandler')) {
@@ -39,23 +56,6 @@ if (session_status() === PHP_SESSION_NONE) {
     }
     session_start();
 }
-
-// Application Settings
-define('APP_NAME', 'Indra Hotel');
-define('APP_TAGLINE', 'Contemporary Sanctuary in Phnom Penh');
-define('APP_VERSION', '1.0.0');
-
-define('ROOT_PATH', __DIR__);
-
-// Database Configuration
-define('DB_DRIVER', getenv('DB_DRIVER') ?: 'mysql'); // 'mysql' or 'sqlite'
-define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
-define('DB_PORT', getenv('DB_PORT') ?: '3306');
-define('DB_NAME', getenv('DB_NAME') ?: 'hotel_website');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
-define('DB_CHARSET', 'utf8mb4');
-define('SQLITE_FILE', ROOT_PATH . '/database.sqlite');
 
 // Base URL detection & HTTPS protocol enforcement
 $isHttpsRequest = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
