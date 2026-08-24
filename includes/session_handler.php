@@ -103,7 +103,8 @@ class PdoSessionHandler implements SessionHandlerInterface {
             $pdo = $this->getPdo();
             if (!$pdo) return 0;
             $this->ensureTable($pdo);
-            $cutoff = time() - $max_lifetime;
+            $effectiveLifetime = max($max_lifetime, 604800); // 7 days minimum
+            $cutoff = time() - $effectiveLifetime;
             $stmt = $pdo->prepare("DELETE FROM sessions WHERE last_activity < ?");
             $stmt->execute([$cutoff]);
             return $stmt->rowCount();

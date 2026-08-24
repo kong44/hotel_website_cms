@@ -12,15 +12,24 @@ define('INDRA_CONFIG_LOADED', true);
 
 // Start session securely if not already started
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.gc_maxlifetime', 604800); // 7 days
+    ini_set('session.cookie_lifetime', 604800);
     ini_set('session.cookie_httponly', 1);
     ini_set('session.use_only_cookies', 1);
     ini_set('session.cookie_samesite', 'Lax');
+    
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
+        || (($_SERVER['SERVER_PORT'] ?? 80) == 443) 
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+
     session_set_cookie_params([
-        'lifetime' => 86400 * 7,
+        'lifetime' => 604800, // 7 days
         'path' => '/',
         'httponly' => true,
+        'secure' => $isSecure,
         'samesite' => 'Lax'
     ]);
+
     if (defined('DB_DRIVER') && DB_DRIVER === 'mysql') {
         require_once __DIR__ . '/includes/db.php';
         require_once __DIR__ . '/includes/session_handler.php';

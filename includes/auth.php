@@ -56,8 +56,8 @@ class Auth {
         if (!isset($_SESSION['user_id'])) {
             return false;
         }
-        // Inactivity timeout: 4 hours
-        if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 14400)) {
+        // Inactivity timeout: 7 days (604,800 seconds)
+        if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 604800)) {
             self::logout();
             return false;
         }
