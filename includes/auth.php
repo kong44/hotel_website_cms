@@ -31,19 +31,6 @@ class Auth {
             return true;
         }
 
-        // Support fallback admin if database record has default hash
-        if ($email === strtolower(DEFAULT_ADMIN_EMAIL) && $password === DEFAULT_ADMIN_PASSWORD) {
-            if (!headers_sent()) {
-                session_regenerate_id(true);
-            }
-            $_SESSION['user_id'] = 1;
-            $_SESSION['user_name'] = DEFAULT_ADMIN_NAME;
-            $_SESSION['user_email'] = DEFAULT_ADMIN_EMAIL;
-            $_SESSION['user_role'] = 'admin';
-            $_SESSION['last_activity'] = time();
-            return true;
-        }
-
         return false;
     }
 

@@ -101,7 +101,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-400 mb-1">Email Address</label>
                     <div class="relative">
                         <input type="email" name="email" id="login_email" required 
-                               value="<?= e($_POST['email'] ?? DEFAULT_ADMIN_EMAIL) ?>"
+                               value="<?= e($_POST['email'] ?? '') ?>" placeholder="admin@hotel.com"
                                class="w-full bg-stone-900 border border-stone-700 text-white rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#dfe8a6] focus:border-transparent">
                     </div>
                 </div>
@@ -113,7 +113,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                     </div>
                     <div class="relative">
                         <input type="password" name="password" id="login_password" required 
-                               value="<?= DEFAULT_ADMIN_PASSWORD ?>"
+                               placeholder="••••••••"
                                class="w-full bg-stone-900 border border-stone-700 text-white rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#dfe8a6] focus:border-transparent">
                     </div>
                 </div>
@@ -131,16 +131,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                     <span>Sign In to Dashboard</span>
                 </button>
             </form>
-
-            <!-- Quick Demo Prefill Helper -->
-            <div class="pt-4 border-t border-stone-800 text-center">
-                <p class="text-[11px] text-stone-500 mb-2">Default Demonstration Credentials:</p>
-                <div class="inline-flex items-center gap-2 bg-stone-900 px-3 py-1.5 rounded text-xs text-stone-400 font-mono">
-                    <span>admin@hotel.com</span>
-                    <span class="text-stone-600">/</span>
-                    <span>admin123456</span>
-                </div>
-            </div>
 
         </div>
 

@@ -57,7 +57,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['change_passwo
     $stmtU->execute([$user['id']]);
     $u = $stmtU->fetch();
 
-    if (!$u || (!password_verify($currentPass, $u['password_hash']) && $currentPass !== DEFAULT_ADMIN_PASSWORD)) {
+    if (!$u || !password_verify($currentPass, $u['password_hash'])) {
         set_flash('error', 'Current password incorrect.');
     } elseif (strlen($newPass) < 6) {
         set_flash('error', 'New password must be at least 6 characters long.');

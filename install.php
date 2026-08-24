@@ -29,7 +29,6 @@ if ($isCli) {
     echo "============================================\n";
     echo ($success ? "[SUCCESS] " : "[ERROR] ") . $message . "\n";
     echo "Active Driver: " . $driver . "\n";
-    echo "Default Admin: " . DEFAULT_ADMIN_EMAIL . " / " . DEFAULT_ADMIN_PASSWORD . "\n";
     echo "============================================\n\n";
     exit($success ? 0 : 1);
 }
@@ -64,8 +63,6 @@ if ($isCli) {
             <div class="bg-stone-50 rounded-lg p-4 mb-6 text-sm text-stone-700 space-y-2 border border-stone-200">
                 <div><span class="font-medium">Database Name:</span> <?= htmlspecialchars(DB_NAME) ?></div>
                 <div><span class="font-medium">Active Driver:</span> <span class="uppercase font-semibold text-[#343c0a]"><?= htmlspecialchars($driver) ?></span></div>
-                <div><span class="font-medium">Admin Email:</span> <code class="bg-stone-200 px-1.5 py-0.5 rounded text-xs"><?= htmlspecialchars(DEFAULT_ADMIN_EMAIL) ?></code></div>
-                <div><span class="font-medium">Admin Password:</span> <code class="bg-stone-200 px-1.5 py-0.5 rounded text-xs"><?= htmlspecialchars(DEFAULT_ADMIN_PASSWORD) ?></code></div>
             </div>
 
             <div class="flex gap-4">

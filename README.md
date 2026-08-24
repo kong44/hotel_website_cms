@@ -113,15 +113,9 @@ Run the full production-like stack locally using Docker Compose (PHP Apache cont
 
 ---
 
-### Default Admin Credentials
+### Admin Credentials & Access
 
-When the database is initialized for the first time, default admin credentials are generated:
-
-- **Login URL**: [http://localhost:8000/admin/login.php](http://localhost:8000/admin/login.php)
-- **Email**: `admin@hotel.com`
-- **Password**: `admin123456`
-
-*(Be sure to update password in the Admin Settings upon first login).*
+Admin accounts are created and managed via the Admin CMS Dashboard under **Admin -> Users & Access**. Initial accounts are configured in the database upon initialization.
 
 ---
 
