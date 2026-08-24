@@ -2,12 +2,14 @@
 # Indra Hotel CMS - DevOps & Deployment Makefile
 # ========================================================
 
-.PHONY: help build up down deploy k3s-deploy k3s-delete status logs restart db-create db-init db-migrate db-reset deploy-all
+.PHONY: help build up down deploy k3s-deploy k3s-delete status logs restart rollback history db-create db-init db-migrate db-reset deploy-all
 
 help:
 	@echo "Available commands:"
 	@echo "  --- CODE DEPLOYMENT ---"
 	@echo "  make deploy       - Rebuild & deploy code changes to K3s cluster"
+	@echo "  make rollback     - Roll back to the previous deployment revision"
+	@echo "  make history      - Show deployment rollout revision history"
 	@echo "  make up           - Build & start local Docker Compose environment"
 	@echo "  make down         - Stop local Docker Compose environment"
 	@echo "  make restart      - Restart app pods in K3s without rebuilding image"
@@ -39,6 +41,12 @@ deploy: k3s-deploy
 
 k3s-deploy:
 	./scripts/build-and-deploy.sh
+
+rollback:
+	./scripts/rollback.sh
+
+history:
+	kubectl rollout history deployment/hotel-cms-app -n hotel-cms
 
 k3s-delete:
 	kubectl delete -f k8s/

@@ -5,20 +5,34 @@
 
 set -e
 
-BUILD_TAG="v$(date +%Y%m%d%H%M%S)"
-IMAGE_NAME="hotel-cms:${BUILD_TAG}"
-IMAGE_LATEST="hotel-cms:latest"
-NAMESPACE="hotel-cms"
+CUSTOM_TAG=""
 WITH_DB_RESET=false
 
 for arg in "$@"; do
     case $arg in
         --with-db-reset|--reset-db)
             WITH_DB_RESET=true
-            shift
+            ;;
+        v*|1.*|2.*|3.*|dev*|prod*|test*)
+            CUSTOM_TAG="$arg"
+            ;;
+        *)
+            if [ -z "$CUSTOM_TAG" ] && [[ "$arg" != -* ]]; then
+                CUSTOM_TAG="$arg"
+            fi
             ;;
     esac
 done
+
+if [ -n "$CUSTOM_TAG" ]; then
+    BUILD_TAG="$CUSTOM_TAG"
+else
+    BUILD_TAG="v$(date +%Y%m%d%H%M%S)"
+fi
+
+IMAGE_NAME="hotel-cms:${BUILD_TAG}"
+IMAGE_LATEST="hotel-cms:latest"
+NAMESPACE="hotel-cms"
 
 echo "========================================================"
 echo " 🛠️  Building Local Docker Image: ${IMAGE_NAME}"

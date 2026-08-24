@@ -266,7 +266,9 @@ All manifests are located in the `k8s/` directory:
 
 | Command | Description |
 | :--- | :--- |
-| `make deploy` / `make k3s-deploy` | Rebuild Docker image & deploy code changes to K3s cluster. |
+| `make deploy` / `make k3s-deploy` | Rebuild Docker image with unique tag & deploy to K3s cluster. |
+| `make rollback` | Instant rollback to the previous deployment revision. |
+| `make history` | View deployment rollout revision history. |
 | `make up` | Start local Docker Compose stack & auto-migrate database. |
 | `make down` | Stop local Docker Compose stack. |
 | `make db-create` | Initialize database schema and seed data. |
@@ -280,45 +282,82 @@ All manifests are located in the `k8s/` directory:
 
 ---
 
-## 🔄 Deployment Workflows
+## 🚀 Standard Deployment Guide (Step-by-Step)
 
-### 1. When You Make Code Changes
-When you update PHP files, templates, CSS/JS, or configuration:
+Follow these steps whenever you modify PHP source code, assets, database schemas, or configuration:
 
+### Step 1: Commit & Pull Code Changes
+On your local machine, commit and push your changes:
 ```bash
-# Option A: Deploy to K3s Kubernetes cluster
+git add .
+git commit -m "Your update description"
+git push origin main
+```
+
+On your live production server, pull the latest updates:
+```bash
+git pull origin main
+```
+
+### Step 2: Run Standard Deployment
+Execute the single deployment command:
+```bash
 make deploy
-# (or ./scripts/build-and-deploy.sh)
+```
+*(Or specify a custom version tag: `./scripts/build-and-deploy.sh v1.0.2`)*
 
-# Option B: Deploy to local Docker Compose environment
-make up
+#### What happens during standard deployment:
+1. **Unique Image Tagging**: Generates a unique version tag (e.g. `hotel-cms:v20260824112350`).
+2. **Local Container Build**: Builds the Docker image without cache.
+3. **Containerd Import**: Imports the image into K3s containerd storage (`k8s.io` namespace).
+4. **Kubernetes Image Update**: Runs `kubectl set image deployment/hotel-cms-app app=hotel-cms:<tag>`, forcing Kubernetes to replace old pods with brand-new ones.
+5. **Database Auto-Migration**: Runs `db-sync.sh migrate` and `install.php` to apply any new database tables/columns without wiping existing data.
+
+### Step 3: Verify Deployment Status
+Check that all pods are running and healthy:
+```bash
+make status
 ```
 
 ---
 
-### 2. When You Add a New Database Table / Schema Changes
-When you add a new table to `schema.sql` or add new model code:
+## ⏪ Rollback Guide (Step-by-Step)
+
+If an issue occurs after deployment and you need to revert to a previous working version:
+
+### Option 1: Quick Rollback to Previous Version (1 Command)
+To instantly undo the last deployment and restore the previous pods:
 
 ```bash
-# Step 1: Run database migration command (applies new tables without wiping existing data)
-make db-migrate
-
-# (Optional) If you want to reset and re-seed the entire database:
-make db-reset
+make rollback
+# (or ./scripts/rollback.sh)
 ```
 
 ---
 
-### 3. When You Have BOTH Code & Database Changes
-To update code and apply database changes in a single command:
+### Option 2: Rollback to a Specific Revision Number
 
-```bash
-make deploy-all
-```
+1. **View Deployment Revision History**:
+   ```bash
+   make history
+   # or: kubectl rollout history deployment/hotel-cms-app -n hotel-cms
+   ```
+
+2. **Rollback to Desired Revision (e.g., Revision 2)**:
+   ```bash
+   ./scripts/rollback.sh 2
+   # or: kubectl rollout undo deployment/hotel-cms-app -n hotel-cms --to-revision=2
+   ```
+
+3. **Verify Rollback Completion**:
+   ```bash
+   make status
+   ```
 
 ---
 
 ## 📄 License
 
 This project is proprietary software created for Indra Hotel Phnom Penh Co., Ltd. All rights reserved.
+
 
