@@ -5,7 +5,9 @@
 
 set -e
 
-IMAGE_NAME="hotel-cms:latest"
+BUILD_TAG="v$(date +%Y%m%d%H%M%S)"
+IMAGE_NAME="hotel-cms:${BUILD_TAG}"
+IMAGE_LATEST="hotel-cms:latest"
 NAMESPACE="hotel-cms"
 WITH_DB_RESET=false
 
@@ -21,28 +23,40 @@ done
 echo "========================================================"
 echo " 🛠️  Building Local Docker Image: ${IMAGE_NAME}"
 echo "========================================================"
-docker build --no-cache -t ${IMAGE_NAME} .
+docker build --no-cache -t ${IMAGE_NAME} -t ${IMAGE_LATEST} .
 
 echo "========================================================"
 echo " 🚚 Importing Image into K3s Containerd Engine"
 echo "========================================================"
 
+CTR_BIN=""
 if command -v k3s &> /dev/null; then
-    echo "Importing image into K3s (k8s.io namespace)..."
-    docker save ${IMAGE_NAME} | sudo k3s ctr -n k8s.io images import -
+    CTR_BIN="k3s ctr"
+elif [ -f "/usr/local/bin/k3s" ]; then
+    CTR_BIN="/usr/local/bin/k3s ctr"
+elif [ -f "/usr/bin/k3s" ]; then
+    CTR_BIN="/usr/bin/k3s ctr"
 elif command -v ctr &> /dev/null; then
-    echo "Importing image into containerd k8s.io namespace..."
-    docker save ${IMAGE_NAME} | sudo ctr -n k8s.io images import -
+    CTR_BIN="ctr"
+elif [ -f "/usr/local/bin/ctr" ]; then
+    CTR_BIN="/usr/local/bin/ctr"
+elif [ -f "/usr/bin/ctr" ]; then
+    CTR_BIN="/usr/bin/ctr"
+fi
+
+if [ -n "${CTR_BIN}" ]; then
+    echo "Importing image ${IMAGE_NAME} into containerd (k8s.io namespace)..."
+    docker save ${IMAGE_NAME} ${IMAGE_LATEST} | sudo ${CTR_BIN} -n k8s.io images import -
 else
     echo "⚠️  Neither k3s nor ctr binary found directly in PATH. Skipping ctr import step (assuming shared Docker socket or microk8s/minikube)."
 fi
 
 echo "========================================================"
-echo " 🚀 Applying K3s Kubernetes Manifests & Triggering Deployment Rollout"
+echo " 🚀 Applying K3s Kubernetes Manifests & Updating Unique Image Tag"
 echo "========================================================"
 kubectl apply -f k8s/
-kubectl patch deployment hotel-cms-app -n ${NAMESPACE} -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"build.id\":\"$(date +%s)\"}}}}}" || true
-kubectl rollout restart deployment/hotel-cms-app -n ${NAMESPACE}
+echo "Setting deployment container image to [${IMAGE_NAME}]..."
+kubectl set image deployment/hotel-cms-app app=${IMAGE_NAME} -n ${NAMESPACE}
 
 echo "========================================================"
 echo " ⏳ Waiting for MySQL StatefulSet to become ready..."
@@ -76,4 +90,4 @@ echo "========================================================"
 kubectl get pods,svc,pvc,ingress -n ${NAMESPACE}
 
 echo ""
-echo "🎉 Code and Database Deployment Complete!"
+echo "🎉 Code and Database Deployment Complete! Updated to build ${BUILD_TAG}."
