@@ -262,45 +262,58 @@ All manifests are located in the `k8s/` directory:
 
 ---
 
-## 🛠️ Maintenance & Useful Commands
+## 🛠️ Maintenance & Deployment Commands
 
 | Command | Description |
 | :--- | :--- |
-| `make build` | Build local Docker image (`hotel-cms:latest`). |
-| `make up` | Start local Docker Compose stack. |
+| `make deploy` / `make k3s-deploy` | Rebuild Docker image & deploy code changes to K3s cluster. |
+| `make up` | Start local Docker Compose stack & auto-migrate database. |
 | `make down` | Stop local Docker Compose stack. |
-| `make k3s-deploy` | Build and deploy to production K3s cluster. |
-| `make k3s-delete` | Remove all application resources from K3s cluster. |
+| `make db-create` | Initialize database schema and seed data. |
+| `make db-migrate` | Apply new database tables & column changes without losing data. |
+| `make db-reset` | Drop & recreate fresh database with `schema.sql` and `seed.sql`. |
+| `make deploy-all` | Rebuild code + apply database migrations + deploy to K3s in one command. |
+| `make restart` | Force rolling restart of app pods without rebuilding image. |
 | `make status` | Check status of K3s pods, services, PVCs, and ingress. |
 | `make logs` | Tail live logs from K3s application pods. |
-| `make db-init` | Direct native CLI import of `schema.sql` and `seed.sql` into MySQL container. |
+| `make k3s-delete` | Remove all application resources from K3s cluster. |
 
 ---
 
-## 🔄 How to Redeploy After Code Changes
+## 🔄 Deployment Workflows
 
-Whenever you edit PHP source code, templates, CSS/JS assets, or Kubernetes manifests:
-
-### 1. Full Redeploy (Code & Manifests)
-Run the one-command build script. It rebuilds the Docker image, imports it into K3s containerd, and triggers a zero-downtime rolling restart of your application pods:
+### 1. When You Make Code Changes
+When you update PHP files, templates, CSS/JS, or configuration:
 
 ```bash
-make k3s-deploy
-```
-*or directly:*
-```bash
-./scripts/build-and-deploy.sh
+# Option A: Deploy to K3s Kubernetes cluster
+make deploy
+# (or ./scripts/build-and-deploy.sh)
+
+# Option B: Deploy to local Docker Compose environment
+make up
 ```
 
 ---
 
-### 2. Restart Pods Only
-If you want to force all application pods to restart without re-building the image:
+### 2. When You Add a New Database Table / Schema Changes
+When you add a new table to `schema.sql` or add new model code:
 
 ```bash
-make restart
-# or
-kubectl rollout restart deployment/hotel-cms-app -n hotel-cms
+# Step 1: Run database migration command (applies new tables without wiping existing data)
+make db-migrate
+
+# (Optional) If you want to reset and re-seed the entire database:
+make db-reset
+```
+
+---
+
+### 3. When You Have BOTH Code & Database Changes
+To update code and apply database changes in a single command:
+
+```bash
+make deploy-all
 ```
 
 ---
@@ -308,3 +321,4 @@ kubectl rollout restart deployment/hotel-cms-app -n hotel-cms
 ## 📄 License
 
 This project is proprietary software created for Indra Hotel Phnom Penh Co., Ltd. All rights reserved.
+

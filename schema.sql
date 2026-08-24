@@ -1,5 +1,5 @@
 -- Indra Hotel Database Schema
--- Compatible with MySQL 5.7+ / MySQL 8.0+ / MariaDB
+-- Compatible with MySQL 5.7+ / MySQL 8.0+ / MariaDB / SQLite
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -8,12 +8,28 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password_hash` VARCHAR(255) NOT NULL,
   `role` VARCHAR(50) NOT NULL DEFAULT 'admin',
   `avatar` VARCHAR(255) NULL,
+  `google_id` VARCHAR(100) NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `room_types` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(150) NOT NULL UNIQUE,
+  `slug` VARCHAR(150) NOT NULL UNIQUE,
+  `icon` VARCHAR(50) NOT NULL DEFAULT 'hotel',
+  `badge_color` VARCHAR(50) NOT NULL DEFAULT 'emerald',
+  `description` TEXT NULL,
+  `translations_json` LONGTEXT NULL,
+  `display_order` INT NOT NULL DEFAULT 99,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `rooms` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `room_type_id` INT NULL,
+  `category` VARCHAR(100) NOT NULL DEFAULT 'Deluxe Room',
   `name` VARCHAR(150) NOT NULL,
   `slug` VARCHAR(150) NOT NULL UNIQUE,
   `tagline` VARCHAR(255) NULL,
@@ -35,6 +51,16 @@ CREATE TABLE IF NOT EXISTS `rooms` (
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `amenities` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(150) NOT NULL UNIQUE,
+  `icon` VARCHAR(50) NOT NULL DEFAULT 'check_circle',
+  `category` VARCHAR(50) NOT NULL DEFAULT 'general',
+  `translations_json` LONGTEXT NULL,
+  `display_order` INT NOT NULL DEFAULT 99,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `bookings` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `booking_reference` VARCHAR(50) NOT NULL UNIQUE,
@@ -49,6 +75,9 @@ CREATE TABLE IF NOT EXISTS `bookings` (
   `nights` INT NOT NULL DEFAULT 1,
   `room_rate` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `total_price` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  `promo_code` VARCHAR(50) NULL,
+  `offer_title` VARCHAR(150) NULL,
+  `discount_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `status` ENUM('pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled') NOT NULL DEFAULT 'pending',
   `payment_status` ENUM('unpaid', 'paid', 'refunded') NOT NULL DEFAULT 'unpaid',
   `special_requests` TEXT NULL,
@@ -84,6 +113,7 @@ CREATE TABLE IF NOT EXISTS `special_offers` (
   `description` TEXT NOT NULL,
   `badge_text` VARCHAR(50) DEFAULT 'Special Offer',
   `image_url` TEXT NOT NULL,
+  `external_url` VARCHAR(255) NULL,
   `valid_from` DATE NULL,
   `valid_to` DATE NULL,
   `translations_json` LONGTEXT NULL,
@@ -100,6 +130,27 @@ CREATE TABLE IF NOT EXISTS `gallery` (
   `image_url` TEXT NOT NULL,
   `caption` VARCHAR(255) NULL,
   `display_order` INT NOT NULL DEFAULT 0,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `location_spots` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `slug` VARCHAR(255) NULL UNIQUE,
+  `title` VARCHAR(255) NOT NULL,
+  `distance_time` VARCHAR(100) NOT NULL,
+  `category` VARCHAR(50) NOT NULL DEFAULT 'attraction',
+  `icon` VARCHAR(50) NOT NULL DEFAULT 'location_on',
+  `image_url` VARCHAR(500) NULL,
+  `gallery_json` LONGTEXT NULL,
+  `opening_hours` VARCHAR(100) NULL,
+  `admission_fee` VARCHAR(100) NULL,
+  `address` VARCHAR(255) NULL,
+  `map_embed` TEXT NULL,
+  `tips` TEXT NULL,
+  `description` TEXT NOT NULL,
+  `translations_json` LONGTEXT NULL,
+  `display_order` INT NOT NULL DEFAULT 99,
+  `is_featured` TINYINT(1) NOT NULL DEFAULT 1,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -170,4 +221,58 @@ CREATE TABLE IF NOT EXISTS `theme_licenses` (
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `email_logs` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `recipient` VARCHAR(255) NOT NULL,
+  `subject` VARCHAR(255) NOT NULL,
+  `driver` VARCHAR(50) NOT NULL DEFAULT 'mail',
+  `status` VARCHAR(50) NOT NULL DEFAULT 'pending',
+  `message` TEXT NULL,
+  `log` LONGTEXT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `user_invitations` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `email` VARCHAR(190) NOT NULL,
+  `name` VARCHAR(150) NOT NULL,
+  `role` VARCHAR(50) NOT NULL DEFAULT 'editor',
+  `token` VARCHAR(128) NOT NULL UNIQUE,
+  `invited_by` INT NULL,
+  `status` VARCHAR(30) NOT NULL DEFAULT 'pending',
+  `expires_at` DATETIME NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `accepted_at` DATETIME NULL,
+  INDEX `idx_invitation_token` (`token`),
+  INDEX `idx_invitation_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `password_resets` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `email` VARCHAR(190) NOT NULL,
+  `token` VARCHAR(128) NOT NULL UNIQUE,
+  `status` VARCHAR(30) NOT NULL DEFAULT 'pending',
+  `expires_at` DATETIME NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `used_at` DATETIME NULL,
+  INDEX `idx_reset_token` (`token`),
+  INDEX `idx_reset_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `guest_users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(150) NOT NULL,
+  `email` VARCHAR(190) NOT NULL UNIQUE,
+  `phone` VARCHAR(50) NULL,
+  `avatar` VARCHAR(500) NULL,
+  `google_id` VARCHAR(100) NULL,
+  `auth_provider` VARCHAR(50) NOT NULL DEFAULT 'direct_booking',
+  `status` VARCHAR(30) NOT NULL DEFAULT 'active',
+  `notes` TEXT NULL,
+  `last_login_at` DATETIME NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_guest_email` (`email`),
+  INDEX `idx_guest_google_id` (`google_id`),
+  INDEX `idx_guest_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

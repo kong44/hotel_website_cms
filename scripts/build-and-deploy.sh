@@ -7,6 +7,16 @@ set -e
 
 IMAGE_NAME="hotel-cms:latest"
 NAMESPACE="hotel-cms"
+WITH_DB_RESET=false
+
+for arg in "$@"; do
+    case $arg in
+        --with-db-reset|--reset-db)
+            WITH_DB_RESET=true
+            shift
+            ;;
+    esac
+done
 
 echo "========================================================"
 echo " 🛠️  Building Local Docker Image: ${IMAGE_NAME}"
@@ -39,10 +49,15 @@ echo "========================================================"
 kubectl rollout status statefulset/mysql -n ${NAMESPACE} --timeout=120s || true
 
 echo "========================================================"
-echo " 🗄️ Initializing & Importing MySQL Database Schema & Seed"
+echo " 🗄️ Initializing & Syncing Database Schema"
 echo "========================================================"
-kubectl exec -i -n ${NAMESPACE} statefulset/mysql -- mysql -u root -pmysql_root_k3s_secure_pass_2026 hotel_website < schema.sql || true
-kubectl exec -i -n ${NAMESPACE} statefulset/mysql -- mysql -u root -pmysql_root_k3s_secure_pass_2026 hotel_website < seed.sql || true
+if [ "$WITH_DB_RESET" = true ]; then
+    echo "⚠️  Running Database Reset & Re-creation..."
+    ./scripts/db-sync.sh reset
+else
+    echo "Running Schema Migration & Table Sync..."
+    ./scripts/db-sync.sh migrate
+fi
 
 echo "========================================================"
 echo " ⏳ Waiting for App Deployment to complete rollout..."
@@ -50,9 +65,14 @@ echo "========================================================"
 kubectl rollout status deployment/hotel-cms-app -n ${NAMESPACE} --timeout=120s || true
 
 echo "========================================================"
-echo " ✅ Deployment Status summary:"
+echo " 🏃 Running Post-Deployment PHP Database Installer"
+echo "========================================================"
+kubectl exec -n ${NAMESPACE} deployment/hotel-cms-app -- php install.php || true
+
+echo "========================================================"
+echo " ✅ Deployment Status Summary:"
 echo "========================================================"
 kubectl get pods,svc,pvc,ingress -n ${NAMESPACE}
 
 echo ""
-echo "🎉 Deployment complete! Ensure Cloudflare Tunnel points to port 8000 on localhost."
+echo "🎉 Code and Database Deployment Complete!"
