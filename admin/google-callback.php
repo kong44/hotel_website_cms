@@ -72,7 +72,9 @@ if ($authResult['success']) {
     } else {
         set_flash('success', "Welcome back, {$user['name']}! Signed in via Google.");
     }
-    
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        @session_write_close();
+    }
     header('Location: ' . $redirectTarget);
     exit;
 } else {

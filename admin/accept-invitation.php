@@ -85,6 +85,9 @@ if ($isValid && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             if ($activeUser) {
                 Auth::loginUser($activeUser);
                 set_flash('success', "Welcome to SoftBook, {$activeUser['name']}! Your account has been activated.");
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    @session_write_close();
+                }
                 header('Location: ' . BASE_URL . '/admin/index.php');
                 exit;
             } else {

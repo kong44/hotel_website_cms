@@ -29,6 +29,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $error = 'Please enter both your email address and password.';
     } elseif (Auth::attempt($email, $password)) {
         set_flash('success', 'Welcome back to SoftBook.');
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            @session_write_close();
+        }
         header('Location: ' . $redirect);
         exit;
     } else {
