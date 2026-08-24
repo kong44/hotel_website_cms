@@ -38,9 +38,10 @@ else
 fi
 
 echo "========================================================"
-echo " 🚀 Applying K3s Kubernetes Manifests"
+echo " 🚀 Applying K3s Kubernetes Manifests & Triggering Deployment Rollout"
 echo "========================================================"
 kubectl apply -f k8s/
+kubectl patch deployment hotel-cms-app -n ${NAMESPACE} -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"build.id\":\"$(date +%s)\"}}}}}" || true
 kubectl rollout restart deployment/hotel-cms-app -n ${NAMESPACE}
 
 echo "========================================================"
