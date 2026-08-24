@@ -18,6 +18,7 @@ help:
 	@echo "  make db-create    - Create/Initialize database schema & seed data"
 	@echo "  make db-migrate   - Apply new tables & schema migrations without dropping data"
 	@echo "  make db-reset     - Drop & recreate fresh database with schema and seed data"
+	@echo "  make create-admin - Create or reset an admin user account"
 	@echo ""
 	@echo "  --- COMBINED COMMANDS ---"
 	@echo "  make deploy-all   - Rebuild code + apply database migrations + deploy to K3s"
@@ -73,3 +74,7 @@ db-reset:
 
 deploy-all:
 	./scripts/build-and-deploy.sh
+
+create-admin:
+	php scripts/create-admin.php admin@local.com TempAdmin2026! "Local Administrator"
+
