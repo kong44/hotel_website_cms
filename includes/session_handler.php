@@ -6,6 +6,7 @@
 
 class PdoSessionHandler implements SessionHandlerInterface {
     private ?PDO $pdo = null;
+    private static bool $tableChecked = false;
 
     public function __construct() {}
 
@@ -22,6 +23,28 @@ class PdoSessionHandler implements SessionHandlerInterface {
         return $this->pdo;
     }
 
+    private function ensureTable(PDO $pdo): void {
+        if (self::$tableChecked) return;
+        try {
+            $driver = class_exists('Database') ? Database::getDriver() : 'mysql';
+            if ($driver === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `sessions` (
+                    `id` VARCHAR(191) PRIMARY KEY,
+                    `data` LONGTEXT NOT NULL,
+                    `last_activity` INT NOT NULL,
+                    INDEX `idx_sessions_last_activity` (`last_activity`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    data TEXT NOT NULL,
+                    last_activity INTEGER NOT NULL
+                )");
+            }
+            self::$tableChecked = true;
+        } catch (Throwable $t) {}
+    }
+
     public function open(string $path, string $name): bool {
         return true;
     }
@@ -34,6 +57,7 @@ class PdoSessionHandler implements SessionHandlerInterface {
         try {
             $pdo = $this->getPdo();
             if (!$pdo) return '';
+            $this->ensureTable($pdo);
             $stmt = $pdo->prepare("SELECT data FROM sessions WHERE id = ? LIMIT 1");
             $stmt->execute([$id]);
             $res = $stmt->fetchColumn();
@@ -47,6 +71,7 @@ class PdoSessionHandler implements SessionHandlerInterface {
         try {
             $pdo = $this->getPdo();
             if (!$pdo) return false;
+            $this->ensureTable($pdo);
             $now = time();
             $driver = class_exists('Database') ? Database::getDriver() : 'mysql';
             
@@ -65,6 +90,7 @@ class PdoSessionHandler implements SessionHandlerInterface {
         try {
             $pdo = $this->getPdo();
             if (!$pdo) return false;
+            $this->ensureTable($pdo);
             $stmt = $pdo->prepare("DELETE FROM sessions WHERE id = ?");
             return $stmt->execute([$id]);
         } catch (Throwable $t) {
@@ -76,6 +102,7 @@ class PdoSessionHandler implements SessionHandlerInterface {
         try {
             $pdo = $this->getPdo();
             if (!$pdo) return 0;
+            $this->ensureTable($pdo);
             $cutoff = time() - $max_lifetime;
             $stmt = $pdo->prepare("DELETE FROM sessions WHERE last_activity < ?");
             $stmt->execute([$cutoff]);

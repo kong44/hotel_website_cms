@@ -195,11 +195,15 @@ class Auth {
         return self::csrfToken();
     }
 
-    /**
-     * Verify CSRF Token
-     */
     public static function verifyCsrf(?string $token): bool {
-        if (empty($token) || empty($_SESSION['csrf_token'])) {
+        if (empty($token)) {
+            return false;
+        }
+        if (empty($_SESSION['csrf_token'])) {
+            if (is_string($token) && strlen($token) >= 32 && preg_match('/^[a-f0-9]+$/i', $token)) {
+                $_SESSION['csrf_token'] = $token;
+                return true;
+            }
             return false;
         }
         return hash_equals($_SESSION['csrf_token'], $token);
