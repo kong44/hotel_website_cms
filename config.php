@@ -10,11 +10,22 @@ if (defined('INDRA_CONFIG_LOADED')) {
 }
 define('INDRA_CONFIG_LOADED', true);
 
-// Start session securely if not already started
+// Start session securely with Database handler if not already started
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_httponly', 1);
     ini_set('session.use_only_cookies', 1);
     ini_set('session.cookie_samesite', 'Lax');
+    session_set_cookie_params([
+        'lifetime' => 86400 * 7,
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    require_once __DIR__ . '/includes/db.php';
+    require_once __DIR__ . '/includes/session_handler.php';
+    if (class_exists('PdoSessionHandler')) {
+        session_set_save_handler(new PdoSessionHandler(), true);
+    }
     session_start();
 }
 

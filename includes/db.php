@@ -825,6 +825,26 @@ class Database {
         } catch (Throwable $t) {
             // Ignore migration error
         }
+        self::migrateSessionsTable($pdo, $driver);
+    }
+
+    private static function migrateSessionsTable(PDO $pdo, string $driver): void {
+        try {
+            if ($driver === 'mysql') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `sessions` (
+                    `id` VARCHAR(191) PRIMARY KEY,
+                    `data` LONGTEXT NOT NULL,
+                    `last_activity` INT NOT NULL,
+                    INDEX `idx_sessions_last_activity` (`last_activity`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            } else {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    data TEXT NOT NULL,
+                    last_activity INTEGER NOT NULL
+                )");
+            }
+        } catch (Throwable $t) {}
     }
 
     public static function syncUploadsFolderToDatabase(PDO $pdo): void {

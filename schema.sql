@@ -276,3 +276,11 @@ CREATE TABLE IF NOT EXISTS `guest_users` (
   INDEX `idx_guest_google_id` (`google_id`),
   INDEX `idx_guest_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `id` VARCHAR(191) PRIMARY KEY,
+  `data` LONGTEXT NOT NULL,
+  `last_activity` INT NOT NULL,
+  INDEX `idx_sessions_last_activity` (`last_activity`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

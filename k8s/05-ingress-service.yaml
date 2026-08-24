@@ -26,6 +26,8 @@ metadata:
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.name: "hotel_cms_affinity"
 spec:
   rules:
     - host: hotel.kong41.com
