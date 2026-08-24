@@ -1,0 +1,2 @@
+# Block all direct HTTP web access to includes directory
+Require all denied

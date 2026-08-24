@@ -4,6 +4,12 @@
  * Usage via CLI: php scripts/create-admin.php <email> <password> <name>
  */
 
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    echo "403 Forbidden: This script can only be executed via the command line interface (CLI).\n";
+    exit(403);
+}
+
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/db.php';
 

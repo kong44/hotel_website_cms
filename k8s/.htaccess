@@ -1,0 +1,2 @@
+# Block all direct HTTP web access to Kubernetes manifests directory
+Require all denied

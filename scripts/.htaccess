@@ -1,0 +1,2 @@
+# Block all direct HTTP web access to scripts directory
+Require all denied
