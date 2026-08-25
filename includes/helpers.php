@@ -28,6 +28,27 @@ function e(?string $string): string {
 }
 
 /**
+ * Convert text into URL-friendly slug
+ */
+function slugify(string $text): string {
+    $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+    if (function_exists('iconv')) {
+        $translit = @iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+        if ($translit !== false) {
+            $text = $translit;
+        }
+    }
+    $text = preg_replace('~[^-\w]+~', '', $text);
+    $text = trim($text, '-');
+    $text = preg_replace('~-+~', '-', $text);
+    $text = strtolower($text);
+    if (empty($text)) {
+        return 'page-' . time();
+    }
+    return $text;
+}
+
+/**
  * Format currency with hotel symbol
  */
 function format_price(float|int|string $amount): string {

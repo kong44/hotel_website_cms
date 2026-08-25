@@ -118,10 +118,17 @@ class Database {
                   `sections_json` LONGTEXT NULL,
                   `status` ENUM('published', 'draft') DEFAULT 'published',
                   `is_in_nav` TINYINT(1) DEFAULT 0,
+                  `is_in_footer` TINYINT(1) DEFAULT 0,
                   `nav_order` INT DEFAULT 99,
                   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
                   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+                // Ensure columns exist for existing custom_pages installations
+                $cpCols = $pdo->query("SHOW COLUMNS FROM `custom_pages`")->fetchAll(PDO::FETCH_COLUMN);
+                if (!in_array('is_in_footer', $cpCols)) {
+                    $pdo->exec("ALTER TABLE `custom_pages` ADD COLUMN `is_in_footer` TINYINT(1) DEFAULT 0");
+                }
 
                 $pdo->exec("CREATE TABLE IF NOT EXISTS `theme_licenses` (
                   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -151,6 +158,7 @@ class Database {
                   sections_json TEXT,
                   status TEXT DEFAULT 'published',
                   is_in_nav INTEGER DEFAULT 0,
+                  is_in_footer INTEGER DEFAULT 0,
                   nav_order INTEGER DEFAULT 99,
                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -165,6 +173,14 @@ class Database {
                   custom_styles_json TEXT,
                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 );");
+
+                try {
+                    $sqCols = $pdo->query("PRAGMA table_info(custom_pages)")->fetchAll(PDO::FETCH_ASSOC);
+                    $colNames = array_column($sqCols, 'name');
+                    if (!in_array('is_in_footer', $colNames)) {
+                        $pdo->exec("ALTER TABLE custom_pages ADD COLUMN is_in_footer INTEGER DEFAULT 0");
+                    }
+                } catch (Throwable $e) {}
             }
         } catch (Throwable $t) {}
     }

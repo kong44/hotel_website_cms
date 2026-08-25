@@ -36,6 +36,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$newStatus, $pageId]);
             $message = 'Page status updated to ' . ucfirst($newStatus) . '.';
             $messageType = 'success';
+        } elseif ($action === 'toggle_nav') {
+            $pageId = (int)($_POST['page_id'] ?? 0);
+            $curNav = (int)($_POST['is_in_nav'] ?? 0);
+            $newNav = $curNav === 1 ? 0 : 1;
+            $stmt = $pdo->prepare("UPDATE custom_pages SET is_in_nav = ? WHERE id = ?");
+            $stmt->execute([$newNav, $pageId]);
+            $message = 'Header navigation link status updated.';
+            $messageType = 'success';
+        } elseif ($action === 'toggle_footer') {
+            $pageId = (int)($_POST['page_id'] ?? 0);
+            $curFooter = (int)($_POST['is_in_footer'] ?? 0);
+            $newFooter = $curFooter === 1 ? 0 : 1;
+            $stmt = $pdo->prepare("UPDATE custom_pages SET is_in_footer = ? WHERE id = ?");
+            $stmt->execute([$newFooter, $pageId]);
+            $message = 'Footer navigation link status updated.';
+            $messageType = 'success';
         }
     }
 }
@@ -108,6 +124,8 @@ require_once __DIR__ . '/../includes/admin-header.php';
                         <th class="px-6 py-3.5">Page Title & Slug</th>
                         <th class="px-6 py-3.5">Theme</th>
                         <th class="px-6 py-3.5">Status</th>
+                        <th class="px-6 py-3.5">Header Nav</th>
+                        <th class="px-6 py-3.5">Footer Nav</th>
                         <th class="px-6 py-3.5">Sections</th>
                         <th class="px-6 py-3.5 text-right">Actions</th>
                     </tr>
@@ -117,6 +135,8 @@ require_once __DIR__ . '/../includes/admin-header.php';
                         $pTheme = $availableThemes[$p['theme_id']] ?? $availableThemes['default'] ?? null;
                         $sections = !empty($p['sections_json']) ? json_decode($p['sections_json'], true) : [];
                         $secCount = is_array($sections) ? count($sections) : 0;
+                        $isInNav = (int)($p['is_in_nav'] ?? 0);
+                        $isInFooter = (int)($p['is_in_footer'] ?? 0);
                     ?>
                     <tr class="hover:bg-stone-50/80 transition">
                         <td class="px-6 py-4">
@@ -149,8 +169,32 @@ require_once __DIR__ . '/../includes/admin-header.php';
                                 </button>
                             </form>
                         </td>
+                        <td class="px-6 py-4">
+                            <form action="<?= BASE_URL ?>/admin/pages.php" method="POST" class="inline">
+                                <input type="hidden" name="csrf_token" value="<?= Auth::generateCsrf() ?>">
+                                <input type="hidden" name="action" value="toggle_nav">
+                                <input type="hidden" name="page_id" value="<?= (int)$p['id'] ?>">
+                                <input type="hidden" name="is_in_nav" value="<?= $isInNav ?>">
+                                <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition <?= $isInNav === 1 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-stone-100 text-stone-500 border border-stone-200' ?>" title="Toggle Header Nav Link">
+                                    <span class="material-symbols-outlined text-xs"><?= $isInNav === 1 ? 'visibility' : 'visibility_off' ?></span>
+                                    <span><?= $isInNav === 1 ? 'Header ON' : 'Header OFF' ?></span>
+                                </button>
+                            </form>
+                        </td>
+                        <td class="px-6 py-4">
+                            <form action="<?= BASE_URL ?>/admin/pages.php" method="POST" class="inline">
+                                <input type="hidden" name="csrf_token" value="<?= Auth::generateCsrf() ?>">
+                                <input type="hidden" name="action" value="toggle_footer">
+                                <input type="hidden" name="page_id" value="<?= (int)$p['id'] ?>">
+                                <input type="hidden" name="is_in_footer" value="<?= $isInFooter ?>">
+                                <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition <?= $isInFooter === 1 ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-stone-100 text-stone-500 border border-stone-200' ?>" title="Toggle Footer Nav Link">
+                                    <span class="material-symbols-outlined text-xs"><?= $isInFooter === 1 ? 'visibility' : 'visibility_off' ?></span>
+                                    <span><?= $isInFooter === 1 ? 'Footer ON' : 'Footer OFF' ?></span>
+                                </button>
+                            </form>
+                        </td>
                         <td class="px-6 py-4 font-semibold text-stone-500">
-                            <?= $secCount ?> Content Block<?= $secCount === 1 ? '' : 's' ?>
+                            <?= $secCount ?> Block<?= $secCount === 1 ? '' : 's' ?>
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">

@@ -45,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $themeId = trim($_POST['theme_id'] ?? 'default');
         $layoutType = trim($_POST['layout_type'] ?? 'full_width');
         $status = trim($_POST['status'] ?? 'published');
+        $isInNav = isset($_POST['is_in_nav']) ? 1 : 0;
+        $isInFooter = isset($_POST['is_in_footer']) ? 1 : 0;
 
         $sectionsRaw = $_POST['sections_json'] ?? '[]';
         // Validate JSON
@@ -57,13 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 if ($pageId > 0 && $page) {
-                    $stmt = $pdo->prepare("UPDATE custom_pages SET slug = ?, title = ?, meta_title = ?, meta_description = ?, hero_badge = ?, hero_title = ?, hero_subtitle = ?, hero_image = ?, hero_video = ?, hero_height = ?, hero_overlay = ?, theme_id = ?, layout_type = ?, sections_json = ?, status = ? WHERE id = ?");
-                    $stmt->execute([$slug, $title, $metaTitle, $metaDesc, $heroBadge, $heroTitle, $heroSubtitle, $heroImage, $heroVideo, $heroHeight, $heroOverlay, $themeId, $layoutType, $sectionsJson, $status, $pageId]);
+                    $stmt = $pdo->prepare("UPDATE custom_pages SET slug = ?, title = ?, meta_title = ?, meta_description = ?, hero_badge = ?, hero_title = ?, hero_subtitle = ?, hero_image = ?, hero_video = ?, hero_height = ?, hero_overlay = ?, theme_id = ?, layout_type = ?, sections_json = ?, status = ?, is_in_nav = ?, is_in_footer = ? WHERE id = ?");
+                    $stmt->execute([$slug, $title, $metaTitle, $metaDesc, $heroBadge, $heroTitle, $heroSubtitle, $heroImage, $heroVideo, $heroHeight, $heroOverlay, $themeId, $layoutType, $sectionsJson, $status, $isInNav, $isInFooter, $pageId]);
                     $message = 'Dynamic page updated successfully!';
                     $messageType = 'success';
                 } else {
-                    $stmt = $pdo->prepare("INSERT INTO custom_pages (slug, title, meta_title, meta_description, hero_badge, hero_title, hero_subtitle, hero_image, hero_video, hero_height, hero_overlay, theme_id, layout_type, sections_json, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmt->execute([$slug, $title, $metaTitle, $metaDesc, $heroBadge, $heroTitle, $heroSubtitle, $heroImage, $heroVideo, $heroHeight, $heroOverlay, $themeId, $layoutType, $sectionsJson, $status]);
+                    $stmt = $pdo->prepare("INSERT INTO custom_pages (slug, title, meta_title, meta_description, hero_badge, hero_title, hero_subtitle, hero_image, hero_video, hero_height, hero_overlay, theme_id, layout_type, sections_json, status, is_in_nav, is_in_footer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$slug, $title, $metaTitle, $metaDesc, $heroBadge, $heroTitle, $heroSubtitle, $heroImage, $heroVideo, $heroHeight, $heroOverlay, $themeId, $layoutType, $sectionsJson, $status, $isInNav, $isInFooter]);
                     $pageId = (int)$pdo->lastInsertId();
                     $message = 'New dynamic page created successfully!';
                     $messageType = 'success';
@@ -302,6 +304,18 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <label class="block text-xs font-bold text-stone-700 uppercase mb-1">SEO Meta Description</label>
                     <textarea name="meta_description" rows="3" placeholder="Search engine description preview..." class="w-full border border-stone-300 rounded-lg p-2 text-xs"><?= e($page['meta_description'] ?? '') ?></textarea>
                 </div>
+
+                <div class="space-y-2 pt-3 border-t border-stone-100">
+                    <label class="block text-xs font-bold text-stone-700 uppercase">Navigation Visibility</label>
+                    <label class="flex items-center gap-2 text-xs font-medium text-stone-700 cursor-pointer">
+                        <input type="checkbox" name="is_in_nav" value="1" <?= (!empty($page['is_in_nav'])) ? 'checked' : '' ?> class="rounded text-[#343c0a]">
+                        <span>Show in Top Header Navigation</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs font-medium text-stone-700 cursor-pointer">
+                        <input type="checkbox" name="is_in_footer" value="1" <?= (!empty($page['is_in_footer'])) ? 'checked' : '' ?> class="rounded text-[#343c0a]">
+                        <span>Show in Footer Navigation Links</span>
+                    </label>
+                </div>
             </div>
 
         </div>
@@ -352,12 +366,211 @@ function renderAllSectionBlocks() {
                     <input type="text" value="${escapeHtml(block.image || '')}" oninput="activeSections[${index}].image = this.value; syncSectionsJSON();" placeholder="Background Image URL (https://...)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white sm:col-span-2 font-mono">
                 </div>
             `;
+        } else if (block.type === 'experience_banners') {
+            const banners = Array.isArray(block.banners) ? block.banners : [];
+            let itemsHTML = banners.map((b, bIdx) => `
+                <div class="p-3 bg-white border border-stone-200 rounded-lg space-y-2 relative">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-[#4B5320]">
+                        <span>Banner #${bIdx + 1}</span>
+                        <button type="button" onclick="removeSubItemFromBlock(${index}, 'banners', ${bIdx})" class="text-rose-600 hover:text-rose-800 text-xs cursor-pointer font-bold">Remove</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" value="${escapeHtml(b.badge || '')}" oninput="activeSections[${index}].banners[${bIdx}].badge = this.value; syncSectionsJSON();" placeholder="Badge (e.g. Culinary)" class="border border-stone-300 rounded p-1.5 text-xs font-semibold">
+                        <input type="text" value="${escapeHtml(b.title || '')}" oninput="activeSections[${index}].banners[${bIdx}].title = this.value; syncSectionsJSON();" placeholder="Banner Title" class="border border-stone-300 rounded p-1.5 text-xs font-bold sm:col-span-2">
+                    </div>
+                    <textarea rows="2" oninput="activeSections[${index}].banners[${bIdx}].desc = this.value; syncSectionsJSON();" placeholder="Description narrative..." class="w-full border border-stone-300 rounded p-1.5 text-xs">${escapeHtml(b.desc || '')}</textarea>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" value="${escapeHtml(b.image_url || '')}" oninput="activeSections[${index}].banners[${bIdx}].image_url = this.value; syncSectionsJSON();" placeholder="Image URL (https://...)" class="border border-stone-300 rounded p-1.5 text-xs font-mono sm:col-span-2">
+                        <select onchange="activeSections[${index}].banners[${bIdx}].image_pos = this.value; syncSectionsJSON();" class="border border-stone-300 rounded p-1.5 text-xs font-bold bg-white">
+                            <option value="right" ${(b.image_pos || 'right') === 'right' ? 'selected' : ''}>Text Left / Image Right</option>
+                            <option value="left" ${(b.image_pos || '') === 'left' ? 'selected' : ''}>Image Left / Text Right</option>
+                            <option value="auto" ${(b.image_pos || '') === 'auto' ? 'selected' : ''}>Auto Alternating</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" value="${escapeHtml(b.btn_text || '')}" oninput="activeSections[${index}].banners[${bIdx}].btn_text = this.value; syncSectionsJSON();" placeholder="Button Label" class="border border-stone-300 rounded p-1.5 text-xs">
+                        <input type="text" value="${escapeHtml(b.btn_url || '')}" oninput="activeSections[${index}].banners[${bIdx}].btn_url = this.value; syncSectionsJSON();" placeholder="Button Destination URL" class="border border-stone-300 rounded p-1.5 text-xs font-mono">
+                    </div>
+                </div>
+            `).join('');
+
+            fieldsHTML = `
+                <div class="space-y-3">
+                    <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Section Title (e.g. Experience Banners)" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                    <div class="flex items-center justify-between pt-1 border-t border-stone-200/80">
+                        <span class="text-xs font-bold text-stone-700">Experience Feature Banners (${banners.length})</span>
+                        <button type="button" onclick="addSubItemToBlock(${index}, 'banners', {badge:'Culinary', title:'New Feature', desc:'', image_url:'', btn_text:'Explore', btn_url:'/eat-drink', image_pos:'right'})" class="px-2.5 py-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded-lg cursor-pointer transition">+ Add Banner</button>
+                    </div>
+                    <div class="space-y-2">${itemsHTML || '<p class="text-xs text-stone-400 italic">No feature banners added yet. Click "+ Add Banner" above.</p>'}</div>
+                </div>
+            `;
+        } else if (block.type === 'value_pillars') {
+            const pillars = Array.isArray(block.pillars) ? block.pillars : [];
+            let itemsHTML = pillars.map((p, pIdx) => `
+                <div class="p-3 bg-white border border-stone-200 rounded-lg space-y-2 relative">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-[#4B5320]">
+                        <span>Value Pillar #${pIdx + 1}</span>
+                        <button type="button" onclick="removeSubItemFromBlock(${index}, 'pillars', ${pIdx})" class="text-rose-600 hover:text-rose-800 text-xs cursor-pointer font-bold">Remove</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" value="${escapeHtml(p.icon || 'star')}" oninput="activeSections[${index}].pillars[${pIdx}].icon = this.value; syncSectionsJSON();" placeholder="Icon (nature_people)" class="border border-stone-300 rounded p-1.5 text-xs font-mono">
+                        <input type="text" value="${escapeHtml(p.title || '')}" oninput="activeSections[${index}].pillars[${pIdx}].title = this.value; syncSectionsJSON();" placeholder="Pillar Title" class="border border-stone-300 rounded p-1.5 text-xs font-bold sm:col-span-2">
+                    </div>
+                    <textarea rows="2" oninput="activeSections[${index}].pillars[${pIdx}].desc = this.value; syncSectionsJSON();" placeholder="Pillar Description narrative..." class="w-full border border-stone-300 rounded p-1.5 text-xs">${escapeHtml(p.desc || '')}</textarea>
+                </div>
+            `).join('');
+
+            fieldsHTML = `
+                <div class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Section Headline Title" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                        <input type="text" value="${escapeHtml(block.subtitle || '')}" oninput="activeSections[${index}].subtitle = this.value; syncSectionsJSON();" placeholder="Section Sub-Badge (Our Core Values)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
+                    </div>
+                    <div class="flex items-center justify-between pt-1 border-t border-stone-200/80">
+                        <span class="text-xs font-bold text-stone-700">Core Value Pillars (${pillars.length})</span>
+                        <button type="button" onclick="addSubItemToBlock(${index}, 'pillars', {icon:'star', title:'New Value', desc:''})" class="px-2.5 py-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded-lg cursor-pointer transition">+ Add Pillar</button>
+                    </div>
+                    <div class="space-y-2">${itemsHTML || '<p class="text-xs text-stone-400 italic">No pillars added yet. Click "+ Add Pillar" above.</p>'}</div>
+                </div>
+            `;
+        } else if (block.type === 'kpi_stats') {
+            const stats = Array.isArray(block.stats) ? block.stats : [];
+            let itemsHTML = stats.map((s, sIdx) => `
+                <div class="p-3 bg-white border border-stone-200 rounded-lg space-y-2 relative">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-[#4B5320]">
+                        <span>Stat Counter #${sIdx + 1}</span>
+                        <button type="button" onclick="removeSubItemFromBlock(${index}, 'stats', ${sIdx})" class="text-rose-600 hover:text-rose-800 text-xs cursor-pointer font-bold">Remove</button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" value="${escapeHtml(s.val || '')}" oninput="activeSections[${index}].stats[${sIdx}].val = this.value; syncSectionsJSON();" placeholder="Target (12)" class="border border-stone-300 rounded p-1.5 text-xs font-bold">
+                        <input type="text" value="${escapeHtml(s.suffix || '')}" oninput="activeSections[${index}].stats[${sIdx}].suffix = this.value; syncSectionsJSON();" placeholder="Suffix (Suites)" class="border border-stone-300 rounded p-1.5 text-xs">
+                        <input type="text" value="${escapeHtml(s.label || '')}" oninput="activeSections[${index}].stats[${sIdx}].label = this.value; syncSectionsJSON();" placeholder="Label Description" class="border border-stone-300 rounded p-1.5 text-xs text-stone-600">
+                    </div>
+                </div>
+            `).join('');
+
+            fieldsHTML = `
+                <div class="space-y-3">
+                    <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Section Title (e.g. Key Accomplishments)" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                    <div class="flex items-center justify-between pt-1 border-t border-stone-200/80">
+                        <span class="text-xs font-bold text-stone-700">KPI Counter Items (${stats.length})</span>
+                        <button type="button" onclick="addSubItemToBlock(${index}, 'stats', {val:'100', suffix:'%', label:'Satisfaction'})" class="px-2.5 py-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded-lg cursor-pointer transition">+ Add Stat</button>
+                    </div>
+                    <div class="space-y-2">${itemsHTML || '<p class="text-xs text-stone-400 italic">No stat counters added yet. Click "+ Add Stat" above.</p>'}</div>
+                </div>
+            `;
+        } else if (block.type === 'features_grid') {
+            const items = Array.isArray(block.items) ? block.items : [];
+            let itemsHTML = items.map((it, itIdx) => `
+                <div class="p-3 bg-white border border-stone-200 rounded-lg space-y-2 relative">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-[#4B5320]">
+                        <span>Feature Item #${itIdx + 1}</span>
+                        <button type="button" onclick="removeSubItemFromBlock(${index}, 'items', ${itIdx})" class="text-rose-600 hover:text-rose-800 text-xs cursor-pointer font-bold">Remove</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" value="${escapeHtml(it.icon || 'star')}" oninput="activeSections[${index}].items[${itIdx}].icon = this.value; syncSectionsJSON();" placeholder="Icon (star)" class="border border-stone-300 rounded p-1.5 text-xs font-mono">
+                        <input type="text" value="${escapeHtml(it.title || '')}" oninput="activeSections[${index}].items[${itIdx}].title = this.value; syncSectionsJSON();" placeholder="Feature Title" class="border border-stone-300 rounded p-1.5 text-xs font-bold sm:col-span-2">
+                    </div>
+                    <textarea rows="2" oninput="activeSections[${index}].items[${itIdx}].description = this.value; syncSectionsJSON();" placeholder="Feature Detail Description..." class="w-full border border-stone-300 rounded p-1.5 text-xs">${escapeHtml(it.description || '')}</textarea>
+                </div>
+            `).join('');
+
+            fieldsHTML = `
+                <div class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Grid Section Title" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                        <input type="text" value="${escapeHtml(block.subtitle || '')}" oninput="activeSections[${index}].subtitle = this.value; syncSectionsJSON();" placeholder="Grid Subtitle" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
+                    </div>
+                    <div class="flex items-center justify-between pt-1 border-t border-stone-200/80">
+                        <span class="text-xs font-bold text-stone-700">Grid Items (${items.length})</span>
+                        <button type="button" onclick="addSubItemToBlock(${index}, 'items', {icon:'star', title:'New Highlight', description:''})" class="px-2.5 py-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded-lg cursor-pointer transition">+ Add Item</button>
+                    </div>
+                    <div class="space-y-2">${itemsHTML || '<p class="text-xs text-stone-400 italic">No grid items added yet. Click "+ Add Item" above.</p>'}</div>
+                </div>
+            `;
+        } else if (block.type === 'gallery') {
+            const photos = Array.isArray(block.photos) ? block.photos : [];
+            let itemsHTML = photos.map((ph, phIdx) => {
+                const url = typeof ph === 'string' ? ph : (ph.url || '');
+                const cap = typeof ph === 'object' ? (ph.caption || '') : '';
+                return `
+                    <div class="p-3 bg-white border border-stone-200 rounded-lg space-y-2 relative">
+                        <div class="flex items-center justify-between text-[11px] font-bold text-[#4B5320]">
+                            <span>Photo #${phIdx + 1}</span>
+                            <button type="button" onclick="removeSubItemFromBlock(${index}, 'photos', ${phIdx})" class="text-rose-600 hover:text-rose-800 text-xs cursor-pointer font-bold">Remove</button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <input type="text" value="${escapeHtml(url)}" oninput="if(typeof activeSections[${index}].photos[${phIdx}] === 'object'){ activeSections[${index}].photos[${phIdx}].url = this.value; } else { activeSections[${index}].photos[${phIdx}] = this.value; } syncSectionsJSON();" placeholder="Image URL (https://...)" class="border border-stone-300 rounded p-1.5 text-xs font-mono">
+                            <input type="text" value="${escapeHtml(cap)}" oninput="if(typeof activeSections[${index}].photos[${phIdx}] !== 'object'){ activeSections[${index}].photos[${phIdx}] = {url: activeSections[${index}].photos[${phIdx}], caption: this.value}; } else { activeSections[${index}].photos[${phIdx}].caption = this.value; } syncSectionsJSON();" placeholder="Caption / Subtitle" class="border border-stone-300 rounded p-1.5 text-xs">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            fieldsHTML = `
+                <div class="space-y-3">
+                    <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Gallery Section Title" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                    <div class="flex items-center justify-between pt-1 border-t border-stone-200/80">
+                        <span class="text-xs font-bold text-stone-700">Gallery Photos (${photos.length})</span>
+                        <button type="button" onclick="addSubItemToBlock(${index}, 'photos', {url:'', caption:''})" class="px-2.5 py-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded-lg cursor-pointer transition">+ Add Photo</button>
+                    </div>
+                    <div class="space-y-2">${itemsHTML || '<p class="text-xs text-stone-400 italic">No photos added yet. Click "+ Add Photo" above.</p>'}</div>
+                </div>
+            `;
+        } else if (block.type === 'testimonials') {
+            const reviews = Array.isArray(block.reviews) ? block.reviews : [];
+            let itemsHTML = reviews.map((r, rIdx) => `
+                <div class="p-3 bg-white border border-stone-200 rounded-lg space-y-2 relative">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-[#4B5320]">
+                        <span>Review #${rIdx + 1}</span>
+                        <button type="button" onclick="removeSubItemFromBlock(${index}, 'reviews', ${rIdx})" class="text-rose-600 hover:text-rose-800 text-xs cursor-pointer font-bold">Remove</button>
+                    </div>
+                    <textarea rows="2" oninput="activeSections[${index}].reviews[${rIdx}].quote = this.value; syncSectionsJSON();" placeholder="Guest quote narrative..." class="w-full border border-stone-300 rounded p-1.5 text-xs">${escapeHtml(r.quote || '')}</textarea>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" value="${escapeHtml(r.author || '')}" oninput="activeSections[${index}].reviews[${rIdx}].author = this.value; syncSectionsJSON();" placeholder="Guest Author Name" class="border border-stone-300 rounded p-1.5 text-xs font-bold">
+                        <input type="text" value="${escapeHtml(r.location || '')}" oninput="activeSections[${index}].reviews[${rIdx}].location = this.value; syncSectionsJSON();" placeholder="Guest Location / Tag" class="border border-stone-300 rounded p-1.5 text-xs">
+                    </div>
+                </div>
+            `).join('');
+
+            fieldsHTML = `
+                <div class="space-y-3">
+                    <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Testimonials Title" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                    <div class="flex items-center justify-between pt-1 border-t border-stone-200/80">
+                        <span class="text-xs font-bold text-stone-700">Guest Reviews (${reviews.length})</span>
+                        <button type="button" onclick="addSubItemToBlock(${index}, 'reviews', {quote:'', author:'', location:'Verified Guest'})" class="px-2.5 py-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded-lg cursor-pointer transition">+ Add Review</button>
+                    </div>
+                    <div class="space-y-2">${itemsHTML || '<p class="text-xs text-stone-400 italic">No reviews added yet. Click "+ Add Review" above.</p>'}</div>
+                </div>
+            `;
+        } else if (block.type === 'faq') {
+            const faqs = Array.isArray(block.faqs) ? block.faqs : [];
+            let itemsHTML = faqs.map((f, fIdx) => `
+                <div class="p-3 bg-white border border-stone-200 rounded-lg space-y-2 relative">
+                    <div class="flex items-center justify-between text-[11px] font-bold text-[#4B5320]">
+                        <span>FAQ Item #${fIdx + 1}</span>
+                        <button type="button" onclick="removeSubItemFromBlock(${index}, 'faqs', ${fIdx})" class="text-rose-600 hover:text-rose-800 text-xs cursor-pointer font-bold">Remove</button>
+                    </div>
+                    <input type="text" value="${escapeHtml(f.q || '')}" oninput="activeSections[${index}].faqs[${fIdx}].q = this.value; syncSectionsJSON();" placeholder="Question Title..." class="w-full border border-stone-300 rounded p-1.5 text-xs font-bold">
+                    <textarea rows="2" oninput="activeSections[${index}].faqs[${fIdx}].a = this.value; syncSectionsJSON();" placeholder="Answer text..." class="w-full border border-stone-300 rounded p-1.5 text-xs">${escapeHtml(f.a || '')}</textarea>
+                </div>
+            `).join('');
+
+            fieldsHTML = `
+                <div class="space-y-3">
+                    <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="FAQ Section Title" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
+                    <div class="flex items-center justify-between pt-1 border-t border-stone-200/80">
+                        <span class="text-xs font-bold text-stone-700">FAQ Items (${faqs.length})</span>
+                        <button type="button" onclick="addSubItemToBlock(${index}, 'faqs', {q:'', a:''})" class="px-2.5 py-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded-lg cursor-pointer transition">+ Add FAQ Item</button>
+                    </div>
+                    <div class="space-y-2">${itemsHTML || '<p class="text-xs text-stone-400 italic">No FAQ items added yet. Click "+ Add FAQ Item" above.</p>'}</div>
+                </div>
+            `;
         } else {
             fieldsHTML = `
                 <div class="space-y-2">
                     <input type="text" value="${escapeHtml(block.title || '')}" oninput="activeSections[${index}].title = this.value; syncSectionsJSON();" placeholder="Section Title" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold bg-white">
                     <input type="text" value="${escapeHtml(block.subtitle || '')}" oninput="activeSections[${index}].subtitle = this.value; syncSectionsJSON();" placeholder="Section Subtitle" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
-                    <p class="text-[11px] text-stone-400 font-mono">Configured with default starter item layout.</p>
                 </div>
             `;
         }
@@ -463,6 +676,23 @@ function moveBlock(index, direction) {
     const temp = activeSections[index];
     activeSections[index] = activeSections[target];
     activeSections[target] = temp;
+    syncSectionsJSON();
+    renderAllSectionBlocks();
+}
+
+function addSubItemToBlock(blockIdx, arrayKey, defaultObj) {
+    if (!activeSections[blockIdx]) return;
+    if (!Array.isArray(activeSections[blockIdx][arrayKey])) {
+        activeSections[blockIdx][arrayKey] = [];
+    }
+    activeSections[blockIdx][arrayKey].push(defaultObj);
+    syncSectionsJSON();
+    renderAllSectionBlocks();
+}
+
+function removeSubItemFromBlock(blockIdx, arrayKey, itemIdx) {
+    if (!activeSections[blockIdx] || !Array.isArray(activeSections[blockIdx][arrayKey])) return;
+    activeSections[blockIdx][arrayKey].splice(itemIdx, 1);
     syncSectionsJSON();
     renderAllSectionBlocks();
 }

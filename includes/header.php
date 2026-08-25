@@ -150,6 +150,13 @@ $currentLocale = I18n::getLocale();
                 </a>
 
                 <!-- Desktop Navigation Links -->
+                <?php 
+                $dynamicHeaderPages = [];
+                try {
+                    $cpStmt = getDB()->query("SELECT id, slug, title FROM custom_pages WHERE status = 'published' AND is_in_nav = 1 ORDER BY nav_order ASC, id ASC");
+                    $dynamicHeaderPages = $cpStmt ? $cpStmt->fetchAll() : [];
+                } catch (Throwable $e) {}
+                ?>
                 <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium">
                     <a href="<?= url('/rooms') ?>" class="py-2 transition <?= is_active_nav(['rooms', 'room']) ?>"><?= __t('nav_rooms', 'Rooms & Suites') ?></a>
                     <a href="<?= url('/about') ?>" class="py-2 transition <?= is_active_nav('about') ?>"><?= __t('nav_about', 'About Us') ?></a>
@@ -159,6 +166,9 @@ $currentLocale = I18n::getLocale();
                     <a href="<?= url('/location') ?>" class="py-2 transition <?= is_active_nav('location') ?>"><?= __t('nav_location', 'Location') ?></a>
                     <a href="<?= url('/gallery') ?>" class="py-2 transition <?= is_active_nav('gallery') ?>"><?= __t('nav_gallery', 'Gallery') ?></a>
                     <a href="<?= url('/contact') ?>" class="py-2 transition <?= is_active_nav('contact') ?>"><?= __t('nav_contact', 'Contact') ?></a>
+                    <?php foreach ($dynamicHeaderPages as $dhp): ?>
+                        <a href="<?= url('/page.php?slug=' . urlencode($dhp['slug'])) ?>" class="py-2 transition hover:text-[#343c0a]"><?= e($dhp['title']) ?></a>
+                    <?php endforeach; ?>
                 </nav>
 
                 <!-- Action CTA & Guest Navigation -->
@@ -241,6 +251,9 @@ $currentLocale = I18n::getLocale();
             <a href="<?= url('/location') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_location', 'Location') ?></a>
             <a href="<?= url('/gallery') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_gallery', 'Gallery') ?></a>
             <a href="<?= url('/contact') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_contact', 'Contact') ?></a>
+            <?php foreach ($dynamicHeaderPages as $dhp): ?>
+                <a href="<?= url('/page.php?slug=' . urlencode($dhp['slug'])) ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= e($dhp['title']) ?></a>
+            <?php endforeach; ?>
             <?php if (get_booking_mode() === 'internal' || is_guest_logged_in()): ?>
             <a href="<?= url('/my-booking') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= is_guest_logged_in() ? __t('nav_my_bookings', 'My Bookings') : __t('nav_find_booking', 'Find Booking') ?></a>
             <?php endif; ?>

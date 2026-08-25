@@ -66,6 +66,13 @@ require_once __DIR__ . '/i18n.php';
                 </div>
 
                 <!-- Hotel Experiences -->
+                <?php 
+                $dynamicFooterPages = [];
+                try {
+                    $dfpStmt = getDB()->query("SELECT id, slug, title FROM custom_pages WHERE status = 'published' AND is_in_footer = 1 ORDER BY nav_order ASC, id ASC");
+                    $dynamicFooterPages = $dfpStmt ? $dfpStmt->fetchAll() : [];
+                } catch (Throwable $e) {}
+                ?>
                 <div>
                     <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;"><?= __t('footer_experiences', 'Experiences') ?></h3>
                     <ul class="space-y-2.5 text-sm text-stone-300">
@@ -74,6 +81,9 @@ require_once __DIR__ . '/i18n.php';
                         <li><a href="<?= url('/wellness') ?>" class="hover:text-white transition"><?= __t('nav_wellness', 'Fitness Center & Pool') ?></a></li>
                         <li><a href="<?= url('/location') ?>" class="hover:text-white transition"><?= __t('nav_city_guide', 'Phnom Penh City Guide') ?></a></li>
                         <li><a href="<?= url('/gallery') ?>" class="hover:text-white transition"><?= __t('nav_gallery', 'Photo Gallery') ?></a></li>
+                        <?php foreach ($dynamicFooterPages as $dfp): ?>
+                            <li><a href="<?= url('/page.php?slug=' . urlencode($dfp['slug'])) ?>" class="hover:text-white transition"><?= e($dfp['title']) ?></a></li>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
 
