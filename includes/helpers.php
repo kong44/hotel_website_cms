@@ -909,7 +909,7 @@ function render_public_page_hero(string $pageKey, array $defaults = []): string 
     $customHeight = get_hero_setting($pageKey, 'custom_height', $defaults['custom_height'] ?? '');
     $overlay = get_hero_setting($pageKey, 'overlay', $defaults['overlay'] ?? 'medium');
     $customOverlay = get_hero_setting($pageKey, 'custom_overlay', $defaults['custom_overlay'] ?? '');
-    $icon = $defaults['icon'] ?? 'sparkles';
+    $icon = $defaults['icon'] ?? '';
 
     // Dynamic Height calculation
     $heightClass = 'py-16 sm:py-24 min-h-[50vh]';
