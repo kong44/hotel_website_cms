@@ -9,12 +9,16 @@ class Uploader {
     public const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'ico', 'mp4', 'webm', 'ogv', 'mov', 'm4v'];
     public const ALLOWED_MIME_TYPES = [
         'image/jpeg',
+        'image/pjpeg',
+        'image/jpg',
         'image/png',
+        'image/x-png',
         'image/webp',
         'image/gif',
         'image/svg+xml',
         'image/x-icon',
         'image/vnd.microsoft.icon',
+        'application/octet-stream',
         'video/mp4',
         'video/webm',
         'video/ogg',
@@ -73,10 +77,35 @@ class Uploader {
 
         // Target Directory
         $safeFolder = preg_replace('/[^a-zA-Z0-9_-]/', '', $folder);
-        $targetDir = ROOT_PATH . '/uploads/' . ($safeFolder ? $safeFolder . '/' : '');
+        $baseUploadDir = ROOT_PATH . '/uploads';
+        
+        if (!is_dir($baseUploadDir)) {
+            @mkdir($baseUploadDir, 0777, true);
+            @chmod($baseUploadDir, 0777);
+        }
+
+        $targetDir = $baseUploadDir . '/' . ($safeFolder ? $safeFolder . '/' : '');
 
         if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0755, true);
+            @mkdir($targetDir, 0777, true);
+            @chmod($targetDir, 0777);
+        }
+
+        if (!is_dir($targetDir)) {
+            return [
+                'success' => false, 
+                'error' => 'Failed to create upload target directory (' . $targetDir . '). Please check server disk permissions.'
+            ];
+        }
+
+        if (!is_writable($targetDir)) {
+            @chmod($targetDir, 0777);
+            if (!is_writable($targetDir)) {
+                return [
+                    'success' => false, 
+                    'error' => 'Upload directory (' . $targetDir . ') is not writable by the web server user. Please run: chmod -R 777 uploads/'
+                ];
+            }
         }
 
         // Generate unique, clean file name
@@ -85,11 +114,15 @@ class Uploader {
         $uniqueFilename = $cleanBaseName . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
         $targetPath = $targetDir . $uniqueFilename;
 
-        $moved = is_uploaded_file($file['tmp_name']) 
-            ? move_uploaded_file($file['tmp_name'], $targetPath) 
-            : (rename($file['tmp_name'], $targetPath) || copy($file['tmp_name'], $targetPath));
+        $moved = false;
+        if (is_uploaded_file($file['tmp_name'])) {
+            $moved = @move_uploaded_file($file['tmp_name'], $targetPath);
+        } else {
+            $moved = @rename($file['tmp_name'], $targetPath) || @copy($file['tmp_name'], $targetPath);
+        }
 
         if ($moved) {
+            @chmod($targetPath, 0644);
             $publicUrl = BASE_URL . '/uploads/' . ($safeFolder ? $safeFolder . '/' : '') . $uniqueFilename;
             
             // Record in media_uploads database
@@ -103,7 +136,17 @@ class Uploader {
             ];
         }
 
-        return ['success' => false, 'error' => 'Failed to move uploaded file to destination.'];
+        // Detailed error diagnosis
+        $diag = [];
+        if (!file_exists($file['tmp_name'])) {
+            $diag[] = 'Temporary uploaded file was lost or missing (' . $file['tmp_name'] . ').';
+        }
+        if (!is_writable($targetDir)) {
+            $diag[] = 'Target folder (' . $targetDir . ') is not writable.';
+        }
+        $diagMsg = !empty($diag) ? ' Reason: ' . implode(' ', $diag) : ' Please verify server uploads/ folder permissions (chmod -R 777 uploads/).';
+
+        return ['success' => false, 'error' => 'Failed to move uploaded file to destination.' . $diagMsg];
     }
 
     /**

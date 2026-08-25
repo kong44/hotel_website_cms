@@ -363,7 +363,21 @@ function renderAllSectionBlocks() {
                     <input type="text" value="${escapeHtml(block.subtitle || '')}" oninput="activeSections[${index}].subtitle = this.value; syncSectionsJSON();" placeholder="CTA Subtitle Narrative" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
                     <input type="text" value="${escapeHtml(block.btn_text || '')}" oninput="activeSections[${index}].btn_text = this.value; syncSectionsJSON();" placeholder="Button Text (e.g. Contact Us)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
                     <input type="text" value="${escapeHtml(block.btn_link || '')}" oninput="activeSections[${index}].btn_link = this.value; syncSectionsJSON();" placeholder="Button Link URL (/contact.php)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white">
-                    <input type="text" value="${escapeHtml(block.image || '')}" oninput="activeSections[${index}].image = this.value; syncSectionsJSON();" placeholder="Background Image URL (https://...)" class="w-full border border-stone-300 rounded-lg p-2 text-xs bg-white sm:col-span-2 font-mono">
+                    <div class="sm:col-span-2 space-y-1 bg-white p-2.5 rounded-lg border border-stone-200">
+                        <label class="block text-[11px] font-bold text-stone-600 uppercase">Background Image</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" value="${escapeHtml(block.image || '')}" oninput="activeSections[${index}].image = this.value; syncSectionsJSON();" placeholder="Image URL (https://...)" class="w-full border border-stone-300 rounded p-1.5 text-xs font-mono">
+                            <button type="button" onclick="triggerBlockFileUpload(this.previousElementSibling, url => { activeSections[${index}].image = url; syncSectionsJSON(); renderAllSectionBlocks(); })" class="px-2.5 py-1.5 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs">
+                                <span class="material-symbols-outlined text-sm">cloud_upload</span>
+                                <span>Upload</span>
+                            </button>
+                            <button type="button" onclick="triggerBlockMediaPicker(this.previousElementSibling.previousElementSibling, url => { activeSections[${index}].image = url; syncSectionsJSON(); renderAllSectionBlocks(); })" class="px-2.5 py-1.5 border border-stone-300 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-bold rounded flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs">
+                                <span class="material-symbols-outlined text-sm text-[#343c0a]">photo_library</span>
+                                <span>Library</span>
+                            </button>
+                        </div>
+                        ${block.image ? `<div class="mt-1 w-24 h-14 rounded border border-stone-200 overflow-hidden bg-stone-100"><img src="${escapeHtml(block.image)}" class="w-full h-full object-cover"></div>` : ''}
+                    </div>
                 </div>
             `;
         } else if (block.type === 'experience_banners') {
@@ -379,14 +393,30 @@ function renderAllSectionBlocks() {
                         <input type="text" value="${escapeHtml(b.title || '')}" oninput="activeSections[${index}].banners[${bIdx}].title = this.value; syncSectionsJSON();" placeholder="Banner Title" class="border border-stone-300 rounded p-1.5 text-xs font-bold sm:col-span-2">
                     </div>
                     <textarea rows="2" oninput="activeSections[${index}].banners[${bIdx}].desc = this.value; syncSectionsJSON();" placeholder="Description narrative..." class="w-full border border-stone-300 rounded p-1.5 text-xs">${escapeHtml(b.desc || '')}</textarea>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <input type="text" value="${escapeHtml(b.image_url || '')}" oninput="activeSections[${index}].banners[${bIdx}].image_url = this.value; syncSectionsJSON();" placeholder="Image URL (https://...)" class="border border-stone-300 rounded p-1.5 text-xs font-mono sm:col-span-2">
-                        <select onchange="activeSections[${index}].banners[${bIdx}].image_pos = this.value; syncSectionsJSON();" class="border border-stone-300 rounded p-1.5 text-xs font-bold bg-white">
-                            <option value="right" ${(b.image_pos || 'right') === 'right' ? 'selected' : ''}>Text Left / Image Right</option>
-                            <option value="left" ${(b.image_pos || '') === 'left' ? 'selected' : ''}>Image Left / Text Right</option>
-                            <option value="auto" ${(b.image_pos || '') === 'auto' ? 'selected' : ''}>Auto Alternating</option>
-                        </select>
+                    
+                    <div class="space-y-1 bg-stone-50/70 p-2.5 rounded-lg border border-stone-200">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold text-stone-600 uppercase">Banner Image</label>
+                            <select onchange="activeSections[${index}].banners[${bIdx}].image_pos = this.value; syncSectionsJSON();" class="border border-stone-300 rounded p-1 text-[11px] font-bold bg-white">
+                                <option value="right" ${(b.image_pos || 'right') === 'right' ? 'selected' : ''}>Text Left / Image Right</option>
+                                <option value="left" ${(b.image_pos || '') === 'left' ? 'selected' : ''}>Image Left / Text Right</option>
+                                <option value="auto" ${(b.image_pos || '') === 'auto' ? 'selected' : ''}>Auto Alternating</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" value="${escapeHtml(b.image_url || '')}" oninput="activeSections[${index}].banners[${bIdx}].image_url = this.value; syncSectionsJSON();" placeholder="Image URL (https://...)" class="w-full border border-stone-300 rounded p-1.5 text-xs font-mono bg-white">
+                            <button type="button" onclick="triggerBlockFileUpload(this.previousElementSibling, url => { activeSections[${index}].banners[${bIdx}].image_url = url; syncSectionsJSON(); renderAllSectionBlocks(); })" class="px-2.5 py-1.5 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs">
+                                <span class="material-symbols-outlined text-sm">cloud_upload</span>
+                                <span>Upload</span>
+                            </button>
+                            <button type="button" onclick="triggerBlockMediaPicker(this.previousElementSibling.previousElementSibling, url => { activeSections[${index}].banners[${bIdx}].image_url = url; syncSectionsJSON(); renderAllSectionBlocks(); })" class="px-2.5 py-1.5 border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold rounded flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs">
+                                <span class="material-symbols-outlined text-sm text-[#343c0a]">photo_library</span>
+                                <span>Library</span>
+                            </button>
+                        </div>
+                        ${b.image_url ? `<div class="mt-1 w-20 h-12 rounded border border-stone-200 overflow-hidden bg-white"><img src="${escapeHtml(b.image_url)}" class="w-full h-full object-cover"></div>` : ''}
                     </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <input type="text" value="${escapeHtml(b.btn_text || '')}" oninput="activeSections[${index}].banners[${bIdx}].btn_text = this.value; syncSectionsJSON();" placeholder="Button Label" class="border border-stone-300 rounded p-1.5 text-xs">
                         <input type="text" value="${escapeHtml(b.btn_url || '')}" oninput="activeSections[${index}].banners[${bIdx}].btn_url = this.value; syncSectionsJSON();" placeholder="Button Destination URL" class="border border-stone-300 rounded p-1.5 text-xs font-mono">
@@ -499,9 +529,24 @@ function renderAllSectionBlocks() {
                             <span>Photo #${phIdx + 1}</span>
                             <button type="button" onclick="removeSubItemFromBlock(${index}, 'photos', ${phIdx})" class="text-rose-600 hover:text-rose-800 text-xs cursor-pointer font-bold">Remove</button>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <input type="text" value="${escapeHtml(url)}" oninput="if(typeof activeSections[${index}].photos[${phIdx}] === 'object'){ activeSections[${index}].photos[${phIdx}].url = this.value; } else { activeSections[${index}].photos[${phIdx}] = this.value; } syncSectionsJSON();" placeholder="Image URL (https://...)" class="border border-stone-300 rounded p-1.5 text-xs font-mono">
-                            <input type="text" value="${escapeHtml(cap)}" oninput="if(typeof activeSections[${index}].photos[${phIdx}] !== 'object'){ activeSections[${index}].photos[${phIdx}] = {url: activeSections[${index}].photos[${phIdx}], caption: this.value}; } else { activeSections[${index}].photos[${phIdx}].caption = this.value; } syncSectionsJSON();" placeholder="Caption / Subtitle" class="border border-stone-300 rounded p-1.5 text-xs">
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold text-stone-600 uppercase">Gallery Photo URL *</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" value="${escapeHtml(url)}" oninput="if(typeof activeSections[${index}].photos[${phIdx}] === 'object'){ activeSections[${index}].photos[${phIdx}].url = this.value; } else { activeSections[${index}].photos[${phIdx}] = this.value; } syncSectionsJSON();" placeholder="Image URL (https://...)" class="w-full border border-stone-300 rounded p-1.5 text-xs font-mono">
+                                <button type="button" onclick="triggerBlockFileUpload(this.previousElementSibling, newUrl => { if(typeof activeSections[${index}].photos[${phIdx}] === 'object'){ activeSections[${index}].photos[${phIdx}].url = newUrl; } else { activeSections[${index}].photos[${phIdx}] = newUrl; } syncSectionsJSON(); renderAllSectionBlocks(); })" class="px-2.5 py-1.5 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold rounded flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs">
+                                    <span class="material-symbols-outlined text-sm">cloud_upload</span>
+                                    <span>Upload</span>
+                                </button>
+                                <button type="button" onclick="triggerBlockMediaPicker(this.previousElementSibling.previousElementSibling, newUrl => { if(typeof activeSections[${index}].photos[${phIdx}] === 'object'){ activeSections[${index}].photos[${phIdx}].url = newUrl; } else { activeSections[${index}].photos[${phIdx}] = newUrl; } syncSectionsJSON(); renderAllSectionBlocks(); })" class="px-2.5 py-1.5 border border-stone-300 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-bold rounded flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs">
+                                    <span class="material-symbols-outlined text-sm text-[#343c0a]">photo_library</span>
+                                    <span>Library</span>
+                                </button>
+                            </div>
+                            ${url ? `<div class="mt-1 w-20 h-12 rounded border border-stone-200 overflow-hidden bg-stone-50"><img src="${escapeHtml(url)}" class="w-full h-full object-cover"></div>` : ''}
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Caption / Subtitle</label>
+                            <input type="text" value="${escapeHtml(cap)}" oninput="if(typeof activeSections[${index}].photos[${phIdx}] !== 'object'){ activeSections[${index}].photos[${phIdx}] = {url: activeSections[${index}].photos[${phIdx}], caption: this.value}; } else { activeSections[${index}].photos[${phIdx}].caption = this.value; } syncSectionsJSON();" placeholder="Caption / Subtitle" class="w-full border border-stone-300 rounded p-1.5 text-xs">
                         </div>
                     </div>
                 `;
@@ -735,6 +780,122 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAllSectionBlocks();
     updateThemePreviewCard();
 });
+
+let currentPickerCallback = null;
+
+function triggerBlockFileUpload(inputEl, onComplete) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,.svg,.ico,.webp,.gif';
+    fileInput.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'pages');
+
+        fetch(BASE_URL + '/api/upload.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.url) {
+                if (inputEl) {
+                    inputEl.value = data.url;
+                    inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (typeof onComplete === 'function') onComplete(data.url);
+            } else {
+                alert('Upload failed: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            alert('Upload error: ' + err.message);
+        });
+    };
+    fileInput.click();
+}
+
+function triggerBlockMediaPicker(inputEl, onComplete) {
+    openPbMediaPicker(url => {
+        if (inputEl) {
+            inputEl.value = url;
+            inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (typeof onComplete === 'function') onComplete(url);
+    });
+}
+
+function openPbMediaPicker(onSelectCallback) {
+    currentPickerCallback = onSelectCallback;
+    const modal = document.getElementById('pb-media-picker-modal');
+    const grid = document.getElementById('pb-media-picker-grid');
+    if (!modal || !grid) return;
+
+    modal.classList.remove('hidden');
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-stone-400 font-bold text-xs"><span class="material-symbols-outlined animate-spin text-2xl">sync</span><p class="mt-1">Loading media files...</p></div>';
+
+    fetch(BASE_URL + '/api/media-api.php?action=list')
+        .then(res => res.json())
+        .then(data => {
+            const files = Array.isArray(data) ? data : (data.data || []);
+            if (files.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-stone-400 font-bold text-xs">No media files found in library. Use "Upload" button to add photos.</div>';
+                return;
+            }
+            grid.innerHTML = files.map(item => `
+                <div onclick="selectMediaItem('${escapeHtml(item.url)}')" class="aspect-square bg-stone-100 rounded-lg overflow-hidden border-2 border-transparent hover:border-[#343c0a] cursor-pointer group relative shadow-2xs">
+                    <img src="${escapeHtml(item.url)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200" alt="${escapeHtml(item.original_name || 'Media')}">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                        <span class="material-symbols-outlined text-sm">check_circle</span>
+                        <span>Select</span>
+                    </div>
+                </div>
+            `).join('');
+        })
+        .catch(err => {
+            grid.innerHTML = '<div class="col-span-full text-center py-12 text-rose-500 font-bold text-xs">Failed to load media library: ' + escapeHtml(err.message) + '</div>';
+        });
+}
+
+function selectMediaItem(url) {
+    if (typeof currentPickerCallback === 'function') {
+        currentPickerCallback(url);
+    }
+    closePbMediaPicker();
+}
+
+function closePbMediaPicker() {
+    const modal = document.getElementById('pb-media-picker-modal');
+    if (modal) modal.classList.add('hidden');
+    currentPickerCallback = null;
+}
 </script>
+
+<!-- Centralized Media Library Picker Modal -->
+<div id="pb-media-picker-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+        <div class="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#343c0a]">photo_library</span>
+                <h3 class="font-bold text-sm text-onyx-charcoal">Select Image from Media Library</h3>
+            </div>
+            <button type="button" onclick="closePbMediaPicker()" class="p-1 rounded text-stone-400 hover:text-stone-700">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto min-h-[300px]">
+            <div id="pb-media-picker-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div class="col-span-full text-center py-12 text-stone-400 font-bold text-xs">Loading media library...</div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between text-xs text-stone-500">
+            <span>Click any image to choose it for your content block.</span>
+            <button type="button" onclick="closePbMediaPicker()" class="px-4 py-2 rounded-lg bg-stone-200 font-bold text-stone-700 hover:bg-stone-300">Cancel</button>
+        </div>
+    </div>
+</div>
 
 <?php require_once __DIR__ . '/../includes/admin-footer.php'; ?>
