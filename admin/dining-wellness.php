@@ -288,10 +288,24 @@ require_once __DIR__ . '/../includes/admin-header.php';
                 </div>
             </div>
 
-            <div>
-                <label class="block font-bold text-stone-700 uppercase mb-1">Menu / Service Items (JSON Array format)</label>
-                <textarea name="menu_items_json" id="modal_menu_json" rows="3" class="w-full font-mono text-[11px] border border-stone-300 rounded-lg p-2.5"></textarea>
-                <span class="text-[10px] text-stone-400">Example: [{"name":"Signature Dish","price":"$14.00","desc":"Description"}]</span>
+            <!-- Menu / Service Items Dynamic Repeater Builder -->
+            <div class="border-t border-stone-200 pt-4">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <label class="block font-bold text-stone-700 uppercase text-xs tracking-wider">Menu / Service Items List</label>
+                        <span class="text-[10px] text-stone-400">Add signature dishes, spa treatments, or service prices shown in the guest modal.</span>
+                    </div>
+                    <button type="button" onclick="addMenuItemRow()" class="inline-flex items-center gap-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-2xs cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        <span>Add Item</span>
+                    </button>
+                </div>
+                
+                <input type="hidden" name="menu_items_json" id="modal_menu_json" value="[]">
+                
+                <div id="menu_items_container" class="space-y-2.5 max-h-[240px] overflow-y-auto pr-1">
+                    <!-- Dynamic Repeater Rows rendered here by JS -->
+                </div>
             </div>
 
             <div class="pt-4 border-t border-stone-200 flex justify-end gap-3">
@@ -303,6 +317,100 @@ require_once __DIR__ . '/../includes/admin-header.php';
 </div>
 
 <script>
+function renderMenuItems(items) {
+    const container = document.getElementById('menu_items_container');
+    container.innerHTML = '';
+    
+    let parsed = [];
+    if (typeof items === 'string') {
+        try { parsed = JSON.parse(items || '[]'); } catch(e) { parsed = []; }
+    } else if (Array.isArray(items)) {
+        parsed = items;
+    }
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+        container.innerHTML = '<div class="p-4 text-center text-xs text-stone-400 border border-dashed border-stone-200 rounded-xl bg-stone-50/50">No menu/service items added yet. Click "+ Add Item" to add an item.</div>';
+        syncMenuItemsJson();
+        return;
+    }
+
+    parsed.forEach(item => {
+        addMenuItemRow(item.name || '', item.price || '', item.desc || '');
+    });
+}
+
+function addMenuItemRow(name = '', price = '', desc = '') {
+    const container = document.getElementById('menu_items_container');
+    const emptyMsg = container.querySelector('.text-center');
+    if (emptyMsg) {
+        container.innerHTML = '';
+    }
+
+    const row = document.createElement('div');
+    row.className = 'p-3 bg-stone-50 border border-stone-200 rounded-xl space-y-2 relative group';
+    row.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div class="sm:col-span-2">
+                <input type="text" value="${escapeHtml(name)}" placeholder="Item Name (e.g. Signature Cocktail)" oninput="syncMenuItemsJson()" class="menu-item-name w-full border border-stone-300 rounded-lg p-2 text-xs font-medium focus:ring-2 focus:ring-[#343c0a]">
+            </div>
+            <div>
+                <input type="text" value="${escapeHtml(price)}" placeholder="Price (e.g. $14.00)" oninput="syncMenuItemsJson()" class="menu-item-price w-full border border-stone-300 rounded-lg p-2 text-xs font-bold text-emerald-800 focus:ring-2 focus:ring-[#343c0a]">
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <input type="text" value="${escapeHtml(desc)}" placeholder="Short description or ingredients..." oninput="syncMenuItemsJson()" class="menu-item-desc flex-1 border border-stone-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#343c0a]">
+            <button type="button" onclick="removeMenuItemRow(this)" class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition shrink-0 cursor-pointer" title="Delete Item">
+                <span class="material-symbols-outlined text-lg">delete</span>
+            </button>
+        </div>
+    `;
+    container.appendChild(row);
+    syncMenuItemsJson();
+}
+
+function removeMenuItemRow(btn) {
+    const row = btn.closest('.p-3');
+    if (row) {
+        row.remove();
+        syncMenuItemsJson();
+        const container = document.getElementById('menu_items_container');
+        if (container.children.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-xs text-stone-400 border border-dashed border-stone-200 rounded-xl bg-stone-50/50">No menu/service items added yet. Click "+ Add Item" to add an item.</div>';
+        }
+    }
+}
+
+function syncMenuItemsJson() {
+    const container = document.getElementById('menu_items_container');
+    const rows = container.querySelectorAll('.p-3');
+    const items = [];
+
+    rows.forEach(r => {
+        const nameInput = r.querySelector('.menu-item-name');
+        const priceInput = r.querySelector('.menu-item-price');
+        const descInput = r.querySelector('.menu-item-desc');
+        if (nameInput) {
+            const name = nameInput.value.trim();
+            const price = priceInput ? priceInput.value.trim() : '';
+            const desc = descInput ? descInput.value.trim() : '';
+            if (name || price || desc) {
+                items.push({ name, price, desc });
+            }
+        }
+    });
+
+    document.getElementById('modal_menu_json').value = JSON.stringify(items);
+}
+
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function switchDWLang(field, lang) {
     const langs = ['en', 'km', 'zh', 'ko'];
     langs.forEach(l => {
@@ -340,7 +448,7 @@ function openEditModal(id, type, title, subtitle, desc, hours, price, img, menu,
         imgInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
-    document.getElementById('modal_menu_json').value = menu || '[]';
+    renderMenuItems(menu || '[]');
     document.getElementById('modal-title').textContent = (id > 0) ? 'Edit Experience' : 'Add Experience';
 
     // Parse Translations JSON
