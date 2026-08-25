@@ -31,10 +31,10 @@ try {
     $pendingBookings = (int)($rPend['c'] ?? 0);
 } catch (Throwable $e) {}
 
-$monthlyRevenue = 0.0;
+$totalBookingsCount = 0;
 try {
-    $rRev = $pdo->query("SELECT SUM(total_price) as s FROM bookings WHERE status IN ('confirmed', 'checked_in', 'checked_out')")->fetch();
-    $monthlyRevenue = (float)($rRev['s'] ?? 0.0);
+    $rTot = $pdo->query("SELECT COUNT(*) as c FROM bookings")->fetch();
+    $totalBookingsCount = (int)($rTot['c'] ?? 0);
 } catch (Throwable $e) {}
 
 $occupancyRate = round(($activeCheckins / $totalRooms) * 100);
@@ -51,16 +51,16 @@ require_once __DIR__ . '/../includes/admin-header.php';
     <!-- Top Welcome Banner -->
     <div class="bg-onyx-charcoal text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
         <div class="space-y-1 text-center sm:text-left">
-            <span class="text-xs font-semibold uppercase tracking-widest text-[#dfe8a6]">Heritage Hospitality Control</span>
-            <h2 class="font-headline text-2xl sm:text-3xl font-bold text-white">Welcome back, <?= e($_SESSION['user_name'] ?? 'Manager') ?></h2>
+            <span class="text-xs font-semibold uppercase tracking-widest text-[#dfe8a6]"><?= __t('admin_welcome_sub', 'Heritage Hospitality Control') ?></span>
+            <h2 class="font-headline text-2xl sm:text-3xl font-bold text-white"><?= __t('admin_welcome_title', 'Welcome back') ?>, <?= e($_SESSION['user_name'] ?? 'Manager') ?></h2>
             <p class="text-stone-300 text-xs sm:text-sm">Today is <?= date('l, F j, Y') ?>. Hotel operations are running smoothly.</p>
         </div>
         <div class="flex items-center gap-3">
             <a href="<?= BASE_URL ?>/admin/booking-create.php" class="bg-[#dfe8a6] hover:bg-white text-[#191e00] px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide transition shadow">
-                + Create Walk-In Booking
+                <?= __t('admin_create_walkin', '+ Create Walk-In Booking') ?>
             </a>
             <a href="<?= BASE_URL ?>/admin/accommodations.php" class="bg-stone-800 hover:bg-stone-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold transition">
-                Room Inventory
+                <?= __t('admin_nav_accommodations', 'Accommodations') ?>
             </a>
         </div>
     </div>
@@ -71,7 +71,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
         <!-- Occupancy Rate -->
         <div class="flat-card rounded-2xl p-6 space-y-3">
             <div class="flex items-center justify-between text-stone-500">
-                <span class="text-xs font-bold uppercase tracking-wider">Occupancy Rate</span>
+                <span class="text-xs font-bold uppercase tracking-wider"><?= __t('admin_kpi_occupancy', 'Occupancy Rate') ?></span>
                 <div class="w-8 h-8 rounded-lg bg-[#dfe8a6]/40 text-[#343c0a] flex items-center justify-center">
                     <span class="material-symbols-outlined text-lg">percent</span>
                 </div>
@@ -85,27 +85,28 @@ require_once __DIR__ . '/../includes/admin-header.php';
             </div>
         </div>
 
-        <!-- Total Revenue -->
+        <!-- Total Reservations / Inquiries -->
         <div class="flat-card rounded-2xl p-6 space-y-3">
             <div class="flex items-center justify-between text-stone-500">
-                <span class="text-xs font-bold uppercase tracking-wider">Total Ledger Revenue</span>
-                <div class="w-8 h-8 rounded-lg bg-[#dfe8a6]/40 text-[#343c0a] flex items-center justify-center">
-                    <span class="material-symbols-outlined text-lg">attach_money</span>
+                <span class="text-xs font-bold uppercase tracking-wider"><?= __t('admin_kpi_total_bookings', 'Total Reservations') ?></span>
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-lg">view_list</span>
                 </div>
             </div>
             <div class="flex items-baseline gap-2">
-                <span class="font-headline font-bold text-3xl text-onyx-charcoal"><?= format_price($monthlyRevenue) ?></span>
+                <span class="font-headline font-bold text-3xl text-onyx-charcoal"><?= number_format($totalBookingsCount) ?></span>
+                <span class="text-xs text-stone-500 font-medium">total requests</span>
             </div>
-            <p class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">trending_up</span>
-                <span>Active & confirmed bookings</span>
+            <p class="text-[11px] text-stone-500 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-emerald-700">task_alt</span>
+                <span>Direct stored inquiries</span>
             </p>
         </div>
 
         <!-- Pending Bookings -->
         <div class="flat-card rounded-2xl p-6 space-y-3">
             <div class="flex items-center justify-between text-stone-500">
-                <span class="text-xs font-bold uppercase tracking-wider">Pending Confirmations</span>
+                <span class="text-xs font-bold uppercase tracking-wider"><?= __t('admin_kpi_pending_bookings', 'Pending Bookings') ?></span>
                 <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
                     <span class="material-symbols-outlined text-lg">pending_actions</span>
                 </div>
@@ -122,7 +123,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
         <!-- In-House Guests -->
         <div class="flat-card rounded-2xl p-6 space-y-3">
             <div class="flex items-center justify-between text-stone-500">
-                <span class="text-xs font-bold uppercase tracking-wider">In-House Guests</span>
+                <span class="text-xs font-bold uppercase tracking-wider"><?= __t('admin_kpi_active_checkins', 'Active Check-ins') ?></span>
                 <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center">
                     <span class="material-symbols-outlined text-lg">hotel</span>
                 </div>
@@ -145,7 +146,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
         <div class="lg:col-span-8 space-y-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="font-headline font-bold text-xl text-onyx-charcoal">Recent Reservations</h3>
+                    <h3 class="font-headline font-bold text-xl text-onyx-charcoal"><?= __t('admin_recent_bookings', 'Recent Booking Requests') ?></h3>
                     <p class="text-xs text-stone-500">Real-time bookings from public website and front desk.</p>
                 </div>
                 <a href="<?= BASE_URL ?>/admin/bookings.php" class="text-xs font-semibold text-[#4B5320] hover:underline">
@@ -158,12 +159,12 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <table class="w-full text-left text-xs">
                         <thead class="bg-stone-50 text-stone-500 uppercase tracking-wider border-b border-stone-200">
                             <tr>
-                                <th class="py-3.5 px-4 font-semibold">Ref & Guest</th>
-                                <th class="py-3.5 px-4 font-semibold">Accommodation</th>
-                                <th class="py-3.5 px-4 font-semibold">Dates</th>
-                                <th class="py-3.5 px-4 font-semibold">Total</th>
-                                <th class="py-3.5 px-4 font-semibold">Status</th>
-                                <th class="py-3.5 px-4 font-semibold text-right">Action</th>
+                                <th class="py-3.5 px-4 font-semibold"><?= __t('admin_col_guest', 'Guest Name') ?></th>
+                                <th class="py-3.5 px-4 font-semibold"><?= __t('admin_col_room', 'Room') ?></th>
+                                <th class="py-3.5 px-4 font-semibold"><?= __t('admin_col_dates', 'Check-in / Check-out') ?></th>
+                                <th class="py-3.5 px-4 font-semibold"><?= __t('admin_col_amount', 'Total Price') ?></th>
+                                <th class="py-3.5 px-4 font-semibold"><?= __t('admin_col_status', 'Status') ?></th>
+                                <th class="py-3.5 px-4 font-semibold text-right"><?= __t('admin_col_actions', 'Actions') ?></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-stone-100">
@@ -197,14 +198,16 @@ require_once __DIR__ . '/../includes/admin-header.php';
                                             'cancelled' => 'bg-rose-50 text-rose-700 border-rose-200',
                                             default => 'bg-amber-50 text-amber-700 border-amber-200'
                                         };
+                                        $statusKey = 'admin_status_' . $b['status'];
+                                        $statusLabel = __t($statusKey, str_replace('_', ' ', $b['status']));
                                         ?>
                                         <span class="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border <?= $pill ?>">
-                                            <?= str_replace('_', ' ', $b['status']) ?>
+                                            <?= e($statusLabel) ?>
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-4 text-right">
                                         <a href="<?= BASE_URL ?>/admin/booking-detail.php?id=<?= $b['id'] ?>" class="text-[#343c0a] hover:underline font-semibold text-xs">
-                                            View
+                                            <?= __t('admin_btn_view', 'View') ?>
                                         </a>
                                     </td>
                                 </tr>
@@ -220,13 +223,13 @@ require_once __DIR__ . '/../includes/admin-header.php';
         <div class="lg:col-span-4 space-y-6">
             
             <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
-                <h3 class="font-headline font-bold text-lg text-onyx-charcoal">Quick Management</h3>
+                <h3 class="font-headline font-bold text-lg text-onyx-charcoal"><?= __t('admin_quick_actions', 'Quick Operational Actions') ?></h3>
                 
                 <div class="space-y-2.5">
                     <a href="<?= BASE_URL ?>/admin/accommodations.php" class="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 flex items-center justify-between text-xs font-medium text-stone-800 transition">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[#4B5320]">bed</span>
-                            <span>Accommodations & Rates</span>
+                            <span><?= __t('admin_nav_accommodations', 'Accommodations') ?></span>
                         </div>
                         <span class="material-symbols-outlined text-stone-400 text-base">chevron_right</span>
                     </a>
@@ -234,7 +237,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <a href="<?= BASE_URL ?>/admin/dining-wellness.php" class="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 flex items-center justify-between text-xs font-medium text-stone-800 transition">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[#4B5320]">restaurant</span>
-                            <span>Dining Menus & Spa</span>
+                            <span><?= __t('admin_nav_dining', 'Dining & Wellness') ?></span>
                         </div>
                         <span class="material-symbols-outlined text-stone-400 text-base">chevron_right</span>
                     </a>
@@ -242,7 +245,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <a href="<?= BASE_URL ?>/admin/offers.php" class="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 flex items-center justify-between text-xs font-medium text-stone-800 transition">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[#4B5320]">local_offer</span>
-                            <span>Promotions & Promo Codes</span>
+                            <span><?= __t('admin_nav_offers', 'Special Offers') ?></span>
                         </div>
                         <span class="material-symbols-outlined text-stone-400 text-base">chevron_right</span>
                     </a>
@@ -250,7 +253,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <a href="<?= BASE_URL ?>/admin/messages.php" class="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 flex items-center justify-between text-xs font-medium text-stone-800 transition">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[#4B5320]">mail</span>
-                            <span>Guest Inquiries Inbox</span>
+                            <span><?= __t('admin_action_inbox', 'Guest Messages Inbox') ?></span>
                         </div>
                         <span class="material-symbols-outlined text-stone-400 text-base">chevron_right</span>
                     </a>
@@ -258,7 +261,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <a href="<?= BASE_URL ?>/admin/settings.php" class="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 flex items-center justify-between text-xs font-medium text-stone-800 transition">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[#4B5320]">tune</span>
-                            <span>SEO & Site Settings</span>
+                            <span><?= __t('admin_nav_settings', 'Site & SEO Settings') ?></span>
                         </div>
                         <span class="material-symbols-outlined text-stone-400 text-base">chevron_right</span>
                     </a>
@@ -268,10 +271,10 @@ require_once __DIR__ . '/../includes/admin-header.php';
             <!-- Hotel Quick Contact Status -->
             <div class="bg-[#343c0a] text-white rounded-2xl p-6 space-y-3">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-[#dfe8a6]">Concierge Hotline</span>
-                <div class="font-headline font-bold text-lg"><?= HOTEL_NAME ?></div>
-                <div class="text-xs text-stone-300"><?= HOTEL_PHONE ?> | <?= HOTEL_EMAIL ?></div>
+                <div class="font-headline font-bold text-lg"><?= e(hotel_name()) ?></div>
+                <div class="text-xs text-stone-300"><?= e(hotel_phone()) ?><?= hotel_email() ? ' | ' . e(hotel_email()) : '' ?></div>
                 <a href="<?= BASE_URL ?>/index.php" target="_blank" class="inline-block text-xs text-[#dfe8a6] hover:underline font-semibold pt-1">
-                    Preview Live Website →
+                    <?= __t('admin_nav_view_public', 'View Public Website') ?> →
                 </a>
             </div>
 

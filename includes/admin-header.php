@@ -30,9 +30,8 @@ $flash = get_flash();
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/images/softbook_favicon.png">
     <link rel="apple-touch-icon" href="<?= BASE_URL ?>/assets/images/softbook_logo.png">
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Multi-Language Dynamic Google Fonts Loader -->
+    <?= render_google_font_head() ?>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -110,20 +109,28 @@ $flash = get_flash();
                         title="Toggle Navigation Menu">
                     <span class="material-symbols-outlined text-2xl">menu</span>
                 </button>
-                <h1 class="font-headline font-bold text-lg sm:text-xl text-onyx-charcoal truncate"><?= e($adminTitle ?? 'Dashboard Overview') ?></h1>
+                <h1 class="font-headline font-bold text-lg sm:text-xl text-onyx-charcoal truncate"><?= e($adminTitle ?? __t('admin_nav_dashboard', 'Dashboard Overview')) ?></h1>
             </div>
 
             <div class="flex items-center space-x-3 sm:space-x-4">
                 
                 <!-- Admin Language Switcher -->
-                <?= I18n::renderSwitcher() ?>
+                <?= I18n::renderSwitcher('', 'light', 'bottom') ?>
 
                 <a href="<?= BASE_URL ?>/admin/booking-create.php" class="hidden sm:inline-flex items-center gap-1.5 bg-[#343c0a] hover:bg-deep-olive text-white px-3.5 py-2 rounded text-xs font-semibold tracking-wide transition shadow-xs">
                     <span class="material-symbols-outlined text-base">add</span>
-                    <span>New Booking</span>
+                    <span><?= __t('admin_new_booking_btn', 'New Booking') ?></span>
                 </a>
 
-                <a href="<?= BASE_URL ?>/index.php" target="_blank" class="p-2 rounded text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition" title="Open Public Site">
+                <!-- Booking Ledger Notification Badge -->
+                <a href="<?= BASE_URL ?>/admin/bookings.php?status=pending" class="relative p-2 rounded-xl text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition" title="<?= e(__t('admin_kpi_pending_bookings', 'Pending Bookings')) ?>">
+                    <span class="material-symbols-outlined text-xl">receipt_long</span>
+                    <?php if ($pendingBookingsCount > 0): ?>
+                        <span class="absolute -top-1 -right-1 bg-amber-500 text-white font-bold text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center animate-pulse shadow-xs"><?= $pendingBookingsCount ?></span>
+                    <?php endif; ?>
+                </a>
+
+                <a href="<?= BASE_URL ?>/index.php" target="_blank" class="p-2 rounded text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition" title="<?= e(__t('admin_nav_view_public', 'View Public Website')) ?>">
                     <span class="material-symbols-outlined text-xl">visibility</span>
                 </a>
 
@@ -147,9 +154,9 @@ $flash = get_flash();
                             <div class="text-xs font-bold text-stone-900 leading-none group-hover:text-[#343c0a] transition"><?= e($user['name']) ?></div>
                             <div class="text-[10px] text-stone-400 font-medium capitalize mt-0.5 flex items-center gap-1">
                                 <?php if (($user['role'] ?? '') === 'admin'): ?>
-                                    <span class="text-[9px] font-bold text-[#343c0a] bg-[#dfe8a6]/50 px-1 rounded">Admin</span>
+                                    <span class="text-[9px] font-bold text-[#343c0a] bg-[#dfe8a6]/50 px-1 rounded"><?= __t('admin_role_administrator', 'Admin') ?></span>
                                 <?php else: ?>
-                                    <span class="text-[9px] font-bold text-amber-800 bg-amber-100 px-1 rounded">Editor</span>
+                                    <span class="text-[9px] font-bold text-amber-800 bg-amber-100 px-1 rounded"><?= __t('admin_role_editor', 'Editor') ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -176,12 +183,12 @@ $flash = get_flash();
                                         <?php if (($user['role'] ?? '') === 'admin'): ?>
                                             <span class="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                <span>Administrator</span>
+                                                <span><?= __t('admin_role_administrator', 'Administrator') ?></span>
                                             </span>
                                         <?php else: ?>
                                             <span class="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                <span>Content Editor</span>
+                                                <span><?= __t('admin_role_editor', 'Content Editor') ?></span>
                                             </span>
                                         <?php endif; ?>
                                     </div>
@@ -193,23 +200,23 @@ $flash = get_flash();
                             <?php if (Auth::isAdmin()): ?>
                             <a href="<?= BASE_URL ?>/admin/users.php" class="flex items-center gap-2.5 px-4 py-2 text-stone-700 hover:bg-stone-50 hover:text-[#343c0a] font-medium transition">
                                 <span class="material-symbols-outlined text-base text-stone-400">manage_accounts</span>
-                                <span>User Management</span>
+                                <span><?= __t('admin_nav_users', 'User Management') ?></span>
                             </a>
                             <a href="<?= BASE_URL ?>/admin/property.php" class="flex items-center gap-2.5 px-4 py-2 text-stone-700 hover:bg-stone-50 hover:text-[#343c0a] font-medium transition">
                                 <span class="material-symbols-outlined text-base text-stone-400">palette</span>
-                                <span>Property & Brand</span>
+                                <span><?= __t('admin_nav_property', 'Property & Brand') ?></span>
                             </a>
                             <?php endif; ?>
                             <a href="<?= BASE_URL ?>/index.php" target="_blank" class="flex items-center gap-2.5 px-4 py-2 text-stone-700 hover:bg-stone-50 hover:text-[#343c0a] font-medium transition">
                                 <span class="material-symbols-outlined text-base text-stone-400">open_in_new</span>
-                                <span>View Public Website</span>
+                                <span><?= __t('admin_nav_view_public', 'View Public Website') ?></span>
                             </a>
                         </div>
 
                         <div class="pt-1 border-t border-stone-100">
                             <a href="<?= BASE_URL ?>/admin/logout.php" class="flex items-center gap-2.5 px-4 py-2 text-rose-600 hover:bg-rose-50 font-semibold transition text-xs">
                                 <span class="material-symbols-outlined text-base text-rose-500">logout</span>
-                                <span>Sign Out</span>
+                                <span><?= __t('admin_nav_signout', 'Sign Out') ?></span>
                             </a>
                         </div>
                     </div>

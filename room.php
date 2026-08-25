@@ -247,8 +247,13 @@ require_once __DIR__ . '/includes/header.php';
                         </span>
                     </div>
 
-                    <!-- Direct Reservation Form -->
-                    <form action="<?= url('/book') ?>" method="GET" target="<?= e(get_booking_target()) ?>" class="space-y-4">
+                    <!-- Reservation Form / Booking Action -->
+                    <?php $currentMode = get_booking_mode(); ?>
+                    <form action="<?= (in_array($currentMode, ['ota', 'multi_channel'], true)) ? '#' : url('/book') ?>" 
+                          method="GET" 
+                          target="<?= e(get_booking_target()) ?>" 
+                          onsubmit="return handleHeroSearchSubmit(event, '<?= e($currentMode) ?>')"
+                          class="space-y-4">
                         <input type="hidden" name="room_id" value="<?= $room['id'] ?>" id="booking_room_select" data-price="<?= $room['price_per_night'] ?>">
                         
                         <div>
@@ -308,15 +313,15 @@ require_once __DIR__ . '/includes/header.php';
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full bg-[#343c0a] hover:bg-deep-olive text-white py-3.5 rounded-lg font-bold text-sm tracking-wide transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                            <span class="material-symbols-outlined text-lg">calendar_month</span>
+                        <button type="submit" class="w-full bg-[#343c0a] hover:bg-deep-olive text-white py-3.5 rounded-lg font-bold text-sm tracking-wide transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer btn-shimmer">
+                            <span class="material-symbols-outlined text-lg"><?= (in_array($currentMode, ['ota', 'multi_channel'], true)) ? 'search' : (($currentMode === 'engine') ? 'open_in_new' : 'calendar_month') ?></span>
                             <span><?= e(get_booking_button_text('Reserve This Suite')) ?></span>
                         </button>
                     </form>
 
                     <div class="text-[11px] text-stone-400 text-center flex items-center justify-center gap-1">
-                        <span class="material-symbols-outlined text-xs text-stone-400">lock</span>
-                        <span>Direct Booking Guarantee & Instant Confirmation</span>
+                        <span class="material-symbols-outlined text-xs text-stone-400"><?= (in_array($currentMode, ['ota', 'multi_channel'], true)) ? 'travel_explore' : 'lock' ?></span>
+                        <span><?= (in_array($currentMode, ['ota', 'multi_channel'], true)) ? 'Direct 3rd-Party OTA Partner Deep Link' : (($currentMode === 'engine') ? 'External Reservation Engine Link' : 'Direct Booking Guarantee & Instant Confirmation') ?></span>
                     </div>
 
                 </div>

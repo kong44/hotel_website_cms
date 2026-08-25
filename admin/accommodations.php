@@ -80,11 +80,11 @@ require_once __DIR__ . '/../includes/admin-header.php';
         <div class="flex items-center gap-3">
             <a href="<?= BASE_URL ?>/admin/room-types.php" class="px-4 py-2.5 rounded-lg border border-stone-300 text-stone-700 text-xs font-semibold hover:bg-stone-50 transition flex items-center gap-1.5 shadow-2xs">
                 <span class="material-symbols-outlined text-base">category</span>
-                <span>Manage Room Types</span>
+                <span><?= __t('admin_nav_room_types', 'Manage Room Types') ?></span>
             </a>
             <a href="<?= BASE_URL ?>/admin/room-form.php" class="bg-[#343c0a] hover:bg-deep-olive text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide transition shadow flex items-center justify-center gap-2">
                 <span class="material-symbols-outlined text-base">add</span>
-                <span>Add Accommodation</span>
+                <span><?= __t('admin_action_new_room', 'Add Accommodation') ?></span>
             </a>
         </div>
     </div>
@@ -110,7 +110,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
                 <div class="flex justify-end">
                     <button type="submit" name="save_hero_settings" value="1" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded-lg text-xs font-bold transition shadow flex items-center gap-2 cursor-pointer">
                         <span class="material-symbols-outlined text-base">save</span>
-                        <span>Save Rooms Hero Banner</span>
+                        <span><?= __t('admin_btn_save', 'Save Changes') ?></span>
                     </button>
                 </div>
             </form>
@@ -132,7 +132,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
         <a href="<?= BASE_URL ?>/admin/accommodations.php?category=<?= urlencode($rt['name']) ?>" 
            class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 <?= $isActive ? 'bg-[#343c0a] text-white shadow-xs' : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50' ?>">
             <span class="material-symbols-outlined text-sm"><?= e($rt['icon']) ?></span>
-            <span><?= e($rt['name']) ?></span>
+            <span><?= e(__td($rt, 'name', $rt['name'])) ?></span>
         </a>
         <?php endforeach; ?>
     </div>
@@ -143,12 +143,12 @@ require_once __DIR__ . '/../includes/admin-header.php';
             <table class="w-full text-left text-xs">
                 <thead class="bg-stone-50 text-stone-500 uppercase tracking-wider border-b border-stone-200">
                     <tr>
-                        <th class="py-4 px-6 font-semibold">Room & Type</th>
-                        <th class="py-4 px-6 font-semibold">Bed & Capacity</th>
-                        <th class="py-4 px-6 font-semibold">Size & Outlook</th>
-                        <th class="py-4 px-6 font-semibold">Rate / Night</th>
-                        <th class="py-4 px-6 font-semibold">Availability</th>
-                        <th class="py-4 px-6 font-semibold text-right">Actions</th>
+                        <th class="py-4 px-6 font-semibold"><?= __t('admin_col_room', 'Room & Type') ?></th>
+                        <th class="py-4 px-6 font-semibold"><?= __t('rooms_capacity', 'Bed & Capacity') ?></th>
+                        <th class="py-4 px-6 font-semibold"><?= __t('rooms_size', 'Size') ?> & <?= __t('rooms_view', 'View') ?></th>
+                        <th class="py-4 px-6 font-semibold"><?= __t('admin_col_amount', 'Rate') ?> / <?= __t('rooms_per_night', 'night') ?></th>
+                        <th class="py-4 px-6 font-semibold"><?= __t('admin_col_status', 'Availability') ?></th>
+                        <th class="py-4 px-6 font-semibold text-right"><?= __t('admin_col_actions', 'Actions') ?></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
@@ -162,7 +162,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
                                         <img src="<?= e($room['image_url']) ?>" alt="Thumbnail" class="w-full h-full object-cover">
                                     </div>
                                     <div class="space-y-1">
-                                        <div class="font-headline font-bold text-sm text-stone-900"><?= e($room['name']) ?></div>
+                                        <div class="font-headline font-bold text-sm text-stone-900"><?= e(__td($room, 'name', $room['name'])) ?></div>
                                         <div class="flex items-center gap-2">
                                             <?= get_room_type_badge($room['category'] ?? 'Deluxe Room', 'xs') ?>
                                             <span class="text-[10px] text-stone-400 font-mono">/<?= e($room['slug']) ?></span>
@@ -209,7 +209,7 @@ require_once __DIR__ . '/../includes/admin-header.php';
                                     <a href="<?= BASE_URL ?>/admin/room-form.php?id=<?= (int)$room['id'] ?>" 
                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-[#343c0a] text-stone-700 hover:text-white text-xs font-bold transition shadow-2xs cursor-pointer" title="Edit Accommodation">
                                         <span class="material-symbols-outlined text-sm">edit</span>
-                                        <span>Edit</span>
+                                        <span><?= __t('admin_btn_edit', 'Edit') ?></span>
                                     </a>
                                     <a href="<?= BASE_URL ?>/room.php?slug=<?= e($room['slug']) ?>" target="_blank" 
                                        class="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 transition" title="Preview Public Page">

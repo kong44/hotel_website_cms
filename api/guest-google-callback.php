@@ -64,7 +64,11 @@ $loginResult = GoogleAuth::loginGuest($profile);
 
 if ($loginResult['success']) {
     $guest = $loginResult['guest'];
-    set_flash('success', "Welcome back, {$guest['name']}! Signed in with Google. Here is your complete booking history.");
+    if (strpos($redirectTarget, 'book') !== false) {
+        set_flash('success', "Welcome back, {$guest['name']}! Signed in with Google. You can now complete your direct reservation request.");
+    } else {
+        set_flash('success', "Welcome back, {$guest['name']}! Signed in with Google. Here is your complete booking history.");
+    }
     header('Location: ' . $redirectTarget);
     exit;
 } else {

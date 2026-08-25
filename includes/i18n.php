@@ -116,7 +116,7 @@ class I18n {
         $currentInfo = self::SUPPORTED_LOCALES[$current] ?? self::SUPPORTED_LOCALES['en'];
         
         $isDark = ($theme === 'dark');
-        $isTop = ($direction === 'top');
+        $isTop = ($direction === 'top' || $direction === 'up');
 
         $btnClass = $isDark 
             ? 'border-stone-700 bg-stone-900/90 hover:bg-stone-800 text-stone-200 hover:text-white' 
@@ -124,7 +124,7 @@ class I18n {
 
         $menuClass = $isDark 
             ? 'bg-[#1f1f1f] border-stone-700 text-stone-200' 
-            : 'bg-white border-stone-200 text-stone-700';
+            : 'bg-white border-stone-200 text-stone-700 shadow-xl';
 
         $posClass = $isTop ? 'bottom-full mb-2' : 'top-full mt-2';
 

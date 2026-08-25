@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/i18n.php';
 
 $currentScript = basename($_SERVER['PHP_SELF'] ?? '');
 $pdo = getDB();
@@ -62,32 +63,32 @@ if (!function_exists('is_admin_active')) {
     <!-- Navigation List -->
     <nav class="flex-1 px-3 space-y-1.5 overflow-y-auto text-xs font-medium">
         
-        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-stone-500">Core Operations</div>
+        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-stone-500"><?= __t('admin_nav_core_ops', 'Core Operations') ?></div>
         
         <a href="<?= BASE_URL ?>/admin/index.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('index.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">dashboard</span>
-            <span>Dashboard Overview</span>
+            <span><?= __t('admin_nav_dashboard', 'Dashboard Overview') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/accommodations.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active(['accommodations.php', 'room-form.php'], $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">bed</span>
-            <span>Accommodations</span>
+            <span><?= __t('admin_nav_accommodations', 'Accommodations') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/room-types.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('room-types.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">category</span>
-            <span>Room Types & Categories</span>
+            <span><?= __t('admin_nav_room_types', 'Room Types & Categories') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/amenities.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('amenities.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">checklist</span>
-            <span>Room Amenities</span>
+            <span><?= __t('admin_nav_amenities', 'Room Amenities') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/bookings.php" class="flex items-center justify-between px-3 py-2.5 rounded-lg transition <?= is_admin_active(['bookings.php', 'booking-detail.php'], $currentScript) ?>">
             <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-lg">receipt_long</span>
-                <span>Booking Ledger</span>
+                <span><?= __t('admin_nav_bookings', 'Booking Ledger') ?></span>
             </div>
             <?php if ($pendingBookingsCount > 0): ?>
                 <span class="bg-[#dfe8a6] text-[#191e00] font-bold text-[10px] px-1.5 py-0.5 rounded-full"><?= $pendingBookingsCount ?></span>
@@ -96,64 +97,65 @@ if (!function_exists('is_admin_active')) {
 
         <a href="<?= BASE_URL ?>/admin/booking-create.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('booking-create.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">add_circle</span>
-            <span>Add New Booking</span>
+            <span><?= __t('admin_nav_add_booking', 'Add New Booking') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/guests.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('guests.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">groups</span>
-            <span>Public Guests</span>
+            <span><?= __t('admin_nav_guests', 'Public Guests') ?></span>
         </a>
 
-        <div class="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-stone-500">Content Management</div>
+        <div class="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-stone-500"><?= __t('admin_nav_content_mgmt', 'Content Management') ?></div>
 
         <a href="<?= BASE_URL ?>/admin/homepage.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('homepage.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">home</span>
-            <span>Homepage Content</span>
+            <span><?= __t('admin_nav_homepage', 'Homepage Content') ?></span>
+        </a>
+
+        <a href="<?= BASE_URL ?>/admin/about.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('about.php', $currentScript) ?>">
+            <span class="material-symbols-outlined text-lg">info</span>
+            <span><?= __t('admin_nav_about', 'About Us Page') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/dining-wellness.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('dining-wellness.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">restaurant</span>
-            <span>Dining & Wellness</span>
+            <span><?= __t('admin_nav_dining', 'Dining & Wellness') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/offers.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('offers.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">local_offer</span>
-            <span>Special Offers</span>
+            <span><?= __t('admin_nav_offers', 'Special Offers') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/gallery.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('gallery.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">photo_library</span>
-            <span>Photo Gallery</span>
+            <span><?= __t('admin_nav_gallery', 'Photo Gallery') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/media.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('media.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">perm_media</span>
-            <span>Media Library</span>
+            <span><?= __t('admin_nav_media', 'Media Library') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/page-heroes.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('page-heroes.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">view_day</span>
-            <span>Page Heroes & Banners</span>
+            <span><?= __t('admin_nav_heroes', 'Page Heroes & Banners') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/pages.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active(['pages.php', 'page-builder.php'], $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">auto_stories</span>
-            <span>Custom Dynamic Pages</span>
+            <span><?= __t('admin_nav_pages', 'Custom Dynamic Pages') ?></span>
         </a>
-
-
-
-
 
         <a href="<?= BASE_URL ?>/admin/locations.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('locations.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">pin_drop</span>
-            <span>Prime Location</span>
+            <span><?= __t('admin_nav_location', 'Prime Location') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/messages.php" class="flex items-center justify-between px-3 py-2.5 rounded-lg transition <?= is_admin_active('messages.php', $currentScript) ?>">
             <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-lg">mail</span>
-                <span>Guest Messages</span>
+                <span><?= __t('admin_nav_messages', 'Guest Messages') ?></span>
             </div>
             <?php if ($unreadMessagesCount > 0): ?>
                 <span class="bg-rose-500 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-full"><?= $unreadMessagesCount ?></span>
@@ -161,31 +163,31 @@ if (!function_exists('is_admin_active')) {
         </a>
 
         <?php if (Auth::isAdmin()): ?>
-        <div class="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-stone-500">Brand & System</div>
+        <div class="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-stone-500"><?= __t('admin_nav_brand_sys', 'Brand & System') ?></div>
 
         <a href="<?= BASE_URL ?>/admin/users.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('users.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">manage_accounts</span>
-            <span>User Management</span>
+            <span><?= __t('admin_nav_users', 'User Management') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/property.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('property.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">palette</span>
-            <span>Property & Brand</span>
+            <span><?= __t('admin_nav_property', 'Property & Brand') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/email-settings.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('email-settings.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">forward_to_inbox</span>
-            <span>Email & SMTP Settings</span>
+            <span><?= __t('admin_nav_email', 'Email & SMTP Settings') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/livechat.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('livechat.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">chat</span>
-            <span>Live Chat (Tawk.to)</span>
+            <span><?= __t('admin_nav_livechat', 'Live Chat (Tawk.to)') ?></span>
         </a>
 
         <a href="<?= BASE_URL ?>/admin/settings.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition <?= is_admin_active('settings.php', $currentScript) ?>">
             <span class="material-symbols-outlined text-lg">tune</span>
-            <span>Site & SEO Settings</span>
+            <span><?= __t('admin_nav_settings', 'Site & SEO Settings') ?></span>
         </a>
         <?php endif; ?>
 
@@ -193,7 +195,7 @@ if (!function_exists('is_admin_active')) {
 
         <a href="<?= BASE_URL ?>/index.php" target="_blank" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-stone-400 hover:text-white hover:bg-stone-800">
             <span class="material-symbols-outlined text-lg">open_in_new</span>
-            <span>View Public Website</span>
+            <span><?= __t('admin_nav_view_public', 'View Public Website') ?></span>
         </a>
     </nav>
 
@@ -221,12 +223,12 @@ if (!function_exists('is_admin_active')) {
                         <?php if (($currentUser['role'] ?? '') === 'admin'): ?>
                             <span class="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-[#343c0a] text-[#dfe8a6] border border-[#4B5320]/60 px-2 py-0.5 rounded-md">
                                 <span class="material-symbols-outlined text-[11px]">shield_person</span>
-                                <span>Admin</span>
+                                <span><?= __t('admin_role_administrator', 'Admin') ?></span>
                             </span>
                         <?php else: ?>
                             <span class="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-amber-950/80 text-amber-300 border border-amber-800/60 px-2 py-0.5 rounded-md">
                                 <span class="material-symbols-outlined text-[11px]">edit_note</span>
-                                <span>Editor</span>
+                                <span><?= __t('admin_role_editor', 'Editor') ?></span>
                             </span>
                         <?php endif; ?>
                     </div>
@@ -238,14 +240,14 @@ if (!function_exists('is_admin_active')) {
                 <?php if (Auth::isAdmin()): ?>
                 <a href="<?= BASE_URL ?>/admin/users.php" class="text-stone-400 hover:text-stone-200 text-[11px] font-semibold flex items-center gap-1 transition">
                     <span class="material-symbols-outlined text-sm">settings</span>
-                    <span>Account</span>
+                    <span><?= __t('admin_nav_account', 'Account') ?></span>
                 </a>
                 <?php else: ?>
                 <span class="text-[11px] text-stone-500 font-medium">SoftBook Active</span>
                 <?php endif; ?>
 
                 <a href="<?= BASE_URL ?>/admin/logout.php" title="Sign out of SoftBook" class="text-stone-400 hover:text-rose-400 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer">
-                    <span>Sign Out</span>
+                    <span><?= __t('admin_nav_signout', 'Sign Out') ?></span>
                     <span class="material-symbols-outlined text-sm">logout</span>
                 </a>
             </div>
@@ -253,3 +255,4 @@ if (!function_exists('is_admin_active')) {
     </div>
 
 </aside>
+

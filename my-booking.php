@@ -41,7 +41,18 @@ if ($isGuest && !empty($guest['email'])) {
     ");
     $stmtG->execute([strtolower($guest['email'])]);
     $guestBookings = $stmtG->fetchAll();
+
+    // Fetch all contact inquiries/messages submitted by guest
+    $stmtM = $pdo->prepare("
+        SELECT * 
+        FROM messages 
+        WHERE LOWER(email) = ? 
+        ORDER BY created_at DESC
+    ");
+    $stmtM->execute([strtolower($guest['email'])]);
+    $guestMessages = $stmtM->fetchAll(PDO::FETCH_ASSOC);
 }
+$totalGuestMessages = count($guestMessages);
 
 // Calculate guest metrics if logged in
 $totalGuestBookings = count($guestBookings);
@@ -123,14 +134,14 @@ require_once __DIR__ . '/includes/header.php';
                             <div class="text-[11px] text-[#dfe8a6] font-mono"><?= e($guest['email']) ?></div>
                         </div>
 
-                        <a href="<?= url('/api/guest-logout') ?>" 
+                        <a href="<?= url('/api/guest-logout.php') ?>" 
                            class="ml-2 px-3 py-1.5 rounded-lg bg-black/40 hover:bg-black text-stone-200 hover:text-white text-xs font-semibold transition border border-white/10 flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">logout</span>
                             <span>Sign Out</span>
                         </a>
                     </div>
                 <?php elseif (GoogleAuth::isEnabled()): ?>
-                    <a href="<?= url('/api/guest-google-login') ?>" 
+                    <a href="<?= url('/api/guest-google-login.php') ?>" 
                        class="bg-white hover:bg-stone-100 text-stone-900 px-5 py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition shadow-lg flex items-center gap-3 border border-white/20 btn-shimmer">
                         <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -150,9 +161,72 @@ require_once __DIR__ . '/includes/header.php';
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
 
         <!-- =======================================================
-             CASE 1: Guest is Logged In via Google (Full Dashboard)
+             CASE 1: Guest is Logged In via Google (Full Profile & Dashboard)
              ======================================================= -->
         <?php if ($isGuest): ?>
+
+            <!-- Guest Profile Overview Card -->
+            <div class="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-stone-100">
+                    <div class="flex items-center gap-4 sm:gap-6">
+                        <?php if (!empty($guest['picture'])): ?>
+                            <img src="<?= e($guest['picture']) ?>" alt="<?= e($guest['name']) ?>" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-md border-2 border-[#dfe8a6]">
+                        <?php else: ?>
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#343c0a] text-white flex items-center justify-center font-bold text-2xl shadow-md">
+                                <?= strtoupper(substr($guest['name'], 0, 1)) ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h2 class="font-headline text-xl sm:text-2xl font-bold text-onyx-charcoal"><?= e($guest['name']) ?></h2>
+                                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                    <span class="material-symbols-outlined text-[13px]">verified</span> Verified Profile
+                                </span>
+                            </div>
+                            <div class="text-xs sm:text-sm text-stone-500 font-mono flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm text-stone-400">mail</span>
+                                <span><?= e($guest['email']) ?></span>
+                            </div>
+                            <div class="text-[11px] text-stone-400 flex items-center gap-3">
+                                <span>Provider: <strong class="text-stone-600">Google SSO</strong></span>
+                                <span>•</span>
+                                <span>Status: <strong class="text-emerald-700">Active Account</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="<?= url('/api/guest-logout.php', ['redirect' => url('/home')]) ?>" 
+                       class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-2 border border-stone-200">
+                        <span class="material-symbols-outlined text-base">logout</span>
+                        <span>Sign Out Account</span>
+                    </a>
+                </div>
+
+                <!-- Account Information Summary Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div class="p-4 rounded-xl bg-stone-50 border border-stone-100 space-y-1">
+                        <span class="text-stone-400 uppercase font-semibold text-[10px] tracking-wider block">Full Name</span>
+                        <div class="font-bold text-stone-900 text-sm truncate"><?= e($guest['name']) ?></div>
+                        <div class="text-stone-500 text-[11px]">Verified Google Name</div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-stone-50 border border-stone-100 space-y-1">
+                        <span class="text-stone-400 uppercase font-semibold text-[10px] tracking-wider block">Email Identity</span>
+                        <div class="font-mono font-bold text-stone-900 text-sm truncate"><?= e($guest['email']) ?></div>
+                        <div class="text-emerald-700 text-[11px] font-medium">✓ Single Sign-On Verified</div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-stone-50 border border-stone-100 space-y-1">
+                        <span class="text-stone-400 uppercase font-semibold text-[10px] tracking-wider block">Guest Account Status</span>
+                        <div class="font-bold text-stone-900 text-sm flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>Authenticated</span>
+                        </div>
+                        <div class="text-stone-500 text-[11px]">Anti-Spam Protected</div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Guest Metrics KPI Ribbon -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -169,15 +243,15 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500 block">Completed</span>
-                    <div class="font-headline text-2xl font-bold text-stone-700 mt-1"><?= $completedGuestBookings ?></div>
-                    <span class="text-[10px] text-stone-500">Past experiences</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-700 block">Messages Sent</span>
+                    <div class="font-headline text-2xl font-bold text-indigo-800 mt-1"><?= $totalGuestMessages ?></div>
+                    <span class="text-[10px] text-stone-500">Contact Inquiries</span>
                 </div>
 
                 <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-[#343c0a] block">Total Spent</span>
-                    <div class="font-headline text-2xl font-bold text-[#343c0a] mt-1"><?= format_price($totalSpent) ?></div>
-                    <span class="text-[10px] text-stone-500">Lifetime value</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-[#343c0a] block">Account Status</span>
+                    <div class="font-headline text-2xl font-bold text-[#343c0a] mt-1">Verified</div>
+                    <span class="text-[10px] text-stone-500">Google SSO Secured</span>
                 </div>
             </div>
 
@@ -419,9 +493,9 @@ require_once __DIR__ . '/includes/header.php';
 
             <!-- Action buttons -->
             <div class="pt-6 border-t border-stone-200 flex flex-wrap gap-4 justify-between items-center print:hidden">
-                <a href="tel:<?= HOTEL_PHONE_RAW ?>" class="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1">
+                <a href="tel:<?= preg_replace('/[^0-9\+]/', '', hotel_phone()) ?>" class="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">phone</span>
-                    <span>Questions? Call Front Desk: <?= HOTEL_PHONE ?></span>
+                    <span>Questions? Call Front Desk: <?= e(hotel_phone()) ?></span>
                 </a>
                 <div class="flex items-center gap-3">
                     <?php if ($isGuest): ?>
@@ -435,6 +509,71 @@ require_once __DIR__ . '/includes/header.php';
                     </button>
                 </div>
             </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($isGuest && empty($selectedBooking)): ?>
+        <!-- =======================================================
+             Section: Guest Contact Messages & Inquiries History
+             ======================================================= -->
+        <div class="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-100">
+                <div>
+                    <h2 class="font-headline text-2xl font-bold text-onyx-charcoal flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#4B5320]">mail</span>
+                        <span>My Inquiry & Message History</span>
+                    </h2>
+                    <p class="text-xs text-stone-500 mt-1">Submitted contact inquiries linked to <strong><?= e($guest['email']) ?></strong></p>
+                </div>
+
+                <a href="<?= url('/contact') ?>" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold transition shadow-2xs self-start sm:self-auto">
+                    <span class="material-symbols-outlined text-sm">send</span>
+                    <span>Send New Inquiry</span>
+                </a>
+            </div>
+
+            <?php if (empty($guestMessages)): ?>
+                <div class="p-12 text-center text-stone-400 space-y-3 bg-stone-50/50 rounded-2xl border border-stone-100">
+                    <span class="material-symbols-outlined text-4xl text-stone-300">chat_bubble_outline</span>
+                    <h3 class="font-headline font-bold text-base text-stone-700">No Messages Sent Yet</h3>
+                    <p class="text-xs text-stone-500 max-w-sm mx-auto">Have questions for our concierge? You can submit inquiries directly through our contact portal.</p>
+                </div>
+            <?php else: ?>
+                <div class="space-y-4">
+                    <?php foreach ($guestMessages as $msg): 
+                        $statusBg = 'bg-amber-50 text-amber-900 border-amber-200';
+                        $statusLabel = 'Pending Review';
+                        if ($msg['status'] === 'read') {
+                            $statusBg = 'bg-blue-50 text-blue-800 border-blue-200';
+                            $statusLabel = 'Received by Hotel';
+                        } elseif ($msg['status'] === 'replied') {
+                            $statusBg = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                            $statusLabel = 'Replied by Staff';
+                        }
+                    ?>
+                    <div class="p-5 rounded-2xl bg-stone-50 border border-stone-200 space-y-3 hover:border-stone-300 transition">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-200/60">
+                            <div>
+                                <div class="font-headline font-bold text-base text-stone-900 flex items-center gap-2">
+                                    <span><?= e($msg['subject'] ?: 'General Inquiry') ?></span>
+                                </div>
+                                <div class="text-[11px] text-stone-400 font-mono mt-0.5">
+                                    Sent: <?= date('M d, Y • g:i A', strtotime($msg['created_at'])) ?>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border self-start sm:self-auto <?= $statusBg ?>">
+                                <span class="material-symbols-outlined text-xs">mark_email_read</span>
+                                <span><?= $statusLabel ?></span>
+                            </span>
+                        </div>
+
+                        <div class="text-xs text-stone-700 leading-relaxed bg-white p-4 rounded-xl border border-stone-100 whitespace-pre-line font-normal">
+                            <?= e($msg['message']) ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
 
@@ -480,7 +619,7 @@ require_once __DIR__ . '/includes/header.php';
                     </p>
                 </div>
 
-                <a href="<?= url('/api/guest-google-login') ?>" 
+                <a href="<?= url('/api/guest-google-login.php') ?>" 
                    class="bg-white hover:bg-stone-100 text-stone-900 px-6 py-3.5 rounded-xl font-bold text-xs tracking-wide transition shadow-lg flex items-center justify-center gap-3 border border-white/20 btn-shimmer cursor-pointer">
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

@@ -130,15 +130,22 @@ require_once __DIR__ . '/includes/header.php';
         <?php endif; ?>
 
         <!-- Quick Booking Bar Widget -->
-        <?php if (get_setting('home_hero_show_search', '1') === '1'): ?>
-        <div class="bg-white text-stone-900 rounded-xl shadow-2xl p-4 sm:p-6 max-w-4xl mx-auto border border-stone-200 reveal reveal-scale stagger-2">
-            <form action="<?= url('/book') ?>" method="GET" target="<?= e(get_booking_target()) ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+        <?php if (get_setting('home_hero_show_search', '1') === '1'): 
+            $currentMode = get_booking_mode();
+        ?>
+        <div class="bg-white text-stone-900 rounded-2xl shadow-2xl p-4 sm:p-6 max-w-4xl mx-auto border border-stone-200 reveal reveal-scale stagger-2">
+            <form action="<?= ($currentMode === 'ota' || $currentMode === 'multi_channel') ? '#' : url('/book') ?>" 
+                  method="GET" 
+                  target="<?= ($currentMode === 'internal') ? '_self' : '_blank' ?>" 
+                  onsubmit="return handleHeroSearchSubmit(event, '<?= e($currentMode) ?>')"
+                  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left" 
+                  id="hero_booking_search_form">
                 <!-- Check In -->
                 <div>
                     <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1"><?= __t('search_checkin', 'Check-in') ?></label>
                     <div class="relative">
                         <input type="date" name="check_in" id="booking_check_in" required
-                                class="w-full text-sm font-medium border border-stone-300 rounded px-3 py-2.5 focus:ring-2 focus:ring-[#343c0a] focus:border-transparent">
+                                class="w-full text-sm font-medium border border-stone-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#343c0a]">
                     </div>
                 </div>
 
@@ -147,14 +154,14 @@ require_once __DIR__ . '/includes/header.php';
                     <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1"><?= __t('search_checkout', 'Check-out') ?></label>
                     <div class="relative">
                         <input type="date" name="check_out" id="booking_check_out" required
-                                class="w-full text-sm font-medium border border-stone-300 rounded px-3 py-2.5 focus:ring-2 focus:ring-[#343c0a] focus:border-transparent">
+                                class="w-full text-sm font-medium border border-stone-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#343c0a]">
                     </div>
                 </div>
 
                 <!-- Room Type Selection -->
                 <div>
                     <label class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1"><?= __t('search_room', 'Accommodation') ?></label>
-                    <select name="room_id" id="booking_room_select" class="w-full text-sm font-medium border border-stone-300 rounded px-3 py-2.5 focus:ring-2 focus:ring-[#343c0a]">
+                    <select name="room_id" id="booking_room_select" class="w-full text-sm font-medium border border-stone-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-[#343c0a]">
                         <?php foreach ($rooms as $rm): ?>
                             <option value="<?= $rm['id'] ?>" data-price="<?= $rm['price_per_night'] ?>">
                                 <?= e(__td($rm, 'name', $rm['name'])) ?> (<?= format_price($rm['price_per_night']) ?>/nt)
@@ -163,11 +170,11 @@ require_once __DIR__ . '/includes/header.php';
                     </select>
                 </div>
 
-                <!-- Submit Action Button -->
+                <!-- Main Action Button -->
                 <div class="flex items-end">
-                    <button type="submit" class="w-full bg-[#343c0a] hover:bg-deep-olive text-white py-2.5 px-4 rounded font-semibold text-sm tracking-wide transition shadow flex items-center justify-center gap-2 btn-shimmer cursor-pointer">
-                        <span class="material-symbols-outlined text-lg">search</span>
-                        <span><?= e(get_booking_button_text(get_setting('home_hero_search_btn_text', __t('search_check_rates', 'Check Rates')))) ?></span>
+                    <button type="submit" class="w-full bg-[#343c0a] hover:bg-deep-olive text-white py-2.5 px-4 rounded-lg font-bold text-sm tracking-wide transition shadow flex items-center justify-center gap-2 btn-shimmer cursor-pointer">
+                        <span class="material-symbols-outlined text-lg"><?= ($currentMode === 'ota' || $currentMode === 'multi_channel') ? 'search' : (($currentMode === 'engine') ? 'open_in_new' : 'verified') ?></span>
+                        <span><?= e(get_booking_button_text()) ?></span>
                     </button>
                 </div>
             </form>

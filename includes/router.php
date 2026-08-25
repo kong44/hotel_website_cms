@@ -301,6 +301,15 @@ class Router {
         if ($path === '/') {
             $path = '';
         }
+        // Auto-fix /api/ endpoints missing .php extension for web servers without URL rewrite modules
+        if (strpos($path, '/api/') === 0 && substr($path, -4) !== '.php') {
+            $parts = explode('?', $path, 2);
+            $cleanPath = $parts[0];
+            $targetFile = __DIR__ . '/..' . $cleanPath . '.php';
+            if (file_exists($targetFile)) {
+                $path = $cleanPath . '.php' . (isset($parts[1]) ? '?' . $parts[1] : '');
+            }
+        }
         $url = BASE_URL . $path;
         if (!empty($query)) {
             $separator = (strpos($url, '?') !== false) ? '&' : '?';

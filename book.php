@@ -7,10 +7,12 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/helpers.php';
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/google-auth.php';
 require_once __DIR__ . '/includes/seo.php';
 
-// Auto-redirect to External Booking Engine if Option 1 (Engine URL) is active
-if (get_booking_mode() === 'engine' && !empty(get_booking_engine_url())) {
+// Auto-redirect to External Booking Engine (Mode 2) or OTA Deep Link (Mode 3) if active
+$currentMode = get_booking_mode();
+if ($currentMode === 'engine' && !empty(get_booking_engine_url())) {
     $engineUrl = get_booking_engine_url();
     if (!empty($_SERVER['QUERY_STRING'])) {
         $separator = (strpos($engineUrl, '?') !== false) ? '&' : '?';
@@ -18,6 +20,12 @@ if (get_booking_mode() === 'engine' && !empty(get_booking_engine_url())) {
     }
     header('Location: ' . $engineUrl);
     exit;
+} elseif ($currentMode === 'ota' || $currentMode === 'multi_channel') {
+    $otaUrl = build_single_ota_deeplink($_GET['check_in'] ?? null, $_GET['check_out'] ?? null, (int)($_GET['adults'] ?? 2));
+    if (!empty($otaUrl) && $otaUrl !== '#') {
+        header('Location: ' . $otaUrl);
+        exit;
+    }
 }
 
 $pdo = getDB();
@@ -85,6 +93,22 @@ if ($discountPercent === 0 && !empty($promoCode)) {
 $discountAmount = $subtotal * ($discountPercent / 100);
 $totalPrice = max(0, $subtotal - $discountAmount);
 
+// Check Google Authentication Requirement & Guest Account Status
+$isGuestLoggedIn = is_guest_logged_in();
+$guestAccount = get_logged_in_guest();
+$guestStatus = 'active';
+
+if ($isGuestLoggedIn && !empty($guestAccount['email'])) {
+    try {
+        $stmtG = $pdo->prepare("SELECT status FROM guests WHERE LOWER(email) = ? LIMIT 1");
+        $stmtG->execute([strtolower($guestAccount['email'])]);
+        $st = $stmtG->fetchColumn();
+        if ($st) {
+            $guestStatus = (string)$st;
+        }
+    } catch (Throwable $e) {}
+}
+
 // Handle POST Booking Submission
 $bookingCompleted = false;
 $confirmedBooking = null;
@@ -98,6 +122,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['submit_bookin
 
     if (!Auth::verifyCsrf($csrf)) {
         set_flash('error', 'Session expired. Please try submitting again.');
+    } elseif (!$isGuestLoggedIn) {
+        set_flash('error', 'To prevent automated spam attacks, please Sign In with Google before completing your reservation.');
+    } elseif (is_guest_restricted($guestEmail) || $guestStatus === 'blocked' || $guestStatus === 'restricted' || $guestStatus === 'flagged') {
+        set_flash('error', 'Your guest account is currently restricted from submitting online booking requests. Please contact the concierge directly at ' . hotel_phone() . '.');
     } elseif (empty($guestName) || empty($guestEmail) || empty($guestPhone)) {
         set_flash('error', 'Please fill in all guest contact details.');
     } elseif (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
@@ -105,7 +133,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['submit_bookin
     } else {
         try {
             $bookingRef = generate_booking_ref();
-            $stmtInsert = $pdo->prepare("INSERT INTO bookings (booking_reference, room_id, guest_name, guest_email, guest_phone, check_in_date, check_out_date, adults, children, nights, room_rate, total_price, status, payment_status, promo_code, offer_title, discount_amount, special_requests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', 'paid', ?, ?, ?, ?)");
+            $stmtInsert = $pdo->prepare("INSERT INTO bookings (booking_reference, room_id, guest_name, guest_email, guest_phone, check_in_date, check_out_date, adults, children, nights, room_rate, total_price, status, payment_status, promo_code, offer_title, discount_amount, special_requests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid', ?, ?, ?, ?)");
             $stmtInsert->execute([
                 $bookingRef,
                 $selectedRoomId,
@@ -241,11 +269,95 @@ require_once __DIR__ . '/includes/header.php';
             <!-- Left 7 Columns: Guest Information & Form -->
             <div class="lg:col-span-7 space-y-8">
                 <div class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
-                    <div>
-                        <span class="text-xs font-bold uppercase tracking-widest text-[#4B5320] block mb-1">Step 1 of 2</span>
-                        <h2 class="font-headline text-2xl font-bold text-onyx-charcoal">Guest Details</h2>
-                        <p class="text-xs text-stone-500 mt-1">Please provide the primary guest details for reservation registration.</p>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-stone-100">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest text-[#4B5320] block mb-1">Direct Reservation Inquiry</span>
+                            <h2 class="font-headline text-2xl font-bold text-onyx-charcoal">Guest Details & Verification</h2>
+                            <p class="text-xs text-stone-500 mt-1">Please confirm your contact details to submit your room reservation request to our concierge.</p>
+                        </div>
+
+                        <?php if (!$isGuestLoggedIn): ?>
+                            <a href="<?= GoogleAuth::isEnabled() ? GoogleAuth::getGuestAuthUrl(url('/book', $_GET)) : 'javascript:alert(\'Google OAuth Client ID & Secret can be configured in CMS Admin -> Settings / Users.\')' ?>" 
+                               class="inline-flex items-center gap-2.5 bg-white hover:bg-stone-50 text-stone-900 border border-stone-300 hover:border-amber-400 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-2xs shrink-0 cursor-pointer">
+                                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                                </svg>
+                                <span>Sign In with Google</span>
+                            </a>
+                        <?php endif; ?>
                     </div>
+
+                    <?php if (!$isGuestLoggedIn): ?>
+                    <!-- Required Google Sign-In Protection Banner -->
+                    <div class="p-6 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-4 shadow-2xs">
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-xl">shield</span>
+                            </div>
+                            <div>
+                                <h4 class="font-headline font-bold text-sm text-amber-950">Google Authentication Required</h4>
+                                <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                                    To protect reservation inventory and prevent automated spam submissions, guests must sign in with Google before placing a direct booking request.
+                                </p>
+                            </div>
+                        </div>
+
+                        <a href="<?= GoogleAuth::isEnabled() ? GoogleAuth::getGuestAuthUrl(url('/book', $_GET)) : 'javascript:alert(\'Google OAuth Client ID & Secret can be configured in CMS Admin -> Settings / Users.\')' ?>" class="bg-white hover:bg-stone-50 text-stone-900 px-6 py-3.5 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition shadow-sm flex items-center justify-center gap-3 border border-amber-300 btn-shimmer cursor-pointer">
+                            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                            </svg>
+                            <span>Sign In with Google to Unlock Reservation</span>
+                        </a>
+                    </div>
+                    <?php else: ?>
+                    <!-- Logged in Google User Verified Badge -->
+                    <div class="p-4 rounded-xl bg-stone-50 border border-stone-200 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <?php if (!empty($guestAccount['picture'])): ?>
+                                <img src="<?= e($guestAccount['picture']) ?>" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-[#dfe8a6]">
+                            <?php else: ?>
+                                <div class="w-10 h-10 rounded-full bg-[#dfe8a6] text-[#191e00] flex items-center justify-center font-bold text-sm">
+                                    <?= strtoupper(substr($guestAccount['name'] ?? 'G', 0, 1)) ?>
+                                </div>
+                            <?php endif; ?>
+                            <div>
+                                <div class="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                                    <span><?= e($guestAccount['name']) ?></span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Google Verified</span>
+                                </div>
+                                <div class="text-xs text-stone-500 font-mono"><?= e($guestAccount['email']) ?></div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <?php if ($guestStatus === 'blocked' || $guestStatus === 'restricted'): ?>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold uppercase">Account Restricted</span>
+                            <?php else: ?>
+                                <a href="<?= url('/api/guest-logout.php', ['redirect' => '/book?' . http_build_query($_GET)]) ?>" 
+                                   class="text-xs font-medium text-stone-500 hover:text-stone-900 border border-stone-200 bg-white hover:bg-stone-100 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">logout</span>
+                                    <span>Sign Out</span>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if ($guestStatus === 'blocked' || $guestStatus === 'restricted'): ?>
+                    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium space-y-1">
+                        <div class="font-bold flex items-center gap-1.5 text-rose-900">
+                            <span class="material-symbols-outlined text-base">block</span>
+                            <span>Account Restricted</span>
+                        </div>
+                        <p>Your guest account has been restricted by hotel administration. Automated online bookings are disabled. Please contact the front desk concierge directly at <strong><?= e(hotel_phone()) ?></strong>.</p>
+                    </div>
+                    <?php else: ?>
 
                     <form action="<?= url('/book') ?>" method="POST" class="space-y-4" id="booking_checkout_form">
                         <input type="hidden" name="csrf_token" value="<?= Auth::csrfToken() ?>">
@@ -259,14 +371,14 @@ require_once __DIR__ . '/includes/header.php';
 
                         <div>
                             <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Full Legal Name (as on Passport) *</label>
-                            <input type="text" name="guest_name" required placeholder="e.g. Alexander Wright"
+                            <input type="text" name="guest_name" required value="<?= e($guestAccount['name'] ?? '') ?>" placeholder="e.g. Alexander Wright"
                                    class="w-full text-sm border border-stone-300 rounded-lg p-3 focus:ring-2 focus:ring-[#343c0a]">
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Email Address (for confirmation) *</label>
-                                <input type="email" name="guest_email" required placeholder="e.g. alexander@example.com"
+                                <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">Email Address *</label>
+                                <input type="email" name="guest_email" required value="<?= e($guestAccount['email'] ?? '') ?>" placeholder="e.g. alexander@example.com"
                                        class="w-full text-sm border border-stone-300 rounded-lg p-3 focus:ring-2 focus:ring-[#343c0a]">
                             </div>
 
@@ -285,17 +397,24 @@ require_once __DIR__ . '/includes/header.php';
 
                         <div class="p-4 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-600 space-y-2">
                             <div class="font-bold text-stone-800 flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-sm text-[#4B5320]">shield</span>
-                                <span>Flexible Direct Reservation Terms</span>
+                                <span class="material-symbols-outlined text-sm text-[#4B5320]">info</span>
+                                <span>Direct Booking Policy (No Online Payment Required)</span>
                             </div>
-                            <p>Free cancellation up to 24 hours prior to arrival. Check-in is from <?= HOTEL_CHECKIN_TIME ?> and check-out is by <?= HOTEL_CHECKOUT_TIME ?>.</p>
+                            <p>Reservation requests are stored and dispatched directly to front desk concierge for verification. Payment is settled at the hotel desk upon check-in.</p>
                         </div>
 
-                        <button type="submit" class="w-full bg-[#343c0a] hover:bg-deep-olive text-white py-4 rounded-lg font-bold text-sm tracking-wider uppercase transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                        <?php if ($isGuestLoggedIn): ?>
+                        <button type="submit" class="w-full bg-[#343c0a] hover:bg-deep-olive text-white py-4 rounded-lg font-bold text-sm tracking-wider uppercase transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer btn-shimmer">
                             <span class="material-symbols-outlined text-lg">verified</span>
-                            <span>Confirm & Guarantee Reservation (<?= format_price($totalPrice) ?>)</span>
+                            <span>Submit Direct Reservation Request (Est. <?= format_price($totalPrice) ?>)</span>
                         </button>
+                        <?php else: ?>
+                        <div class="text-center p-3 text-xs text-amber-800 font-semibold bg-amber-50 rounded-lg border border-amber-200">
+                            Please click "Sign In with Google" above to complete your direct reservation request.
+                        </div>
+                        <?php endif; ?>
                     </form>
+                    <?php endif; ?>
                 </div>
             </div>
 

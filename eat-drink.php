@@ -83,7 +83,7 @@ require_once __DIR__ . '/includes/header.php';
                     <a href="<?= url('/contact', ['subject' => 'Table Reservation']) ?>" class="bg-[#343c0a] hover:bg-deep-olive text-white px-6 py-2.5 rounded text-sm font-semibold transition btn-shimmer">
                         Reserve a Table
                     </a>
-                    <a href="tel:<?= HOTEL_PHONE_RAW ?>" class="border border-stone-300 hover:border-stone-400 text-stone-700 px-5 py-2.5 rounded text-sm font-medium transition flex items-center gap-2">
+                    <a href="tel:<?= preg_replace('/[^0-9\+]/', '', hotel_phone()) ?>" class="border border-stone-300 hover:border-stone-400 text-stone-700 px-5 py-2.5 rounded text-sm font-medium transition flex items-center gap-2">
                         <span class="material-symbols-outlined text-base">call</span>
                         <span>Direct Dial Dining</span>
                     </a>

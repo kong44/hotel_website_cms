@@ -77,19 +77,19 @@ class SEO {
             '@context' => 'https://schema.org',
             '@type' => 'Hotel',
             '@id' => BASE_URL . '#hotel',
-            'name' => HOTEL_NAME,
+            'name' => hotel_name(),
             'legalName' => HOTEL_LEGAL_NAME,
             'url' => BASE_URL,
-            'logo' => BASE_URL . '/assets/images/logo.png',
+            'logo' => hotel_logo_url() ?: (BASE_URL . '/assets/images/logo.png'),
             'image' => [
                 'https://lh3.googleusercontent.com/aida/AP1WRLtHpM1LVwYuky4usi8aljQksBM3_T06H4btYM3gtlRqZ7b_NHp6dCow02XawKmSrDEyy4QtMR0PtPZlHSVqp-RD9bx6SzEFXe-vpfufKydm8eiddpQgw1Q1I9rh_Cc-FkEBv_gH40QUMF-3KrQRKburjx9jrdKTTwKVrOXZcMhiDl3gj8oQj_4ZGjvIzLvdtjrVXR_tWERJH_Z7FVUgaTDvTcckn8HPa1Xo0l-DpvWJs6OCpZDQhgPEsYcq',
                 'https://lh3.googleusercontent.com/aida/AP1WRLs-aT78HuC87zVBtlw78IAcVeqttvz1DzuDCFkgHQa0GjAqpJ7QEgkbAcIsJqkihNQyvb5xyVUyfpGCLZpUTsGnoI_Zd2-vfG3hGgzgX8ILxOjMzXh6zptxCM2mUT_5SpyirJMD2KE7cfOEm3QbJ69fnH6VMjX0sVrsXmM5Jm-XtIvZg9-B3Mseq2ffcjkq7LNDstvkdy5lRLn-NIFXZWhKbwJ1tFsvSH-_tFiOrkWNTCNfDxbD8XbxG-j2'
             ],
-            'description' => 'Just minutes from bustling Phnom Penh, Indra Hotel offers a serene and cozy environment perfect for unwinding and relaxation. 12 modern designer accommodations, swimming pool, fitness center, cafe, and fine dining in Tuol Kork.',
-            'telephone' => HOTEL_PHONE,
-            'email' => HOTEL_EMAIL,
+            'description' => 'Just minutes from bustling Phnom Penh, ' . hotel_name() . ' offers a serene and cozy environment perfect for unwinding and relaxation. Modern designer accommodations, swimming pool, fitness center, cafe, and fine dining.',
+            'telephone' => hotel_phone(),
+            'email' => hotel_email(),
             'priceRange' => HOTEL_PRICE_RANGE,
-            'currenciesAccepted' => HOTEL_CURRENCY,
+            'currenciesAccepted' => get_setting('hotel_currency_code', HOTEL_CURRENCY),
             'paymentAccepted' => 'Cash, Credit Card, Visa, Mastercard, ABA Pay, KHQR',
             'starRating' => [
                 '@type' => 'Rating',
@@ -98,8 +98,8 @@ class SEO {
             ],
             'address' => [
                 '@type' => 'PostalAddress',
-                'streetAddress' => HOTEL_ADDRESS_STREET,
-                'addressLocality' => HOTEL_ADDRESS_DISTRICT . ', ' . HOTEL_ADDRESS_CITY,
+                'streetAddress' => hotel_address(),
+                'addressLocality' => HOTEL_ADDRESS_CITY,
                 'postalCode' => HOTEL_POSTAL_CODE,
                 'addressCountry' => HOTEL_ADDRESS_COUNTRY
             ],
@@ -108,8 +108,8 @@ class SEO {
                 'latitude' => (float)HOTEL_LATITUDE,
                 'longitude' => (float)HOTEL_LONGITUDE
             ],
-            'checkinTime' => HOTEL_CHECKIN_TIME,
-            'checkoutTime' => HOTEL_CHECKOUT_TIME,
+            'checkinTime' => get_setting('hotel_checkin_time', '14:00'),
+            'checkoutTime' => get_setting('hotel_checkout_time', '12:00'),
             'numberOfRooms' => 12,
             'petsAllowed' => false,
             'amenityFeature' => [
@@ -120,11 +120,12 @@ class SEO {
                 ['@type' => 'LocationFeatureSpecification', 'name' => '24-Hour Front Desk Service', 'value' => true],
                 ['@type' => 'LocationFeatureSpecification', 'name' => 'Airport Transfer Service', 'value' => true]
             ],
-            'sameAs' => [
-                HOTEL_FACEBOOK,
-                HOTEL_INSTAGRAM,
-                HOTEL_TRIPADVISOR
-            ]
+            'sameAs' => array_values(array_filter([
+                get_setting('social_facebook', HOTEL_FACEBOOK),
+                get_setting('social_instagram', HOTEL_INSTAGRAM),
+                get_setting('social_tripadvisor', HOTEL_TRIPADVISOR),
+                get_setting('social_telegram')
+            ]))
         ];
 
         return '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>';

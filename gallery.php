@@ -24,9 +24,9 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Hero Header -->
 <?= render_public_page_hero('gallery', [
-    'badge' => 'Visual Showcase',
-    'title' => 'Photo Gallery',
-    'subtitle' => 'Immerse yourself in the serene architecture, contemporary rooms, and world-class amenities of Indra Hotel.',
+    'badge' => __t('nav_gallery', 'Photo Gallery'),
+    'title' => __t('public_gallery_title', 'Photo Gallery'),
+    'subtitle' => __t('public_gallery_sub', 'Immerse yourself in the serene architecture, contemporary rooms, and world-class amenities of Indra Hotel.'),
     'image' => 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80',
     'icon' => 'photo_library'
 ]) ?>
@@ -37,19 +37,19 @@ require_once __DIR__ . '/includes/header.php';
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-center py-4 space-x-2 overflow-x-auto">
             <button data-category="all" class="gallery-filter-btn px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-[#343c0a] text-white">
-                All Photos
+                <?= __t('public_gallery_all', 'All Photos') ?>
             </button>
             <button data-category="rooms" class="gallery-filter-btn px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-stone-100 text-stone-700 hover:bg-stone-200">
-                Accommodations
+                <?= __t('public_gallery_rooms', 'Rooms & Suites') ?>
             </button>
             <button data-category="dining" class="gallery-filter-btn px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-stone-100 text-stone-700 hover:bg-stone-200">
-                The Bistro & Dining
+                <?= __t('public_gallery_dining', 'Dining & Cafe') ?>
             </button>
             <button data-category="wellness" class="gallery-filter-btn px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-stone-100 text-stone-700 hover:bg-stone-200">
-                Fitness & Pool
+                <?= __t('public_gallery_wellness', 'Gym & Pool') ?>
             </button>
             <button data-category="exterior" class="gallery-filter-btn px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition bg-stone-100 text-stone-700 hover:bg-stone-200">
-                Architecture & Grounds
+                <?= __t('public_gallery_exterior', 'Exterior & Grounds') ?>
             </button>
         </div>
     </div>

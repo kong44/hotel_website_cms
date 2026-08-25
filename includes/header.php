@@ -36,10 +36,8 @@ $currentLocale = I18n::getLocale();
     <link rel="icon" href="<?= e($favIcon) ?>">
     <?php endif; ?>
 
-    <!-- Multi-Language Typography Fonts (Google Sans / DM Sans + Khmer + Chinese + Korean) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Multi-Language Dynamic Google Fonts Loader -->
+    <?= render_google_font_head() ?>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     <!-- Dynamic Brand Identity Custom Properties -->
@@ -154,7 +152,7 @@ $currentLocale = I18n::getLocale();
                 <!-- Desktop Navigation Links -->
                 <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium">
                     <a href="<?= url('/rooms') ?>" class="py-2 transition <?= is_active_nav(['rooms', 'room']) ?>"><?= __t('nav_rooms', 'Rooms & Suites') ?></a>
-                    <a href="<?= url('/about') ?>" class="py-2 transition <?= is_active_nav('about') ?>">About Us</a>
+                    <a href="<?= url('/about') ?>" class="py-2 transition <?= is_active_nav('about') ?>"><?= __t('nav_about', 'About Us') ?></a>
                     <a href="<?= url('/eat-drink') ?>" class="py-2 transition <?= is_active_nav('eat-drink') ?>"><?= __t('nav_dining', 'Eat & Drink') ?></a>
                     <a href="<?= url('/wellness') ?>" class="py-2 transition <?= is_active_nav('wellness') ?>"><?= __t('nav_wellness', 'Gym & Wellness') ?></a>
                     <a href="<?= url('/offers') ?>" class="py-2 transition <?= is_active_nav('offers') ?>"><?= __t('nav_offers', 'Special Offers') ?></a>
@@ -166,22 +164,30 @@ $currentLocale = I18n::getLocale();
                 <!-- Action CTA & Guest Navigation -->
                 <div class="flex items-center gap-2 sm:gap-3">
 
-                    <?php if (is_guest_logged_in()): 
-                        $curGuest = get_logged_in_guest();
-                    ?>
-                    <a href="<?= url('/my-booking') ?>" class="hidden xl:flex items-center gap-2 text-xs font-semibold text-stone-800 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-full transition border border-stone-200" title="Signed in as <?= e($curGuest['name']) ?>">
-                        <?php if (!empty($curGuest['picture'])): ?>
-                            <img src="<?= e($curGuest['picture']) ?>" alt="Avatar" class="w-5 h-5 rounded-full object-cover">
+                    <!-- Desktop Language Switcher -->
+                    <div class="hidden lg:block">
+                        <?= I18n::renderSwitcher('', 'light', 'bottom') ?>
+                    </div>
+
+                    <?php if (get_booking_mode() === 'internal' || is_guest_logged_in()): ?>
+                        <?php if (is_guest_logged_in()): 
+                            $curGuest = get_logged_in_guest();
+                        ?>
+                        <a href="<?= url('/my-booking') ?>" class="flex items-center justify-center shrink-0" title="Signed in as <?= e($curGuest['name']) ?> (<?= e($curGuest['email']) ?>) - View Profile & Bookings">
+                            <?php if (!empty($curGuest['picture'])): ?>
+                                <img src="<?= e($curGuest['picture']) ?>" alt="Profile" class="w-9 h-9 rounded-full object-cover border-2 border-stone-200 hover:border-[#343c0a] transition shadow-2xs">
+                            <?php else: ?>
+                                <div class="w-9 h-9 rounded-full bg-[#343c0a] hover:bg-deep-olive text-white flex items-center justify-center font-headline font-bold text-sm shadow-2xs border-2 border-stone-200 transition">
+                                    <?= strtoupper(substr($curGuest['name'] ?? 'G', 0, 1)) ?>
+                                </div>
+                            <?php endif; ?>
+                        </a>
                         <?php else: ?>
-                            <span class="material-symbols-outlined text-sm text-[#4B5320]">account_circle</span>
+                        <a href="<?= url('/my-booking') ?>" class="hidden xl:flex items-center gap-1 text-xs font-medium text-stone-600 hover:text-stone-900 px-2.5 py-2 rounded hover:bg-stone-100 transition">
+                            <span class="material-symbols-outlined text-base">receipt_long</span>
+                            <span><?= __t('nav_find_booking', 'Find Booking') ?></span>
+                        </a>
                         <?php endif; ?>
-                        <span>My Bookings</span>
-                    </a>
-                    <?php else: ?>
-                    <a href="<?= url('/my-booking') ?>" class="hidden xl:flex items-center gap-1 text-xs font-medium text-stone-600 hover:text-stone-900 px-2.5 py-2 rounded hover:bg-stone-100 transition">
-                        <span class="material-symbols-outlined text-base">receipt_long</span>
-                        <span><?= __t('nav_find_booking', 'Find Booking') ?></span>
-                    </a>
                     <?php endif; ?>
                     
                     <a href="<?= e(get_booking_url()) ?>" target="<?= e(get_booking_target()) ?>" class="bg-[#343c0a] hover:bg-deep-olive text-white px-4 sm:px-5 py-2 rounded text-xs sm:text-sm font-semibold tracking-wide transition shadow-sm hover:shadow flex items-center gap-1.5 sm:gap-2 btn-shimmer">
@@ -224,29 +230,33 @@ $currentLocale = I18n::getLocale();
 
         <nav class="p-6 flex-1 overflow-y-auto space-y-3 text-base font-medium">
             <div class="pb-3 mb-2 border-b border-stone-100">
-                <span class="text-xs text-stone-400 uppercase font-bold block mb-2">Language / ភាសា</span>
+                <span class="text-xs text-stone-400 uppercase font-bold block mb-2"><?= __t('nav_language', 'Language') ?></span>
                 <?= I18n::renderSwitcher('w-full', 'light', 'bottom') ?>
             </div>
             <a href="<?= url('/rooms') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_rooms', 'Rooms & Suites') ?></a>
-            <a href="<?= url('/about') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50">About Us</a>
+            <a href="<?= url('/about') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_about', 'About Us') ?></a>
             <a href="<?= url('/eat-drink') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_dining', 'Eat & Drink') ?></a>
             <a href="<?= url('/wellness') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_wellness', 'Gym & Wellness') ?></a>
             <a href="<?= url('/offers') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_offers', 'Special Offers') ?></a>
             <a href="<?= url('/location') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_location', 'Location') ?></a>
             <a href="<?= url('/gallery') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_gallery', 'Gallery') ?></a>
             <a href="<?= url('/contact') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_contact', 'Contact') ?></a>
-            <a href="<?= url('/my-booking') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= __t('nav_find_booking', 'Find Booking') ?></a>
+            <?php if (get_booking_mode() === 'internal' || is_guest_logged_in()): ?>
+            <a href="<?= url('/my-booking') ?>" class="block py-2 text-stone-800 hover:text-[#343c0a] border-b border-stone-50"><?= is_guest_logged_in() ? __t('nav_my_bookings', 'My Bookings') : __t('nav_find_booking', 'Find Booking') ?></a>
+            <?php endif; ?>
         </nav>
 
         <div class="p-6 bg-stone-50 border-t border-stone-100 text-sm text-stone-600 space-y-3">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-[#4B5320] text-sm">phone</span>
-                <a href="tel:<?= HOTEL_PHONE_RAW ?>" class="hover:underline"><?= HOTEL_PHONE ?></a>
+                <a href="tel:<?= preg_replace('/[^0-9\+]/', '', hotel_phone()) ?>" class="hover:underline"><?= e(hotel_phone()) ?></a>
             </div>
+            <?php if ($email = hotel_email()): ?>
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-[#4B5320] text-sm">mail</span>
-                <a href="mailto:<?= HOTEL_EMAIL ?>" class="hover:underline"><?= HOTEL_EMAIL ?></a>
+                <a href="mailto:<?= e($email) ?>" class="hover:underline"><?= e($email) ?></a>
             </div>
+            <?php endif; ?>
             <a href="<?= e(get_booking_url()) ?>" target="<?= e(get_booking_target()) ?>" class="block text-center w-full bg-[#343c0a] text-white py-3 rounded font-medium mt-2">
                 <?= e(get_booking_button_text('Instant Reservation')) ?>
             </a>

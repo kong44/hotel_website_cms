@@ -79,17 +79,17 @@ require_once __DIR__ . '/../includes/admin-header.php';
         
         <!-- Status Filter Chips -->
         <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto text-xs font-semibold">
-            <a href="<?= BASE_URL ?>/admin/bookings.php" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'all' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">All</a>
-            <a href="<?= BASE_URL ?>/admin/bookings.php?status=confirmed" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'confirmed' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">Confirmed</a>
-            <a href="<?= BASE_URL ?>/admin/bookings.php?status=checked_in" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'checked_in' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">Checked In</a>
-            <a href="<?= BASE_URL ?>/admin/bookings.php?status=pending" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'pending' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">Pending</a>
-            <a href="<?= BASE_URL ?>/admin/bookings.php?status=checked_out" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'checked_out' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>">Checked Out</a>
+            <a href="<?= BASE_URL ?>/admin/bookings.php" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'all' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>"><?= __t('public_gallery_all', 'All') ?></a>
+            <a href="<?= BASE_URL ?>/admin/bookings.php?status=confirmed" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'confirmed' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>"><?= __t('admin_status_confirmed', 'Confirmed') ?></a>
+            <a href="<?= BASE_URL ?>/admin/bookings.php?status=checked_in" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'checked_in' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>"><?= __t('admin_status_checked_in', 'Checked In') ?></a>
+            <a href="<?= BASE_URL ?>/admin/bookings.php?status=pending" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'pending' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>"><?= __t('admin_status_pending', 'Pending') ?></a>
+            <a href="<?= BASE_URL ?>/admin/bookings.php?status=checked_out" class="px-3.5 py-2 rounded-lg transition <?= $statusFilter === 'checked_out' ? 'bg-[#343c0a] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200' ?>"><?= __t('admin_status_checked_out', 'Checked Out') ?></a>
         </div>
 
         <!-- Search Input -->
         <form action="<?= BASE_URL ?>/admin/bookings.php" method="GET" class="w-full sm:w-72 flex items-center">
             <div class="relative w-full">
-                <input type="text" name="q" value="<?= e($search) ?>" placeholder="Search reference, guest..."
+                <input type="text" name="q" value="<?= e($search) ?>" placeholder="<?= e(__t('admin_btn_search', 'Search')) ?>..."
                        class="w-full text-xs bg-stone-50 border border-stone-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-[#343c0a]">
                 <span class="material-symbols-outlined text-stone-400 text-base absolute left-2.5 top-2">search</span>
             </div>
@@ -103,13 +103,13 @@ require_once __DIR__ . '/../includes/admin-header.php';
             <table class="w-full text-left text-xs">
                 <thead class="bg-stone-50 text-stone-500 uppercase tracking-wider border-b border-stone-200">
                     <tr>
-                        <th class="py-4 px-4 font-semibold">Reference</th>
-                        <th class="py-4 px-4 font-semibold">Guest Details</th>
-                        <th class="py-4 px-4 font-semibold">Suite</th>
-                        <th class="py-4 px-4 font-semibold">Dates & Nights</th>
-                        <th class="py-4 px-4 font-semibold">Amount</th>
-                        <th class="py-4 px-4 font-semibold">Status / Payment</th>
-                        <th class="py-4 px-4 font-semibold text-right">Actions</th>
+                        <th class="py-4 px-4 font-semibold"><?= __t('booking_ref', 'Reference') ?></th>
+                        <th class="py-4 px-4 font-semibold"><?= __t('booking_guest_details', 'Guest Details') ?></th>
+                        <th class="py-4 px-4 font-semibold"><?= __t('admin_col_room', 'Suite') ?></th>
+                        <th class="py-4 px-4 font-semibold"><?= __t('admin_col_dates', 'Dates & Nights') ?></th>
+                        <th class="py-4 px-4 font-semibold"><?= __t('admin_col_amount', 'Est. Rate') ?></th>
+                        <th class="py-4 px-4 font-semibold"><?= __t('admin_col_status', 'Status / Payment') ?></th>
+                        <th class="py-4 px-4 font-semibold text-right"><?= __t('admin_col_actions', 'Actions') ?></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
@@ -155,11 +155,11 @@ require_once __DIR__ . '/../includes/admin-header.php';
                                     <input type="hidden" name="booking_id" value="<?= $b['id'] ?>">
                                     
                                     <select name="status" onchange="this.form.submit()" class="text-[10px] font-bold uppercase rounded border border-stone-300 p-1 bg-white cursor-pointer">
-                                        <option value="pending" <?= $b['status'] === 'pending' ? 'selected' : '' ?>>Pending</option>
-                                        <option value="confirmed" <?= $b['status'] === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
-                                        <option value="checked_in" <?= $b['status'] === 'checked_in' ? 'selected' : '' ?>>Checked In</option>
-                                        <option value="checked_out" <?= $b['status'] === 'checked_out' ? 'selected' : '' ?>>Checked Out</option>
-                                        <option value="cancelled" <?= $b['status'] === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                                        <option value="pending" <?= $b['status'] === 'pending' ? 'selected' : '' ?>><?= __t('admin_status_pending', 'Pending') ?></option>
+                                        <option value="confirmed" <?= $b['status'] === 'confirmed' ? 'selected' : '' ?>><?= __t('admin_status_confirmed', 'Confirmed') ?></option>
+                                        <option value="checked_in" <?= $b['status'] === 'checked_in' ? 'selected' : '' ?>><?= __t('admin_status_checked_in', 'Checked In') ?></option>
+                                        <option value="checked_out" <?= $b['status'] === 'checked_out' ? 'selected' : '' ?>><?= __t('admin_status_checked_out', 'Checked Out') ?></option>
+                                        <option value="cancelled" <?= $b['status'] === 'cancelled' ? 'selected' : '' ?>><?= __t('admin_status_cancelled', 'Cancelled') ?></option>
                                     </select>
 
                                     <select name="payment_status" onchange="this.form.submit()" class="text-[10px] font-semibold uppercase rounded border border-stone-300 p-1 bg-white cursor-pointer">

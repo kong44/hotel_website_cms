@@ -55,31 +55,31 @@ require_once __DIR__ . '/i18n.php';
 
                 <!-- Navigation Quick Links -->
                 <div>
-                    <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;"><?= __t('nav_rooms', 'Accommodations') ?></h3>
+                    <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;"><?= __t('footer_accommodations', 'Accommodations') ?></h3>
                     <ul class="space-y-2.5 text-sm text-stone-300">
-                        <li><a href="<?= url('/rooms') ?>" class="hover:text-white transition">All Rooms & Suites</a></li>
+                        <li><a href="<?= url('/rooms') ?>" class="hover:text-white transition"><?= __t('nav_all_rooms', 'All Rooms & Suites') ?></a></li>
                         <li><a href="<?= url('/room/deluxe-king') ?>" class="hover:text-white transition">Deluxe King Room</a></li>
                         <li><a href="<?= url('/room/junior-suite') ?>" class="hover:text-white transition">Junior Suite with Balcony</a></li>
                         <li><a href="<?= url('/room/indra-suite') ?>" class="hover:text-white transition">Indra Suite with Balcony</a></li>
-                        <li><a href="<?= url('/offers') ?>" class="hover:text-white transition">Special Offers & Deals</a></li>
+                        <li><a href="<?= url('/offers') ?>" class="hover:text-white transition"><?= __t('nav_special_deals', 'Special Offers & Deals') ?></a></li>
                     </ul>
                 </div>
 
                 <!-- Hotel Experiences -->
                 <div>
-                    <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;">Experiences</h3>
+                    <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;"><?= __t('footer_experiences', 'Experiences') ?></h3>
                     <ul class="space-y-2.5 text-sm text-stone-300">
-                        <li><a href="<?= url('/about') ?>" class="hover:text-white transition">About Indra Sanctuary</a></li>
-                        <li><a href="<?= url('/eat-drink') ?>" class="hover:text-white transition">The Bistro & Cafe</a></li>
-                        <li><a href="<?= url('/wellness') ?>" class="hover:text-white transition">Fitness Center & Pool</a></li>
-                        <li><a href="<?= url('/location') ?>" class="hover:text-white transition">Phnom Penh City Guide</a></li>
-                        <li><a href="<?= url('/gallery') ?>" class="hover:text-white transition">Photo Gallery</a></li>
+                        <li><a href="<?= url('/about') ?>" class="hover:text-white transition"><?= __t('nav_about', 'About Us') ?></a></li>
+                        <li><a href="<?= url('/eat-drink') ?>" class="hover:text-white transition"><?= __t('nav_dining', 'The Bistro & Cafe') ?></a></li>
+                        <li><a href="<?= url('/wellness') ?>" class="hover:text-white transition"><?= __t('nav_wellness', 'Fitness Center & Pool') ?></a></li>
+                        <li><a href="<?= url('/location') ?>" class="hover:text-white transition"><?= __t('nav_city_guide', 'Phnom Penh City Guide') ?></a></li>
+                        <li><a href="<?= url('/gallery') ?>" class="hover:text-white transition"><?= __t('nav_gallery', 'Photo Gallery') ?></a></li>
                     </ul>
                 </div>
 
                 <!-- Contact & Location -->
                 <div>
-                    <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;">Contact Sanctuary</h3>
+                    <h3 class="font-headline font-semibold text-base text-[#dfe8a6] uppercase tracking-wider mb-4" style="color: <?= e(hotel_brand_color('highlight')) ?>;"><?= __t('footer_contact', 'Contact Sanctuary') ?></h3>
                     <ul class="space-y-3 text-sm text-stone-300">
                         <li class="flex items-start gap-2.5">
                             <span class="material-symbols-outlined text-lg mt-0.5" style="color: <?= e(hotel_brand_color('highlight')) ?>;">location_on</span>
@@ -96,7 +96,7 @@ require_once __DIR__ . '/i18n.php';
                         <li class="pt-2">
                             <a href="<?= url('/my-booking') ?>" class="inline-flex items-center gap-1.5 text-xs hover:underline font-medium" style="color: <?= e(hotel_brand_color('highlight')) ?>;">
                                 <span class="material-symbols-outlined text-sm">manage_accounts</span>
-                                Lookup Existing Reservation
+                                <?= __t('nav_lookup_reservation', 'Lookup Existing Reservation') ?>
                             </a>
                         </li>
                     </ul>
@@ -107,12 +107,12 @@ require_once __DIR__ . '/i18n.php';
             <!-- Bottom Legal & Copyright -->
             <div class="pt-8 border-t border-stone-800 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-stone-400">
                 <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-                    <p>© <?= date('Y') ?> <?= e(hotel_name()) ?>. All Rights Reserved.</p>
+                    <p>© <?= date('Y') ?> <?= e(hotel_name()) ?>. <?= __t('footer_rights', 'All Rights Reserved.') ?></p>
                     <div class="hidden sm:inline text-stone-600">•</div>
                     <div class="flex items-center space-x-4">
-                        <a href="<?= url('/sitemap.xml') ?>" class="hover:text-stone-200 transition">XML Sitemap</a>
+                        <a href="<?= url('/sitemap.xml') ?>" class="hover:text-stone-200 transition"><?= __t('nav_sitemap', 'XML Sitemap') ?></a>
                         <span class="text-stone-600">•</span>
-                        <a href="<?= url('/contact') ?>" class="hover:text-stone-200 transition">Help & Support</a>
+                        <a href="<?= url('/contact') ?>" class="hover:text-stone-200 transition"><?= __t('nav_help_support', 'Help & Support') ?></a>
                     </div>
                 </div>
 
@@ -120,7 +120,7 @@ require_once __DIR__ . '/i18n.php';
                 <div class="flex items-center gap-2.5">
                     <span class="text-stone-400 text-xs flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm text-[#dfe8a6]">language</span>
-                        <span>Language:</span>
+                        <span><?= __t('nav_language', 'Language') ?>:</span>
                     </span>
                     <?= I18n::renderSwitcher('', 'dark', 'top') ?>
                 </div>
@@ -203,5 +203,69 @@ require_once __DIR__ . '/i18n.php';
     </script>
     <!-- End of Tawk.to Script -->
     <?php endif; ?>
+    <script>
+    window.OTA_DEEPLINK_URL = <?= json_encode(get_setting('ota_deeplink_url', get_setting('ota_bookingcom_url', ''))) ?>;
+    window.OTA_PLATFORM_TYPE = <?= json_encode(get_setting('ota_platform_type', 'auto')) ?>;
+
+    function handleHeroSearchSubmit(event, mode) {
+        if (mode === 'ota' || mode === 'multi_channel') {
+            event.preventDefault();
+            let baseUrl = window.OTA_DEEPLINK_URL || '';
+            let platform = window.OTA_PLATFORM_TYPE || 'auto';
+
+            if (!baseUrl || baseUrl === '#') {
+                alert('Mode 3 OTA Deep Link URL is not configured yet in Admin Settings.');
+                return false;
+            }
+
+            if (platform === 'auto' || !platform) {
+                if (baseUrl.includes('booking.com')) platform = 'bookingcom';
+                else if (baseUrl.includes('traveloka.com')) platform = 'traveloka';
+                else if (baseUrl.includes('trip.com')) platform = 'tripcom';
+                else if (baseUrl.includes('agoda.com')) platform = 'agoda';
+                else platform = 'generic';
+            }
+
+            redirectToOtaDeepLink(event, platform, baseUrl);
+            return false;
+        }
+        return true;
+    }
+
+    function redirectToOtaDeepLink(event, platform, baseUrl) {
+        if (!baseUrl || baseUrl === '#' || baseUrl === 'javascript:void(0)') {
+            alert('This 3rd-party platform URL is not configured yet in CMS Admin Settings.');
+            return;
+        }
+
+        if (event && event.preventDefault) event.preventDefault();
+
+        const checkIn = document.getElementById('booking_check_in')?.value || '';
+        const checkOut = document.getElementById('booking_check_out')?.value || '';
+        
+        const separator = baseUrl.includes('?') ? '&' : '?';
+        const inDate = checkIn ? checkIn : new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        const outDate = checkOut ? checkOut : new Date(Date.now() + 172800000).toISOString().split('T')[0];
+
+        let params = '';
+        if (platform === 'bookingcom' || platform === 'booking') {
+            params = `checkin=${inDate}&checkout=${outDate}&group_adults=2&group_children=0`;
+        } else if (platform === 'traveloka') {
+            const partsIn = inDate.split('-');
+            const partsOut = outDate.split('-');
+            const formattedIn = (partsIn.length === 3) ? `${partsIn[2]}-${partsIn[1]}-${partsIn[0]}` : inDate;
+            const formattedOut = (partsOut.length === 3) ? `${partsOut[2]}-${partsOut[1]}-${partsOut[0]}` : outDate;
+            params = `checkIn=${formattedIn}&checkOut=${formattedOut}&adult=2&room=1`;
+        } else if (platform === 'tripcom' || platform === 'trip') {
+            params = `checkIn=${inDate}&checkOut=${outDate}&adult=2&children=0`;
+        } else if (platform === 'agoda') {
+            params = `checkIn=${inDate}&adults=2&children=0`;
+        } else {
+            params = `check_in=${inDate}&check_out=${outDate}`;
+        }
+
+        window.open(`${baseUrl}${separator}${params}`, '_blank');
+    }
+    </script>
 </body>
 </html>

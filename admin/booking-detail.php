@@ -69,9 +69,8 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     <span class="font-headline font-bold text-xl text-onyx-charcoal">INDRA HOTEL</span>
                 </div>
                 <p class="text-xs text-stone-500 max-w-sm leading-relaxed">
-                    <?= HOTEL_ADDRESS_STREET ?>, <?= HOTEL_ADDRESS_DISTRICT ?><br>
-                    <?= HOTEL_ADDRESS_CITY ?>, <?= HOTEL_ADDRESS_COUNTRY ?><br>
-                    Tel: <?= HOTEL_PHONE ?> | <?= HOTEL_EMAIL ?>
+                    <?= e(hotel_address()) ?><br>
+                    Tel: <?= e(hotel_phone()) ?><?= hotel_email() ? ' | ' . e(hotel_email()) : '' ?>
                 </p>
             </div>
 

@@ -106,14 +106,28 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 // =======================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_guest') {
     $guestId = (int)($_POST['guest_id'] ?? 0);
-    $status = in_array($_POST['status'] ?? '', ['active', 'vip', 'flagged']) ? $_POST['status'] : 'active';
+    $status = in_array($_POST['status'] ?? '', ['active', 'vip', 'blocked', 'restricted', 'flagged']) ? $_POST['status'] : 'active';
     $phone = trim($_POST['phone'] ?? '');
     $notes = trim($_POST['notes'] ?? '');
 
     if ($guestId > 0) {
+        $stmtG = $pdo->prepare("SELECT email FROM guest_users WHERE id = ?");
+        $stmtG->execute([$guestId]);
+        $email = $stmtG->fetchColumn();
+
         $stmtUpdate = $pdo->prepare("UPDATE guest_users SET status = ?, phone = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
         $stmtUpdate->execute([$status, $phone, $notes, $guestId]);
-        set_flash('success', 'Guest record & staff notes updated successfully.');
+
+        if ($email) {
+            $stmtSync = $pdo->prepare("
+                INSERT INTO guests (email, status, last_login) 
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(email) DO UPDATE SET status = excluded.status
+            ");
+            $stmtSync->execute([strtolower($email), $status]);
+        }
+
+        set_flash('success', "Guest user status updated to '{$status}'.");
     }
     header('Location: ' . BASE_URL . '/admin/guests.php');
     exit;
@@ -125,9 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $totalGuests = (int)$pdo->query("SELECT COUNT(*) FROM guest_users")->fetchColumn();
 $googleGuests = (int)$pdo->query("SELECT COUNT(*) FROM guest_users WHERE google_id IS NOT NULL OR auth_provider = 'google'")->fetchColumn();
 $vipGuests = (int)$pdo->query("SELECT COUNT(*) FROM guest_users WHERE status = 'vip'")->fetchColumn();
-
-// Total Lifetime Guest Value
-$totalLifetimeRevenue = (float)$pdo->query("SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE status != 'cancelled'")->fetchColumn();
+$blockedGuests = (int)$pdo->query("SELECT COUNT(*) FROM guest_users WHERE status IN ('blocked', 'restricted', 'flagged')")->fetchColumn();
 
 // =======================================================
 // 5. Query Filters, Search & Pagination
@@ -273,15 +285,15 @@ require_once __DIR__ . '/../includes/admin-header.php';
             </div>
         </div>
 
-        <!-- Lifetime Guest Revenue -->
+        <!-- Restricted / Blocked Guests -->
         <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs flex items-center justify-between">
             <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-stone-500">Lifetime Guest Value</span>
-                <div class="font-headline font-bold text-2xl sm:text-3xl text-emerald-700 mt-1"><?= format_price($totalLifetimeRevenue) ?></div>
-                <span class="text-[11px] text-stone-400">Direct booking revenue</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-stone-500">Restricted / Blocked</span>
+                <div class="font-headline font-bold text-2xl sm:text-3xl text-rose-600 mt-1"><?= number_format($blockedGuests) ?></div>
+                <span class="text-[11px] text-stone-400">Blocked from automated bookings</span>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
-                <span class="material-symbols-outlined text-2xl">payments</span>
+            <div class="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+                <span class="material-symbols-outlined text-2xl">block</span>
             </div>
         </div>
     </div>

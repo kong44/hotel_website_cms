@@ -163,13 +163,32 @@ class GoogleAuth {
             'logged_in_at' => time()
         ];
 
-        // Upsert Record in guest_users Table
+        // Upsert Record in guests and guest_users Tables
         try {
             $pdo = getDB();
+            $now = date('Y-m-d H:i:s');
+
+            // 1. guests table
+            $stmtCheckG = $pdo->prepare("SELECT status FROM guests WHERE LOWER(email) = ? LIMIT 1");
+            $stmtCheckG->execute([$email]);
+            $currG = $stmtCheckG->fetchColumn();
+            $statusG = $currG ? (string)$currG : 'active';
+
+            $stmtUpsertG = $pdo->prepare("
+                INSERT INTO guests (google_id, email, name, picture, status, last_login) 
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(email) DO UPDATE SET 
+                    google_id = excluded.google_id,
+                    name = excluded.name,
+                    picture = excluded.picture,
+                    last_login = excluded.last_login
+            ");
+            $stmtUpsertG->execute([$googleId, $email, $name, $picture, $statusG, $now]);
+
+            // 2. guest_users table for backward compatibility
             $stmtCheck = $pdo->prepare("SELECT id FROM guest_users WHERE LOWER(email) = ? LIMIT 1");
             $stmtCheck->execute([$email]);
             $existing = $stmtCheck->fetch();
-            $now = date('Y-m-d H:i:s');
 
             if ($existing) {
                 $stmtUp = $pdo->prepare("UPDATE guest_users SET name = ?, avatar = ?, google_id = ?, auth_provider = 'google', last_login_at = ? WHERE id = ?");
@@ -179,7 +198,7 @@ class GoogleAuth {
                 $stmtIn->execute([$name, $email, $picture, $googleId, $now, $now]);
             }
         } catch (Throwable $e) {
-            // Ignore if DB upsert fails
+            // Log fallback error if any
         }
 
         return [

@@ -23,7 +23,7 @@ define('DB_CHARSET', 'utf8mb4');
 define('SQLITE_FILE', ROOT_PATH . '/database.sqlite');
 
 // Application Settings
-define('APP_NAME', 'Indra Hotel');
+define('APP_NAME', 'The Hotel');
 define('APP_TAGLINE', 'Contemporary Sanctuary in Phnom Penh');
 define('APP_VERSION', '1.0.0');
 
@@ -114,8 +114,8 @@ if (!empty($envBaseUrl)) {
 }
 
 // Hotel Contact & Business Information (for Rich SEO Schema & Site)
-define('HOTEL_NAME', 'Indra Hotel');
-define('HOTEL_LEGAL_NAME', 'Indra Hotel Phnom Penh Co., Ltd.');
+define('HOTEL_NAME', 'The Hotel');
+define('HOTEL_LEGAL_NAME', 'The Hotel Phnom Penh Co., Ltd.');
 define('HOTEL_ADDRESS_STREET', '#95, Street 592, Beungkak 2');
 define('HOTEL_ADDRESS_DISTRICT', 'Tuol Kork');
 define('HOTEL_ADDRESS_CITY', 'Phnom Penh');

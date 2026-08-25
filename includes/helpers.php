@@ -526,16 +526,58 @@ function get_booking_target(): string {
 /**
  * Get Booking Button Custom Label
  */
-function get_booking_button_text(string $default = 'Book Now'): string {
+function get_booking_button_text(string $default = ''): string {
     $custom = trim(get_setting('booking_button_text', ''));
-    return !empty($custom) ? $custom : $default;
+    if (!empty($custom)) {
+        return $custom;
+    }
+    
+    $mode = get_booking_mode();
+    if ($mode === 'ota' || $mode === 'multi_channel') {
+        return 'Search Booking';
+    } elseif ($mode === 'engine') {
+        return 'Book Now';
+    }
+    
+    return !empty($default) ? $default : 'Direct Booking';
+}
+
+/**
+ * Build dynamic single OTA Deep Link URL for Mode 3
+ */
+function build_single_ota_deeplink(?string $checkIn = null, ?string $checkOut = null, int $adults = 2): string {
+    $baseUrl = trim(get_setting('ota_deeplink_url', ''));
+    if (empty($baseUrl)) {
+        $baseUrl = trim(get_setting('ota_bookingcom_url', ''));
+    }
+    if (empty($baseUrl)) {
+        return '#';
+    }
+
+    $platform = trim(get_setting('ota_platform_type', 'auto'));
+    if ($platform === 'auto' || empty($platform)) {
+        if (strpos($baseUrl, 'booking.com') !== false) {
+            $platform = 'bookingcom';
+        } elseif (strpos($baseUrl, 'traveloka.com') !== false) {
+            $platform = 'traveloka';
+        } elseif (strpos($baseUrl, 'trip.com') !== false) {
+            $platform = 'tripcom';
+        } elseif (strpos($baseUrl, 'agoda.com') !== false) {
+            $platform = 'agoda';
+        } else {
+            $platform = 'generic';
+        }
+    }
+
+    return build_ota_deep_link($platform, $baseUrl, $checkIn, $checkOut, $adults);
 }
 
 /**
  * Get Dynamic Booking URL based on configured mode
  */
 function get_booking_url(?int $roomId = null, ?string $checkIn = null, ?string $checkOut = null, ?int $adults = null, ?string $promo = null): string {
-    if (get_booking_mode() === 'engine') {
+    $mode = get_booking_mode();
+    if ($mode === 'engine') {
         $engineUrl = get_booking_engine_url();
         if (!empty($engineUrl)) {
             $params = [];
@@ -551,6 +593,8 @@ function get_booking_url(?int $roomId = null, ?string $checkIn = null, ?string $
             }
             return $engineUrl;
         }
+    } elseif ($mode === 'ota' || $mode === 'multi_channel') {
+        return build_single_ota_deeplink($checkIn, $checkOut, $adults ?? 2);
     }
 
     $params = [];
@@ -726,11 +770,66 @@ function is_guest_logged_in(): bool {
 /**
  * Get current signed-in public guest details
  */
-/**
- * Get current signed-in public guest details
- */
 function get_logged_in_guest(): ?array {
     return is_guest_logged_in() ? $_SESSION['guest_user'] : null;
+}
+
+/**
+ * Get guest account status from database ('active', 'restricted', 'blocked', 'flagged', etc.)
+ */
+function get_guest_status(?string $email = null): string {
+    if (empty($email)) {
+        $guest = get_logged_in_guest();
+        $email = $guest['email'] ?? '';
+    }
+    if (empty($email)) {
+        return 'active';
+    }
+
+    $cleanEmail = strtolower(trim($email));
+
+    try {
+        $pdo = getDB();
+
+        // 1. Check guest_users table status
+        $stmtGu = $pdo->prepare("SELECT status FROM guest_users WHERE LOWER(email) = ? LIMIT 1");
+        $stmtGu->execute([$cleanEmail]);
+        $statusGu = $stmtGu->fetchColumn();
+        if ($statusGu && in_array(strtolower((string)$statusGu), ['blocked', 'restricted', 'flagged'], true)) {
+            return strtolower((string)$statusGu);
+        }
+
+        // 2. Check guests table status
+        $stmtG = $pdo->prepare("SELECT status FROM guests WHERE LOWER(email) = ? LIMIT 1");
+        $stmtG->execute([$cleanEmail]);
+        $statusG = $stmtG->fetchColumn();
+        if ($statusG && in_array(strtolower((string)$statusG), ['blocked', 'restricted', 'flagged'], true)) {
+            return strtolower((string)$statusG);
+        }
+
+        if ($statusGu) return strtolower((string)$statusGu);
+        if ($statusG) return strtolower((string)$statusG);
+
+        return 'active';
+    } catch (Throwable $e) {
+        return 'active';
+    }
+}
+
+/**
+ * Check if public guest is blocked by Admin
+ */
+function is_guest_blocked(?string $email = null): bool {
+    $status = get_guest_status($email);
+    return $status === 'blocked';
+}
+
+/**
+ * Check if public guest is restricted/blocked from performing actions (booking, messaging)
+ */
+function is_guest_restricted(?string $email = null): bool {
+    $status = get_guest_status($email);
+    return in_array($status, ['blocked', 'restricted', 'flagged'], true);
 }
 
 /**
@@ -993,6 +1092,197 @@ function process_hero_settings_post(): void {
         if (isset($_POST["hero_{$pk}_overlay"])) set_hero_setting($pk, 'overlay', trim($_POST["hero_{$pk}_overlay"]));
         if (isset($_POST["hero_{$pk}_custom_overlay"])) set_hero_setting($pk, 'custom_overlay', trim($_POST["hero_{$pk}_custom_overlay"]));
     }
+}
+
+/**
+ * Retrieve active Font Family name configured in site settings
+ */
+function get_active_font_family(): string {
+    $font = get_setting('site_font_family', 'DM Sans');
+    if ($font === 'custom') {
+        $custom = get_setting('site_custom_font', '');
+        if (!empty($custom)) {
+            return trim($custom);
+        }
+        return 'DM Sans';
+    }
+    return !empty($font) ? trim($font) : 'DM Sans';
+}
+
+/**
+ * Render dynamic Google Font link and CSS typography overrides in HTML <head>
+ */
+function render_google_font_head(): string {
+    $font = get_active_font_family();
+    $fontSlug = urlencode($font);
+    
+    $googleFontUrl = "https://fonts.googleapis.com/css2?family=" . $fontSlug . ":ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap";
+    
+    $html = '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
+    $html .= '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+    $html .= '<link href="' . e($googleFontUrl) . '" rel="stylesheet">' . "\n";
+    $html .= '<style>' . "\n";
+    $html .= '  :root {' . "\n";
+    $html .= '    --font-active-google: "' . e($font) . '", "Noto Sans Khmer", "Noto Sans SC", "Noto Sans KR", "Be Vietnam Pro", sans-serif;' . "\n";
+    $html .= '  }' . "\n";
+    $html .= '  body, h1, h2, h3, h4, h5, h6, .font-headline {' . "\n";
+    $html .= '    font-family: var(--font-active-google) !important;' . "\n";
+    $html .= '  }' . "\n";
+    $html .= '</style>' . "\n";
+
+    return $html;
+}
+
+/**
+ * Format dynamic 3rd-Party OTA Deep Link URL with check-in, check-out, and guest counts
+ */
+function build_ota_deep_link(string $platform, ?string $baseUrl = null, ?string $checkIn = null, ?string $checkOut = null, int $adults = 2, int $children = 0): string {
+    if (empty($baseUrl)) {
+        $baseUrl = get_setting("ota_{$platform}_url", '');
+    }
+    if (empty($baseUrl)) {
+        return '#';
+    }
+
+    // Default dates fallback if empty
+    if (empty($checkIn)) {
+        $checkIn = date('Y-m-d', strtotime('+1 day'));
+    }
+    if (empty($checkOut)) {
+        $checkOut = date('Y-m-d', strtotime('+2 days'));
+    }
+
+    try {
+        $cInDt = new DateTime($checkIn);
+        $cOutDt = new DateTime($checkOut);
+    } catch (Throwable $e) {
+        $cInDt = new DateTime('now');
+        $cOutDt = new DateTime('+1 day');
+    }
+
+    if ($cOutDt <= $cInDt) {
+        $cOutDt = (clone $cInDt)->modify('+1 day');
+    }
+
+    $nights = max(1, $cInDt->diff($cOutDt)->days);
+    $yIn = $cInDt->format('Y-m-d');
+    $yOut = $cOutDt->format('Y-m-d');
+
+    $separator = (strpos($baseUrl, '?') !== false) ? '&' : '?';
+
+    switch (strtolower($platform)) {
+        case 'bookingcom':
+        case 'booking':
+            $params = [
+                'checkin' => $yIn,
+                'checkout' => $yOut,
+                'group_adults' => max(1, $adults),
+                'group_children' => max(0, $children),
+                'no_rooms' => 1
+            ];
+            break;
+
+        case 'traveloka':
+            $params = [
+                'checkIn' => $cInDt->format('d-m-Y'),
+                'checkOut' => $cOutDt->format('d-m-Y'),
+                'adult' => max(1, $adults),
+                'room' => 1
+            ];
+            break;
+
+        case 'tripcom':
+        case 'trip':
+            $params = [
+                'checkIn' => $yIn,
+                'checkOut' => $yOut,
+                'adult' => max(1, $adults),
+                'children' => max(0, $children)
+            ];
+            break;
+
+        case 'agoda':
+            $params = [
+                'checkIn' => $yIn,
+                'los' => $nights,
+                'adults' => max(1, $adults),
+                'children' => max(0, $children),
+                'rooms' => 1
+            ];
+            break;
+
+        case 'expedia':
+            $params = [
+                'chkin' => $yIn,
+                'chkout' => $yOut,
+                'adults' => max(1, $adults)
+            ];
+            break;
+
+        default:
+            $params = [
+                'check_in' => $yIn,
+                'check_out' => $yOut,
+                'adults' => max(1, $adults)
+            ];
+            break;
+    }
+
+    return $baseUrl . $separator . http_build_query($params);
+}
+
+/**
+ * Retrieve list of active 3rd-party OTA platform channels configured in CMS (Mode 3 Only)
+ */
+function get_active_ota_channels(): array {
+    $mode = get_booking_mode();
+    if ($mode !== 'ota' && $mode !== 'multi_channel') {
+        return [];
+    }
+
+    $platforms = [
+        'bookingcom' => [
+            'key' => 'bookingcom',
+            'name' => 'Booking.com',
+            'bg' => 'bg-[#003580]',
+            'text' => 'text-white',
+            'url' => get_setting('ota_bookingcom_url', ''),
+            'enabled' => get_setting('ota_bookingcom_enabled', '0') === '1'
+        ],
+        'traveloka' => [
+            'key' => 'traveloka',
+            'name' => 'Traveloka',
+            'bg' => 'bg-[#1BA0E2]',
+            'text' => 'text-white',
+            'url' => get_setting('ota_traveloka_url', ''),
+            'enabled' => get_setting('ota_traveloka_enabled', '0') === '1'
+        ],
+        'tripcom' => [
+            'key' => 'tripcom',
+            'name' => 'Trip.com',
+            'bg' => 'bg-[#2577E3]',
+            'text' => 'text-white',
+            'url' => get_setting('ota_tripcom_url', ''),
+            'enabled' => get_setting('ota_tripcom_enabled', '0') === '1'
+        ],
+        'agoda' => [
+            'key' => 'agoda',
+            'name' => 'Agoda',
+            'bg' => 'bg-[#5863F8]',
+            'text' => 'text-white',
+            'url' => get_setting('ota_agoda_url', ''),
+            'enabled' => get_setting('ota_agoda_enabled', '0') === '1'
+        ]
+    ];
+
+    $active = [];
+    foreach ($platforms as $key => $p) {
+        if ($p['enabled'] || !empty($p['url'])) {
+            $active[$key] = $p;
+        }
+    }
+
+    return $active;
 }
 
 
