@@ -132,6 +132,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         'about_stat4_label' => trim($_POST['about_stat4_label'] ?? 'Guest Rating'),
 
         // Tab 3: Core Value Pillars
+        'about_pillars_json' => trim($_POST['about_pillars_json'] ?? '[]'),
         'about_pillars_badge' => trim($_POST['about_pillars_badge'] ?? 'Our Core Values'),
         'about_pillars_title' => trim($_POST['about_pillars_title'] ?? 'Crafted for Discerning Travelers'),
         
@@ -468,17 +469,24 @@ require_once __DIR__ . '/../includes/admin-header.php';
             </div>
         </div>
 
-        <!-- TAB 4: Core Values & Pillars -->
+        <!-- TAB 4: Core Values & Pillars (Dynamic Builder) -->
         <div id="tab-content-pillars" class="tab-content hidden space-y-6">
             <div class="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-xs space-y-6">
-                <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
-                    <div class="w-10 h-10 rounded-xl bg-[#dfe8a6]/50 text-[#343c0a] flex items-center justify-center">
-                        <span class="material-symbols-outlined text-2xl">diamond</span>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#dfe8a6]/50 text-[#343c0a] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-2xl">diamond</span>
+                        </div>
+                        <div>
+                            <h2 class="font-headline font-bold text-lg text-onyx-charcoal">Core Values & Hospitality Pillars</h2>
+                            <p class="text-xs text-stone-500">Manage feature cards highlighting the hotel's experiences & core values.</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="font-headline font-bold text-lg text-onyx-charcoal">Core Values & Hospitality Pillars</h2>
-                        <p class="text-xs text-stone-500">3 key feature cards highlighting the hotel's experience.</p>
-                    </div>
+
+                    <button type="button" onclick="addAboutPillarRow()" class="inline-flex items-center gap-1.5 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-2xs cursor-pointer self-start sm:self-auto">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        <span>Add Value Pillar</span>
+                    </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -493,54 +501,10 @@ require_once __DIR__ . '/../includes/admin-header.php';
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-stone-100">
-                    <div class="p-5 bg-stone-50 rounded-xl border border-stone-200 space-y-4">
-                        <span class="text-xs font-bold text-[#4B5320] uppercase tracking-wider block">Pillar 1</span>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Google Icon</label>
-                            <input type="text" name="about_pillar1_icon" value="<?= e(get_setting('about_pillar1_icon', 'nature_people')) ?>" class="w-full text-xs font-mono border border-stone-300 rounded p-2">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Title</label>
-                            <input type="text" name="about_pillar1_title" value="<?= e(get_setting('about_pillar1_title', 'Tranquil Urban Oasis')) ?>" class="w-full text-sm font-bold border border-stone-300 rounded p-2">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Description</label>
-                            <textarea name="about_pillar1_desc" rows="4" class="w-full text-xs border border-stone-300 rounded p-2.5"><?= e(get_setting('about_pillar1_desc', 'Designed with lush tropical foliage, quiet courtyard reflection ponds, and natural acoustic insulation so you can unwind completely.')) ?></textarea>
-                        </div>
-                    </div>
+                <input type="hidden" name="about_pillars_json" id="about_pillars_json" value="<?= e(get_setting('about_pillars_json', '[]')) ?>">
 
-                    <div class="p-5 bg-stone-50 rounded-xl border border-stone-200 space-y-4">
-                        <span class="text-xs font-bold text-[#4B5320] uppercase tracking-wider block">Pillar 2</span>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Google Icon</label>
-                            <input type="text" name="about_pillar2_icon" value="<?= e(get_setting('about_pillar2_icon', 'restaurant')) ?>" class="w-full text-xs font-mono border border-stone-300 rounded p-2">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Title</label>
-                            <input type="text" name="about_pillar2_title" value="<?= e(get_setting('about_pillar2_title', 'Artisan Culinary Flavors')) ?>" class="w-full text-sm font-bold border border-stone-300 rounded p-2">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Description</label>
-                            <textarea name="about_pillar2_desc" rows="4" class="w-full text-xs border border-stone-300 rounded p-2.5"><?= e(get_setting('about_pillar2_desc', 'From freshly brewed organic Cambodian specialty coffee to authentic Khmer dishes and refined international classics at The Bistro.')) ?></textarea>
-                        </div>
-                    </div>
-
-                    <div class="p-5 bg-stone-50 rounded-xl border border-stone-200 space-y-4">
-                        <span class="text-xs font-bold text-[#4B5320] uppercase tracking-wider block">Pillar 3</span>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Google Icon</label>
-                            <input type="text" name="about_pillar3_icon" value="<?= e(get_setting('about_pillar3_icon', 'loyalty')) ?>" class="w-full text-xs font-mono border border-stone-300 rounded p-2">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Title</label>
-                            <input type="text" name="about_pillar3_title" value="<?= e(get_setting('about_pillar3_title', 'Personalized Concierge')) ?>" class="w-full text-sm font-bold border border-stone-300 rounded p-2">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Description</label>
-                            <textarea name="about_pillar3_desc" rows="4" class="w-full text-xs border border-stone-300 rounded p-2.5"><?= e(get_setting('about_pillar3_desc', 'Dedicated local recommendations, private chauffeur bookings, sunset river cruises, and tailored itineraries across Phnom Penh.')) ?></textarea>
-                        </div>
-                    </div>
+                <div id="about_pillars_container" class="space-y-4 pt-2">
+                    <!-- Dynamic Repeater Cards -->
                 </div>
             </div>
         </div>
@@ -982,7 +946,140 @@ function addGalleryRow() {
     container.insertAdjacentHTML('beforeend', html);
 }
 
+if (typeof escapeHtml !== 'function') {
+    window.escapeHtml = function(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+}
+
+const defaultAboutPillars = [
+    {
+        icon: '<?= e(addslashes(get_setting('about_pillar1_icon', 'nature_people'))) ?>',
+        title: '<?= e(addslashes(get_setting('about_pillar1_title', 'Tranquil Urban Oasis'))) ?>',
+        desc: '<?= e(addslashes(get_setting('about_pillar1_desc', 'Designed with lush tropical foliage, quiet courtyard reflection ponds, and natural acoustic insulation so you can unwind completely.'))) ?>'
+    },
+    {
+        icon: '<?= e(addslashes(get_setting('about_pillar2_icon', 'restaurant'))) ?>',
+        title: '<?= e(addslashes(get_setting('about_pillar2_title', 'Artisan Culinary Flavors'))) ?>',
+        desc: '<?= e(addslashes(get_setting('about_pillar2_desc', 'Experience seasonal Khmer ingredients, organic roasted coffees, and bespoke cocktails crafted by master mixologists.'))) ?>'
+    },
+    {
+        icon: '<?= e(addslashes(get_setting('about_pillar3_icon', 'loyalty'))) ?>',
+        title: '<?= e(addslashes(get_setting('about_pillar3_title', 'Personalized Concierge'))) ?>',
+        desc: '<?= e(addslashes(get_setting('about_pillar3_desc', 'From private airport transfers to curated Phnom Penh cultural tours, our team is committed to fulfilling every detail.'))) ?>'
+    }
+];
+
+function initAboutPillars() {
+    const input = document.getElementById('about_pillars_json');
+    if (!input) return;
+    let items = [];
+    try { items = JSON.parse(input.value || '[]'); } catch(e) { items = []; }
+    if (!Array.isArray(items) || items.length === 0) {
+        items = defaultAboutPillars;
+    }
+    renderAboutPillars(items);
+}
+
+function renderAboutPillars(items) {
+    const container = document.getElementById('about_pillars_container');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!Array.isArray(items) || items.length === 0) {
+        container.innerHTML = '<div class="p-6 text-center text-xs text-stone-400 border border-dashed border-stone-200 rounded-xl bg-stone-50/50">No value pillars added. Click "+ Add Value Pillar" above.</div>';
+        syncAboutPillarsJson();
+        return;
+    }
+    items.forEach((item, idx) => {
+        addAboutPillarRow(item, idx);
+    });
+}
+
+function addAboutPillarRow(data = {}, index = null) {
+    const container = document.getElementById('about_pillars_container');
+    if (!container) return;
+    const emptyMsg = container.querySelector('.text-center');
+    if (emptyMsg) container.innerHTML = '';
+
+    const rowIdx = index !== null ? index : container.querySelectorAll('.about-pillar-card').length;
+    const icon = data.icon || 'star';
+    const title = data.title || '';
+    const desc = data.desc || '';
+
+    const card = document.createElement('div');
+    card.className = 'p-5 bg-stone-50 border border-stone-200 rounded-xl space-y-3 about-pillar-card relative group shadow-2xs';
+    card.innerHTML = `
+        <div class="flex items-center justify-between border-b border-stone-200/80 pb-2">
+            <span class="text-xs font-bold text-[#4B5320] uppercase tracking-wider">Value Pillar #${rowIdx + 1}</span>
+            <div class="flex items-center gap-1">
+                <button type="button" onclick="moveAboutPillarRow(this, -1)" class="p-1 text-stone-500 hover:text-stone-900 rounded cursor-pointer" title="Move Up"><span class="material-symbols-outlined text-base">arrow_upward</span></button>
+                <button type="button" onclick="moveAboutPillarRow(this, 1)" class="p-1 text-stone-500 hover:text-stone-900 rounded cursor-pointer" title="Move Down"><span class="material-symbols-outlined text-base">arrow_downward</span></button>
+                <button type="button" onclick="removeAboutPillarRow(this)" class="p-1 text-rose-600 hover:text-rose-800 rounded cursor-pointer" title="Delete Pillar"><span class="material-symbols-outlined text-base">delete</span></button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+                <label class="block text-[11px] font-semibold text-stone-600 mb-1">Material Icon Name</label>
+                <input type="text" value="${escapeHtml(icon)}" oninput="syncAboutPillarsJson()" class="pillar-icon w-full text-xs font-mono border border-stone-300 rounded p-2">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-[11px] font-semibold text-stone-600 mb-1">Title</label>
+                <input type="text" value="${escapeHtml(title)}" oninput="syncAboutPillarsJson()" class="pillar-title w-full text-sm font-bold border border-stone-300 rounded p-2">
+            </div>
+        </div>
+        <div>
+            <label class="block text-[11px] font-semibold text-stone-600 mb-1">Description</label>
+            <textarea rows="2" oninput="syncAboutPillarsJson()" class="pillar-desc w-full text-xs border border-stone-300 rounded p-2">${escapeHtml(desc)}</textarea>
+        </div>
+    `;
+    container.appendChild(card);
+    syncAboutPillarsJson();
+}
+
+function removeAboutPillarRow(btn) {
+    const card = btn.closest('.about-pillar-card');
+    if (card) {
+        card.remove();
+        syncAboutPillarsJson();
+    }
+}
+
+function moveAboutPillarRow(btn, dir) {
+    const card = btn.closest('.about-pillar-card');
+    if (!card) return;
+    if (dir === -1 && card.previousElementSibling && card.previousElementSibling.classList.contains('about-pillar-card')) {
+        card.parentNode.insertBefore(card, card.previousElementSibling);
+    } else if (dir === 1 && card.nextElementSibling && card.nextElementSibling.classList.contains('about-pillar-card')) {
+        card.parentNode.insertBefore(card.nextElementSibling, card);
+    }
+    syncAboutPillarsJson();
+}
+
+function syncAboutPillarsJson() {
+    const container = document.getElementById('about_pillars_container');
+    if (!container) return;
+    const cards = container.querySelectorAll('.about-pillar-card');
+    const items = [];
+    cards.forEach(c => {
+        const icon = c.querySelector('.pillar-icon')?.value.trim() || 'star';
+        const title = c.querySelector('.pillar-title')?.value.trim() || '';
+        const desc = c.querySelector('.pillar-desc')?.value.trim() || '';
+        if (title || desc) items.push({ icon, title, desc });
+    });
+    const hiddenInput = document.getElementById('about_pillars_json');
+    if (hiddenInput) {
+        hiddenInput.value = JSON.stringify(items);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initAboutPillars();
     switchTab('<?= e($activeTab) ?>');
 });
 </script>

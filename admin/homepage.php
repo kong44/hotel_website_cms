@@ -40,6 +40,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         'home_hero_search_btn_text' => trim($_POST['home_hero_search_btn_text'] ?? 'Check Rates'),
 
         // Tab 2: Philosophy, Story & Stats
+        'home_stats_json' => trim($_POST['home_stats_json'] ?? '[]'),
+        'home_amenities_json' => trim($_POST['home_amenities_json'] ?? '[]'),
         'home_story_badge' => trim($_POST['home_story_badge'] ?? 'The Indra Philosophy'),
         'home_story_title' => trim($_POST['home_story_title'] ?? 'A Serene Sanctuary in the Heart of Phnom Penh'),
         'home_story_desc1' => trim($_POST['home_story_desc1'] ?? ''),
@@ -79,6 +81,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         'home_rooms_btn_text' => trim($_POST['home_rooms_btn_text'] ?? 'View All Accommodations'),
 
         // Tab 4: Dining & Wellness Highlights
+        'home_dw_banners_json' => trim($_POST['home_dw_banners_json'] ?? '[]'),
+
         'home_dining_badge' => trim($_POST['home_dining_badge'] ?? 'Culinary Journey'),
         'home_dining_title' => trim($_POST['home_dining_title'] ?? 'The Bistro & Artisanal Cafe'),
         'home_dining_desc' => trim($_POST['home_dining_desc'] ?? ''),
@@ -370,77 +374,43 @@ require_once __DIR__ . '/../includes/admin-header.php';
                 </div>
             </div>
 
-            <!-- 3 Animated KPI Statistics Counters -->
+            <!-- Dynamic KPI Statistics Counters Builder -->
             <div class="space-y-4">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#4B5320] text-lg">analytics</span>
-                    <h3 class="font-headline font-bold text-base text-onyx-charcoal">3 Animated Statistics Counters</h3>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#4B5320] text-lg">analytics</span>
+                        <h3 class="font-headline font-bold text-base text-onyx-charcoal">KPI Statistics Counters</h3>
+                    </div>
+                    <button type="button" onclick="addHomeStatRow()" class="inline-flex items-center gap-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-2xs cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        <span>Add Stat Counter</span>
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <!-- Stat 1 -->
-                    <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-                        <span class="text-[10px] font-bold text-[#4B5320] uppercase">Counter #1</span>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="text" name="home_stat1_val" value="<?= e(get_setting('home_stat1_val', '12')) ?>" placeholder="Target (e.g. 12)" class="w-full border border-stone-300 rounded p-2 text-xs font-bold">
-                            <input type="text" name="home_stat1_suffix" value="<?= e(get_setting('home_stat1_suffix', ' Suites')) ?>" placeholder="Suffix (e.g. Suites)" class="w-full border border-stone-300 rounded p-2 text-xs">
-                        </div>
-                        <input type="text" name="home_stat1_label" value="<?= e(get_setting('home_stat1_label', 'Boutique Sanctuary')) ?>" placeholder="Label" class="w-full border border-stone-300 rounded p-2 text-xs text-stone-600">
-                    </div>
+                <input type="hidden" name="home_stats_json" id="home_stats_json" value="<?= e(get_setting('home_stats_json', '[]')) ?>">
 
-                    <!-- Stat 2 -->
-                    <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-                        <span class="text-[10px] font-bold text-[#4B5320] uppercase">Counter #2</span>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="text" name="home_stat2_val" value="<?= e(get_setting('home_stat2_val', '15')) ?>" placeholder="Target (e.g. 15)" class="w-full border border-stone-300 rounded p-2 text-xs font-bold">
-                            <input type="text" name="home_stat2_suffix" value="<?= e(get_setting('home_stat2_suffix', '% Off')) ?>" placeholder="Suffix (e.g. % Off)" class="w-full border border-stone-300 rounded p-2 text-xs">
-                        </div>
-                        <input type="text" name="home_stat2_label" value="<?= e(get_setting('home_stat2_label', 'Direct Privilege')) ?>" placeholder="Label" class="w-full border border-stone-300 rounded p-2 text-xs text-stone-600">
-                    </div>
-
-                    <!-- Stat 3 -->
-                    <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-                        <span class="text-[10px] font-bold text-[#4B5320] uppercase">Counter #3</span>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="text" name="home_stat3_val" value="<?= e(get_setting('home_stat3_val', '10')) ?>" placeholder="Target (e.g. 10)" class="w-full border border-stone-300 rounded p-2 text-xs font-bold">
-                            <input type="text" name="home_stat3_suffix" value="<?= e(get_setting('home_stat3_suffix', ' Mins')) ?>" placeholder="Suffix (e.g. Mins)" class="w-full border border-stone-300 rounded p-2 text-xs">
-                        </div>
-                        <input type="text" name="home_stat3_label" value="<?= e(get_setting('home_stat3_label', 'To Royal Palace')) ?>" placeholder="Label" class="w-full border border-stone-300 rounded p-2 text-xs text-stone-600">
-                    </div>
+                <div id="home_stats_container" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Dynamic Stat Items rendered by JS -->
                 </div>
             </div>
 
-            <!-- 4 Quick Highlighted Amenities -->
-            <div class="space-y-4">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#4B5320] text-lg">checklist</span>
-                    <h3 class="font-headline font-bold text-base text-onyx-charcoal">4 Highlighted Quick Amenities</h3>
+            <!-- Dynamic Quick Highlighted Amenities Builder -->
+            <div class="space-y-4 pt-4 border-t border-stone-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#4B5320] text-lg">checklist</span>
+                        <h3 class="font-headline font-bold text-base text-onyx-charcoal">Highlighted Quick Amenities</h3>
+                    </div>
+                    <button type="button" onclick="addHomeAmenityRow()" class="inline-flex items-center gap-1 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-2xs cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        <span>Add Amenity</span>
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-                        <span class="text-[10px] font-bold text-stone-400 uppercase">Amenity 1</span>
-                        <input type="text" name="home_amenity1_icon" value="<?= e(get_setting('home_amenity1_icon', 'pool')) ?>" placeholder="Material Icon (pool)" class="w-full border border-stone-300 rounded p-2 text-xs font-mono">
-                        <input type="text" name="home_amenity1_text" value="<?= e(get_setting('home_amenity1_text', 'Saltwater Pool')) ?>" placeholder="Label" class="w-full border border-stone-300 rounded p-2 text-xs">
-                    </div>
+                <input type="hidden" name="home_amenities_json" id="home_amenities_json" value="<?= e(get_setting('home_amenities_json', '[]')) ?>">
 
-                    <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-                        <span class="text-[10px] font-bold text-stone-400 uppercase">Amenity 2</span>
-                        <input type="text" name="home_amenity2_icon" value="<?= e(get_setting('home_amenity2_icon', 'fitness_center')) ?>" placeholder="Material Icon (fitness_center)" class="w-full border border-stone-300 rounded p-2 text-xs font-mono">
-                        <input type="text" name="home_amenity2_text" value="<?= e(get_setting('home_amenity2_text', 'Fitness Center')) ?>" placeholder="Label" class="w-full border border-stone-300 rounded p-2 text-xs">
-                    </div>
-
-                    <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-                        <span class="text-[10px] font-bold text-stone-400 uppercase">Amenity 3</span>
-                        <input type="text" name="home_amenity3_icon" value="<?= e(get_setting('home_amenity3_icon', 'restaurant')) ?>" placeholder="Material Icon (restaurant)" class="w-full border border-stone-300 rounded p-2 text-xs font-mono">
-                        <input type="text" name="home_amenity3_text" value="<?= e(get_setting('home_amenity3_text', 'Fine Bistro & Cafe')) ?>" placeholder="Label" class="w-full border border-stone-300 rounded p-2 text-xs">
-                    </div>
-
-                    <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-                        <span class="text-[10px] font-bold text-stone-400 uppercase">Amenity 4</span>
-                        <input type="text" name="home_amenity4_icon" value="<?= e(get_setting('home_amenity4_icon', 'wifi')) ?>" placeholder="Material Icon (wifi)" class="w-full border border-stone-300 rounded p-2 text-xs font-mono">
-                        <input type="text" name="home_amenity4_text" value="<?= e(get_setting('home_amenity4_text', 'High-Speed Wi-Fi')) ?>" placeholder="Label" class="w-full border border-stone-300 rounded p-2 text-xs">
-                    </div>
+                <div id="home_amenities_container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Dynamic Amenity Items rendered by JS -->
                 </div>
             </div>
 
@@ -498,92 +468,29 @@ require_once __DIR__ . '/../includes/admin-header.php';
         </div>
 
         <!-- =======================================================
-             TAB 4: Dining & Wellness Highlights Banners
+             TAB 4: Dining & Wellness Highlights Banners (Items Builder)
              ======================================================= -->
-        <div id="tab-content-experiences" class="home-tab-content hidden bg-white rounded-2xl border border-stone-200 shadow-sm p-6 sm:p-8 space-y-8">
+        <div id="tab-content-experiences" class="home-tab-content hidden bg-white rounded-2xl border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6">
             
-            <div class="border-b border-stone-200 pb-4">
-                <h2 class="font-headline font-bold text-xl text-onyx-charcoal flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#4B5320]">restaurant</span>
-                    <span>Dining & Wellness Experience Banners</span>
-                </h2>
-                <p class="text-xs text-stone-500">Configure the two split feature banners promoting the bistro cafe and wellness center.</p>
-            </div>
-
-            <!-- Dining Banner -->
-            <div class="p-6 bg-stone-50 rounded-2xl border border-stone-200 space-y-4">
-                <div class="flex items-center gap-2 text-stone-800 font-headline font-bold text-base">
-                    <span class="material-symbols-outlined text-[#4B5320]">restaurant_menu</span>
-                    <span>Dining Banner (The Bistro & Artisanal Cafe)</span>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Banner Badge</label>
-                        <input type="text" name="home_dining_badge" value="<?= e(get_setting('home_dining_badge', 'Culinary Journey')) ?>" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Banner Title</label>
-                        <input type="text" name="home_dining_title" value="<?= e(get_setting('home_dining_title', 'The Bistro & Artisanal Cafe')) ?>" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold">
-                    </div>
-                </div>
-
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-4">
                 <div>
-                    <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Description</label>
-                    <textarea name="home_dining_desc" rows="3" class="w-full border border-stone-300 rounded-lg p-2 text-xs"><?= e(get_setting('home_dining_desc', 'Indulge in an exquisite culinary journey featuring international and Asian-fusion cuisine with a contemporary twist.')) ?></textarea>
+                    <h2 class="font-headline font-bold text-xl text-onyx-charcoal flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#4B5320]">restaurant</span>
+                        <span>Dining & Wellness Experience Banners</span>
+                    </h2>
+                    <p class="text-xs text-stone-500 mt-0.5">Manage split feature banners promoting dining, spa, pool, and lifestyle experiences on the homepage.</p>
                 </div>
-
-                <?= render_image_uploader_field('home_dining_image', get_setting('home_dining_image', $defaultDiningImage), 'Dining Banner Photo', 'general') ?>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div>
-                        <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Button Label</label>
-                        <input type="text" name="home_dining_btn_text" value="<?= e(get_setting('home_dining_btn_text', 'Explore Dining Menus')) ?>" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Button Destination URL</label>
-                        <input type="text" name="home_dining_btn_url" value="<?= e(get_setting('home_dining_btn_url', 'eat-drink.php')) ?>" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-mono">
-                    </div>
-                </div>
+                <button type="button" onclick="addHomeDwBannerRow()" class="inline-flex items-center gap-1.5 bg-[#343c0a] hover:bg-deep-olive text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-2xs cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">add</span>
+                    <span>Add Experience Banner</span>
+                </button>
             </div>
 
-            <!-- Wellness Banner -->
-            <div class="p-6 bg-stone-50 rounded-2xl border border-stone-200 space-y-4">
-                <div class="flex items-center gap-2 text-stone-800 font-headline font-bold text-base">
-                    <span class="material-symbols-outlined text-[#4B5320]">spa</span>
-                    <span>Wellness Banner (Gym, Pool & Spa)</span>
-                </div>
+            <input type="hidden" name="home_dw_banners_json" id="home_dw_banners_json" value="<?= e(get_setting('home_dw_banners_json', '[]')) ?>">
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Banner Badge</label>
-                        <input type="text" name="home_wellness_badge" value="<?= e(get_setting('home_wellness_badge', 'Health & Vitality')) ?>" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Banner Title</label>
-                        <input type="text" name="home_wellness_title" value="<?= e(get_setting('home_wellness_title', 'Fitness Center, Pool & Spa')) ?>" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-bold">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Description</label>
-                    <textarea name="home_wellness_desc" rows="3" class="w-full border border-stone-300 rounded-lg p-2 text-xs"><?= e(get_setting('home_wellness_desc', 'Stay invigorated with our state-of-the-art training gear, workout machines, and our serene outdoor saltwater pool open daily from 7:00 AM to 9:00 PM. Unwind afterwards with authentic Khmer herbal massage treatments designed to soothe mind and body.')) ?></textarea>
-                </div>
-
-                <?= render_image_uploader_field('home_wellness_image', get_setting('home_wellness_image', $defaultWellnessImage), 'Wellness Banner Photo', 'general') ?>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div>
-                        <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Button Label</label>
-                        <input type="text" name="home_wellness_btn_text" value="<?= e(get_setting('home_wellness_btn_text', 'Discover Wellness')) ?>" class="w-full border border-stone-300 rounded-lg p-2 text-xs">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Button Destination URL</label>
-                        <input type="text" name="home_wellness_btn_url" value="<?= e(get_setting('home_wellness_btn_url', 'wellness.php')) ?>" class="w-full border border-stone-300 rounded-lg p-2 text-xs font-mono">
-                    </div>
-                </div>
+            <div id="home_dw_banners_container" class="space-y-6">
+                <!-- Dynamic Banner Cards rendered by JS -->
             </div>
-
         </div>
 
         <!-- =======================================================
@@ -738,8 +645,362 @@ function toggleHeroMediaType(type) {
     }
 }
 
-// Auto-switch to hash tab on page load
+if (typeof escapeHtml !== 'function') {
+    window.escapeHtml = function(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+}
+
+// Initialize Dining & Wellness Banners Builder
+const defaultDwBanners = [
+    {
+        badge: '<?= e(addslashes(get_setting('home_dining_badge', 'Culinary Journey'))) ?>',
+        title: '<?= e(addslashes(get_setting('home_dining_title', 'The Bistro & Artisanal Cafe'))) ?>',
+        desc: '<?= e(addslashes(get_setting('home_dining_desc', 'Indulge in an exquisite culinary journey featuring international and Asian-fusion cuisine with a contemporary twist.'))) ?>',
+        image_url: '<?= e(addslashes(get_setting('home_dining_image', 'https://lh3.googleusercontent.com/aida/AP1WRLu4xqDm5eXV-bc_ApYrUK1GnN0Euq-6ES4WN642l6K8VhewdBb_YkEtWSSt-tybo0AKJFBQh2oRWlfCx42rbsSmJsLPSmn2ODfXDog-y3cHuE5NTuWtSDiZptOZNk-bMlpk3s-xS7TRQHWRaUeUH0_bRiicGwQeGjy6gBDbaO4KosbM7QsKUNWT0PhQSHXUnhupahrd4i6fqtDtt53ZX2XGRn06_VQba3YHrkQ1BSNwkc5KeAJ3nMpX63ho'))) ?>',
+        btn_text: '<?= e(addslashes(get_setting('home_dining_btn_text', 'Explore Dining Menus'))) ?>',
+        btn_url: '<?= e(addslashes(get_setting('home_dining_btn_url', '/eat-drink'))) ?>',
+        image_pos: 'right'
+    },
+    {
+        badge: '<?= e(addslashes(get_setting('home_wellness_badge', 'Health & Vitality'))) ?>',
+        title: '<?= e(addslashes(get_setting('home_wellness_title', 'Fitness Center, Pool & Spa'))) ?>',
+        desc: '<?= e(addslashes(get_setting('home_wellness_desc', 'Stay invigorated with our state-of-the-art training gear, workout machines, and our serene outdoor saltwater pool open daily from 7:00 AM to 9:00 PM. Unwind afterwards with authentic Khmer herbal massage treatments designed to soothe mind and body.'))) ?>',
+        image_url: '<?= e(addslashes(get_setting('home_wellness_image', 'https://lh3.googleusercontent.com/aida/AP1WRLuptPITXoiXpQR1wIOmYOuIMSUpJR1sTCXJga7uhGTXxKzccE6d21YAs-Fz3vugKf8Di3bkOx3Z2SAFqzNx65b_Uw7N7kpd85zK1LmfmQdCORWGDlOrtH72JS6rhGzsyzxnD8WonzUh6ObvlE7ID6Qbn5drvwWEj2vxz-cViALFQ0lhcHoW29UYsHXJWpGDyXLv5D6oiMwysDWC5sB1LzkdFz773ymQ3ZZ8FBQ4aSJgr2zufcudA_X7GzK5'))) ?>',
+        btn_text: '<?= e(addslashes(get_setting('home_wellness_btn_text', 'Discover Wellness'))) ?>',
+        btn_url: '<?= e(addslashes(get_setting('home_wellness_btn_url', '/wellness'))) ?>',
+        image_pos: 'left'
+    }
+];
+
+function initHomeDwBanners() {
+    const input = document.getElementById('home_dw_banners_json');
+    if (!input) return;
+    const jsonVal = input.value;
+    let items = [];
+    try {
+        items = JSON.parse(jsonVal || '[]');
+    } catch(e) { items = []; }
+
+    if (!Array.isArray(items) || items.length === 0) {
+        items = defaultDwBanners;
+    }
+
+    renderHomeDwBanners(items);
+}
+
+function renderHomeDwBanners(items) {
+    const container = document.getElementById('home_dw_banners_container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!Array.isArray(items) || items.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-xs text-stone-400 border border-dashed border-stone-200 rounded-2xl bg-stone-50/50">No experience banners added. Click "+ Add Experience Banner" above to create one.</div>';
+        syncHomeDwBannersJson();
+        return;
+    }
+
+    items.forEach((item, idx) => {
+        addHomeDwBannerRow(item, idx);
+    });
+}
+
+function addHomeDwBannerRow(data = {}, index = null) {
+    const container = document.getElementById('home_dw_banners_container');
+    if (!container) return;
+    const emptyMsg = container.querySelector('.text-center');
+    if (emptyMsg) {
+        container.innerHTML = '';
+    }
+
+    const rowIdx = index !== null ? index : container.querySelectorAll('.dw-banner-card').length;
+    const badge = data.badge || 'New Experience';
+    const title = data.title || '';
+    const desc = data.desc || '';
+    const image_url = data.image_url || '';
+    const btn_text = data.btn_text || 'Learn More';
+    const btn_url = data.btn_url || '/eat-drink';
+    const image_pos = data.image_pos || (rowIdx % 2 === 1 ? 'left' : 'right');
+
+    const card = document.createElement('div');
+    card.className = 'p-6 bg-stone-50 border border-stone-200 rounded-2xl space-y-4 dw-banner-card relative group shadow-2xs';
+    card.innerHTML = `
+        <div class="flex items-center justify-between border-b border-stone-200/80 pb-3">
+            <div class="flex items-center gap-2 text-stone-800 font-headline font-bold text-base">
+                <span class="material-symbols-outlined text-[#4B5320]">auto_awesome</span>
+                <span>Experience Banner #${rowIdx + 1}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="moveHomeDwBannerRow(this, -1)" class="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition cursor-pointer" title="Move Up">
+                    <span class="material-symbols-outlined text-base">arrow_upward</span>
+                </button>
+                <button type="button" onclick="moveHomeDwBannerRow(this, 1)" class="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition cursor-pointer" title="Move Down">
+                    <span class="material-symbols-outlined text-base">arrow_downward</span>
+                </button>
+                <button type="button" onclick="removeHomeDwBannerRow(this)" class="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-100/60 rounded-lg transition cursor-pointer" title="Delete Banner">
+                    <span class="material-symbols-outlined text-base">delete</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Banner Badge</label>
+                <input type="text" value="${escapeHtml(badge)}" oninput="syncHomeDwBannersJson()" class="dw-banner-badge w-full border border-stone-300 rounded-lg p-2 text-xs font-semibold">
+            </div>
+            <div>
+                <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Banner Title</label>
+                <input type="text" value="${escapeHtml(title)}" oninput="syncHomeDwBannersJson()" class="dw-banner-title w-full border border-stone-300 rounded-lg p-2 text-xs font-bold text-onyx-charcoal">
+            </div>
+            <div>
+                <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Image Layout Position</label>
+                <select onchange="syncHomeDwBannersJson()" class="dw-banner-pos w-full border border-stone-300 rounded-lg p-2 text-xs font-bold text-stone-800 bg-white">
+                    <option value="right" ${image_pos === 'right' ? 'selected' : ''}>Text Left / Image Right</option>
+                    <option value="left" ${image_pos === 'left' ? 'selected' : ''}>Image Left / Text Right</option>
+                    <option value="auto" ${image_pos === 'auto' ? 'selected' : ''}>Auto Alternating</option>
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Description</label>
+            <textarea rows="2" oninput="syncHomeDwBannersJson()" class="dw-banner-desc w-full border border-stone-300 rounded-lg p-2 text-xs">${escapeHtml(desc)}</textarea>
+        </div>
+
+        <div>
+            <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Banner Photo URL</label>
+            <div class="flex items-center gap-2">
+                <input type="text" value="${escapeHtml(image_url)}" oninput="syncHomeDwBannersJson()" class="dw-banner-img flex-1 border border-stone-300 rounded-lg p-2 text-xs font-mono">
+                <button type="button" onclick="openDwImagePicker(this)" class="px-3 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold rounded-lg transition shrink-0 cursor-pointer">Choose Image</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Button Label</label>
+                <input type="text" value="${escapeHtml(btn_text)}" oninput="syncHomeDwBannersJson()" class="dw-banner-btn-text w-full border border-stone-300 rounded-lg p-2 text-xs font-semibold">
+            </div>
+            <div>
+                <label class="block font-bold text-[11px] uppercase tracking-wider text-stone-600 mb-1">Button Destination URL</label>
+                <input type="text" value="${escapeHtml(btn_url)}" oninput="syncHomeDwBannersJson()" class="dw-banner-btn-url w-full border border-stone-300 rounded-lg p-2 text-xs font-mono">
+            </div>
+        </div>
+    `;
+
+    container.appendChild(card);
+    syncHomeDwBannersJson();
+}
+
+function removeHomeDwBannerRow(btn) {
+    const card = btn.closest('.dw-banner-card');
+    if (card) {
+        card.remove();
+        syncHomeDwBannersJson();
+        const container = document.getElementById('home_dw_banners_container');
+        if (container && container.querySelectorAll('.dw-banner-card').length === 0) {
+            container.innerHTML = '<div class="p-8 text-center text-xs text-stone-400 border border-dashed border-stone-200 rounded-2xl bg-stone-50/50">No experience banners added. Click "+ Add Experience Banner" above to create one.</div>';
+        }
+    }
+}
+
+function moveHomeDwBannerRow(btn, direction) {
+    const card = btn.closest('.dw-banner-card');
+    if (!card) return;
+    if (direction === -1 && card.previousElementSibling && card.previousElementSibling.classList.contains('dw-banner-card')) {
+        card.parentNode.insertBefore(card, card.previousElementSibling);
+    } else if (direction === 1 && card.nextElementSibling && card.nextElementSibling.classList.contains('dw-banner-card')) {
+        card.parentNode.insertBefore(card.nextElementSibling, card);
+    }
+    syncHomeDwBannersJson();
+}
+
+function syncHomeDwBannersJson() {
+    const container = document.getElementById('home_dw_banners_container');
+    if (!container) return;
+    const cards = container.querySelectorAll('.dw-banner-card');
+    const items = [];
+
+    cards.forEach(c => {
+        const badge = c.querySelector('.dw-banner-badge')?.value.trim() || '';
+        const title = c.querySelector('.dw-banner-title')?.value.trim() || '';
+        const desc = c.querySelector('.dw-banner-desc')?.value.trim() || '';
+        const image_url = c.querySelector('.dw-banner-img')?.value.trim() || '';
+        const btn_text = c.querySelector('.dw-banner-btn-text')?.value.trim() || '';
+        const btn_url = c.querySelector('.dw-banner-btn-url')?.value.trim() || '';
+        const image_pos = c.querySelector('.dw-banner-pos')?.value || 'auto';
+
+        if (title || badge || desc || image_url) {
+            items.push({ badge, title, desc, image_url, btn_text, btn_url, image_pos });
+        }
+    });
+
+    const hiddenInput = document.getElementById('home_dw_banners_json');
+    if (hiddenInput) {
+        hiddenInput.value = JSON.stringify(items);
+    }
+}
+
+function openDwImagePicker(btn) {
+    const input = btn.previousElementSibling;
+    if (window.openMediaPicker) {
+        window.openMediaPicker(url => {
+            if (input) {
+                input.value = url;
+                syncHomeDwBannersJson();
+            }
+        });
+    } else {
+        const url = prompt('Enter Image URL:', input ? input.value : '');
+        if (url !== null && input) {
+            input.value = url;
+            syncHomeDwBannersJson();
+        }
+    }
+}
+
+// Initialize Home Stats Builder
+const defaultHomeStats = [
+    { val: '<?= e(addslashes(get_setting('home_stat1_val', '12'))) ?>', suffix: '<?= e(addslashes(get_setting('home_stat1_suffix', ' Suites'))) ?>', label: '<?= e(addslashes(get_setting('home_stat1_label', 'Boutique Sanctuary'))) ?>' },
+    { val: '<?= e(addslashes(get_setting('home_stat2_val', '15'))) ?>', suffix: '<?= e(addslashes(get_setting('home_stat2_suffix', '% Off'))) ?>', label: '<?= e(addslashes(get_setting('home_stat2_label', 'Direct Privilege'))) ?>' },
+    { val: '<?= e(addslashes(get_setting('home_stat3_val', '10'))) ?>', suffix: '<?= e(addslashes(get_setting('home_stat3_suffix', ' Mins'))) ?>', label: '<?= e(addslashes(get_setting('home_stat3_label', 'To Royal Palace'))) ?>' }
+];
+
+function initHomeStats() {
+    const input = document.getElementById('home_stats_json');
+    if (!input) return;
+    let items = [];
+    try { items = JSON.parse(input.value || '[]'); } catch(e) { items = []; }
+    if (!Array.isArray(items) || items.length === 0) items = defaultHomeStats;
+    renderHomeStats(items);
+}
+
+function renderHomeStats(items) {
+    const container = document.getElementById('home_stats_container');
+    if (!container) return;
+    container.innerHTML = '';
+    items.forEach((item, idx) => addHomeStatRow(item, idx));
+}
+
+function addHomeStatRow(data = {}, index = null) {
+    const container = document.getElementById('home_stats_container');
+    if (!container) return;
+    const rowIdx = index !== null ? index : container.querySelectorAll('.home-stat-card').length;
+    const val = data.val || '0';
+    const suffix = data.suffix || '';
+    const label = data.label || '';
+
+    const card = document.createElement('div');
+    card.className = 'p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2 home-stat-card relative group shadow-2xs';
+    card.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold text-[#4B5320] uppercase">Counter #${rowIdx + 1}</span>
+            <button type="button" onclick="removeHomeStatRow(this)" class="text-rose-600 hover:text-rose-800 p-0.5 rounded cursor-pointer" title="Delete Stat"><span class="material-symbols-outlined text-sm">delete</span></button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+            <input type="text" value="${escapeHtml(val)}" oninput="syncHomeStatsJson()" placeholder="Target (e.g. 12)" class="stat-val w-full border border-stone-300 rounded p-2 text-xs font-bold">
+            <input type="text" value="${escapeHtml(suffix)}" oninput="syncHomeStatsJson()" placeholder="Suffix (e.g. Suites)" class="stat-suffix w-full border border-stone-300 rounded p-2 text-xs">
+        </div>
+        <input type="text" value="${escapeHtml(label)}" oninput="syncHomeStatsJson()" placeholder="Label" class="stat-label w-full border border-stone-300 rounded p-2 text-xs text-stone-600">
+    `;
+    container.appendChild(card);
+    syncHomeStatsJson();
+}
+
+function removeHomeStatRow(btn) {
+    const card = btn.closest('.home-stat-card');
+    if (card) { card.remove(); syncHomeStatsJson(); }
+}
+
+function syncHomeStatsJson() {
+    const container = document.getElementById('home_stats_container');
+    if (!container) return;
+    const cards = container.querySelectorAll('.home-stat-card');
+    const items = [];
+    cards.forEach(c => {
+        const val = c.querySelector('.stat-val')?.value.trim() || '';
+        const suffix = c.querySelector('.stat-suffix')?.value.trim() || '';
+        const label = c.querySelector('.stat-label')?.value.trim() || '';
+        if (val || label) items.push({ val, suffix, label });
+    });
+    const hidden = document.getElementById('home_stats_json');
+    if (hidden) hidden.value = JSON.stringify(items);
+}
+
+// Initialize Home Amenities Builder
+const defaultHomeAmenities = [
+    { icon: '<?= e(addslashes(get_setting('home_amenity1_icon', 'pool'))) ?>', text: '<?= e(addslashes(get_setting('home_amenity1_text', 'Saltwater Pool'))) ?>' },
+    { icon: '<?= e(addslashes(get_setting('home_amenity2_icon', 'fitness_center'))) ?>', text: '<?= e(addslashes(get_setting('home_amenity2_text', 'Fitness Center'))) ?>' },
+    { icon: '<?= e(addslashes(get_setting('home_amenity3_icon', 'restaurant'))) ?>', text: '<?= e(addslashes(get_setting('home_amenity3_text', 'Fine Bistro & Cafe'))) ?>' },
+    { icon: '<?= e(addslashes(get_setting('home_amenity4_icon', 'wifi'))) ?>', text: '<?= e(addslashes(get_setting('home_amenity4_text', 'High-Speed Wi-Fi'))) ?>' }
+];
+
+function initHomeAmenities() {
+    const input = document.getElementById('home_amenities_json');
+    if (!input) return;
+    let items = [];
+    try { items = JSON.parse(input.value || '[]'); } catch(e) { items = []; }
+    if (!Array.isArray(items) || items.length === 0) items = defaultHomeAmenities;
+    renderHomeAmenities(items);
+}
+
+function renderHomeAmenities(items) {
+    const container = document.getElementById('home_amenities_container');
+    if (!container) return;
+    container.innerHTML = '';
+    items.forEach((item, idx) => addHomeAmenityRow(item, idx));
+}
+
+function addHomeAmenityRow(data = {}, index = null) {
+    const container = document.getElementById('home_amenities_container');
+    if (!container) return;
+    const rowIdx = index !== null ? index : container.querySelectorAll('.home-amenity-card').length;
+    const icon = data.icon || 'star';
+    const text = data.text || '';
+
+    const card = document.createElement('div');
+    card.className = 'p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2 home-amenity-card relative group shadow-2xs';
+    card.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold text-stone-400 uppercase">Amenity #${rowIdx + 1}</span>
+            <button type="button" onclick="removeHomeAmenityRow(this)" class="text-rose-600 hover:text-rose-800 p-0.5 rounded cursor-pointer" title="Delete Amenity"><span class="material-symbols-outlined text-sm">delete</span></button>
+        </div>
+        <input type="text" value="${escapeHtml(icon)}" oninput="syncHomeAmenitiesJson()" placeholder="Material Icon (pool)" class="amenity-icon w-full border border-stone-300 rounded p-2 text-xs font-mono">
+        <input type="text" value="${escapeHtml(text)}" oninput="syncHomeAmenitiesJson()" placeholder="Label" class="amenity-text w-full border border-stone-300 rounded p-2 text-xs">
+    `;
+    container.appendChild(card);
+    syncHomeAmenitiesJson();
+}
+
+function removeHomeAmenityRow(btn) {
+    const card = btn.closest('.home-amenity-card');
+    if (card) { card.remove(); syncHomeAmenitiesJson(); }
+}
+
+function syncHomeAmenitiesJson() {
+    const container = document.getElementById('home_amenities_container');
+    if (!container) return;
+    const cards = container.querySelectorAll('.home-amenity-card');
+    const items = [];
+    cards.forEach(c => {
+        const icon = c.querySelector('.amenity-icon')?.value.trim() || 'star';
+        const text = c.querySelector('.amenity-text')?.value.trim() || '';
+        if (text) items.push({ icon, text });
+    });
+    const hidden = document.getElementById('home_amenities_json');
+    if (hidden) hidden.value = JSON.stringify(items);
+}
+
+// Auto-switch to hash tab on page load & init DW builder
 document.addEventListener('DOMContentLoaded', () => {
+    initHomeDwBanners();
+    initHomeStats();
+    initHomeAmenities();
     const hash = window.location.hash.replace('#', '');
     if (hash && document.getElementById('tab-content-' + hash)) {
         switchHomeTab(hash);

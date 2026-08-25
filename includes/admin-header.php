@@ -78,6 +78,15 @@ $flash = get_flash();
         if (window.location.protocol === 'https:' && window.BASE_URL.startsWith('http:')) {
             window.BASE_URL = window.BASE_URL.replace(/^http:/, 'https:');
         }
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
     </script>
     <script src="<?= BASE_URL ?>/assets/js/uploader.js?v=<?= filemtime(ROOT_PATH . '/assets/js/uploader.js') ?>"></script>
     <style>

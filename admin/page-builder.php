@@ -225,6 +225,9 @@ require_once __DIR__ . '/../includes/admin-header.php';
                         <select id="add-block-type-select" class="border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold">
                             <option value="rich_text">📝 Rich Text / HTML</option>
                             <option value="features_grid">🎨 Feature Highlights Grid</option>
+                            <option value="experience_banners">✨ Experience Feature Banners</option>
+                            <option value="value_pillars">💎 Core Value Pillars</option>
+                            <option value="kpi_stats">📊 KPI Statistics Counters</option>
                             <option value="gallery">🖼️ Photo Gallery & Lightbox</option>
                             <option value="cta">📢 Call-to-Action Banner</option>
                             <option value="testimonials">💬 Testimonials & Reviews</option>
@@ -418,6 +421,28 @@ function addNewSectionBlock() {
         newBlock.title = 'Frequently Asked Questions';
         newBlock.faqs = [
             { q: 'What is the check-in time?', a: 'Standard check-in is from 2:00 PM.' }
+        ];
+    } else if (type === 'experience_banners') {
+        newBlock.title = 'Experience Feature Banners';
+        newBlock.banners = [
+            { badge: 'Culinary Journey', title: 'The Bistro Cafe', desc: 'Indulge in artisanal dishes.', image_url: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=800&q=80', btn_text: 'Explore Dining', btn_url: '/eat-drink', image_pos: 'right' },
+            { badge: 'Health & Vitality', title: 'Fitness Center & Spa', desc: 'Serene outdoor saltwater pool.', image_url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80', btn_text: 'Discover Spa', btn_url: '/wellness', image_pos: 'left' }
+        ];
+    } else if (type === 'value_pillars') {
+        newBlock.title = 'Crafted for Discerning Travelers';
+        newBlock.subtitle = 'Our Core Values';
+        newBlock.pillars = [
+            { icon: 'nature_people', title: 'Tranquil Urban Oasis', desc: 'Designed with lush tropical foliage.' },
+            { icon: 'restaurant', title: 'Artisan Culinary Flavors', desc: 'Organic Cambodian specialty coffee.' },
+            { icon: 'loyalty', title: 'Personalized Concierge', desc: 'Tailored itineraries across Phnom Penh.' }
+        ];
+    } else if (type === 'kpi_stats') {
+        newBlock.title = 'Key Statistics & Accomplishments';
+        newBlock.stats = [
+            { val: '12', label: 'Luxury Suites' },
+            { val: '100%', label: 'Saltwater Pool' },
+            { val: '24/7', label: 'Front Desk Concierge' },
+            { val: '4.9★', label: 'Guest Satisfaction' }
         ];
     }
 

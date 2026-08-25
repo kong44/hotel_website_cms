@@ -143,7 +143,31 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<!-- Core Pillars Section -->
+<!-- Core Pillars Section (Dynamic Builder) -->
+<?php
+$pillarsRaw = get_setting('about_pillars_json', '[]');
+$aboutPillars = json_decode($pillarsRaw, true);
+if (!is_array($aboutPillars) || empty($aboutPillars)) {
+    $aboutPillars = [
+        [
+            'icon' => get_setting('about_pillar1_icon', 'nature_people'),
+            'title' => get_setting('about_pillar1_title', 'Tranquil Urban Oasis'),
+            'desc' => get_setting('about_pillar1_desc', 'Designed with lush tropical foliage, quiet courtyard reflection ponds, and natural acoustic insulation so you can unwind completely.')
+        ],
+        [
+            'icon' => get_setting('about_pillar2_icon', 'restaurant'),
+            'title' => get_setting('about_pillar2_title', 'Artisan Culinary Flavors'),
+            'desc' => get_setting('about_pillar2_desc', 'From freshly brewed organic Cambodian specialty coffee to authentic Khmer dishes and refined international classics at The Bistro.')
+        ],
+        [
+            'icon' => get_setting('about_pillar3_icon', 'loyalty'),
+            'title' => get_setting('about_pillar3_title', 'Personalized Concierge'),
+            'desc' => get_setting('about_pillar3_desc', 'Dedicated local recommendations, private chauffeur bookings, sunset river cruises, and tailored itineraries across Phnom Penh.')
+        ]
+    ];
+}
+$pillarColsClass = (count($aboutPillars) === 2) ? 'md:grid-cols-2' : ((count($aboutPillars) >= 4) ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-3');
+?>
 <section class="py-16 sm:py-20 bg-white border-t border-b border-stone-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
@@ -153,39 +177,18 @@ require_once __DIR__ . '/includes/header.php';
             </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Pillar 1 -->
+        <div class="grid grid-cols-1 <?= $pillarColsClass ?> gap-8">
+            <?php foreach ($aboutPillars as $p): ?>
             <div class="p-8 rounded-2xl bg-stone-50 border border-stone-200 space-y-4 transition hover:shadow-md">
                 <div class="w-12 h-12 rounded-xl bg-[#343c0a] text-white flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl"><?= e(get_setting('about_pillar1_icon', 'nature_people')) ?></span>
+                    <span class="material-symbols-outlined text-2xl"><?= e($p['icon'] ?? 'star') ?></span>
                 </div>
-                <h3 class="font-headline font-bold text-lg text-stone-900"><?= e(get_setting('about_pillar1_title', 'Tranquil Urban Oasis')) ?></h3>
+                <h3 class="font-headline font-bold text-lg text-stone-900"><?= e($p['title'] ?? '') ?></h3>
                 <p class="text-stone-600 text-xs sm:text-sm leading-relaxed">
-                    <?= e(get_setting('about_pillar1_desc', 'Designed with lush tropical foliage, quiet courtyard reflection ponds, and natural acoustic insulation so you can unwind completely.')) ?>
+                    <?= e($p['desc'] ?? '') ?>
                 </p>
             </div>
-
-            <!-- Pillar 2 -->
-            <div class="p-8 rounded-2xl bg-stone-50 border border-stone-200 space-y-4 transition hover:shadow-md">
-                <div class="w-12 h-12 rounded-xl bg-[#343c0a] text-white flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl"><?= e(get_setting('about_pillar2_icon', 'restaurant')) ?></span>
-                </div>
-                <h3 class="font-headline font-bold text-lg text-stone-900"><?= e(get_setting('about_pillar2_title', 'Artisan Culinary Flavors')) ?></h3>
-                <p class="text-stone-600 text-xs sm:text-sm leading-relaxed">
-                    <?= e(get_setting('about_pillar2_desc', 'From freshly brewed organic Cambodian specialty coffee to authentic Khmer dishes and refined international classics at The Bistro.')) ?>
-                </p>
-            </div>
-
-            <!-- Pillar 3 -->
-            <div class="p-8 rounded-2xl bg-stone-50 border border-stone-200 space-y-4 transition hover:shadow-md">
-                <div class="w-12 h-12 rounded-xl bg-[#343c0a] text-white flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl"><?= e(get_setting('about_pillar3_icon', 'loyalty')) ?></span>
-                </div>
-                <h3 class="font-headline font-bold text-lg text-stone-900"><?= e(get_setting('about_pillar3_title', 'Personalized Concierge')) ?></h3>
-                <p class="text-stone-600 text-xs sm:text-sm leading-relaxed">
-                    <?= e(get_setting('about_pillar3_desc', 'Dedicated local recommendations, private chauffeur bookings, sunset river cruises, and tailored itineraries across Phnom Penh.')) ?>
-                </p>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </section>

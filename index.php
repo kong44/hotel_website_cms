@@ -195,26 +195,28 @@ $storyImage = get_setting('home_story_image', 'https://lh3.googleusercontent.com
 $storyImgBadge = get_setting('home_story_image_badge', 'Authentic Hospitality');
 $storyImgTitle = get_setting('home_story_image_title', 'Designed for Unrivaled Comfort & Tranquility');
 
-// KPI Counters
-$stat1Val = (int)get_setting('home_stat1_val', '12');
-$stat1Suffix = get_setting('home_stat1_suffix', ' Suites');
-$stat1Label = get_setting('home_stat1_label', 'Boutique Sanctuary');
+// KPI Counters (Dynamic Items Builder with Fallback)
+$homeStatsRaw = get_setting('home_stats_json', '[]');
+$homeStats = json_decode($homeStatsRaw, true);
+if (!is_array($homeStats) || empty($homeStats)) {
+    $homeStats = [
+        ['val' => get_setting('home_stat1_val', '12'), 'suffix' => get_setting('home_stat1_suffix', ' Suites'), 'label' => get_setting('home_stat1_label', 'Boutique Sanctuary')],
+        ['val' => get_setting('home_stat2_val', '15'), 'suffix' => get_setting('home_stat2_suffix', '% Off'), 'label' => get_setting('home_stat2_label', 'Direct Privilege')],
+        ['val' => get_setting('home_stat3_val', '10'), 'suffix' => get_setting('home_stat3_suffix', ' Mins'), 'label' => get_setting('home_stat3_label', 'To Royal Palace')]
+    ];
+}
 
-$stat2Val = (int)get_setting('home_stat2_val', '15');
-$stat2Suffix = get_setting('home_stat2_suffix', '% Off');
-$stat2Label = get_setting('home_stat2_label', 'Direct Privilege');
-
-$stat3Val = (int)get_setting('home_stat3_val', '10');
-$stat3Suffix = get_setting('home_stat3_suffix', ' Mins');
-$stat3Label = get_setting('home_stat3_label', 'To Royal Palace');
-
-// 4 Quick Amenities
-$amenitiesList = [
-    ['icon' => get_setting('home_amenity1_icon', 'pool'), 'text' => get_setting('home_amenity1_text', __t('amenity_pool', 'Saltwater Pool'))],
-    ['icon' => get_setting('home_amenity2_icon', 'fitness_center'), 'text' => get_setting('home_amenity2_text', __t('amenity_fitness', 'Fitness Center'))],
-    ['icon' => get_setting('home_amenity3_icon', 'restaurant'), 'text' => get_setting('home_amenity3_text', __t('amenity_dining', 'Fine Bistro & Cafe'))],
-    ['icon' => get_setting('home_amenity4_icon', 'wifi'), 'text' => get_setting('home_amenity4_text', __t('amenity_wifi', 'High-Speed Wi-Fi'))],
-];
+// Quick Amenities (Dynamic Items Builder with Fallback)
+$homeAmenitiesRaw = get_setting('home_amenities_json', '[]');
+$amenitiesList = json_decode($homeAmenitiesRaw, true);
+if (!is_array($amenitiesList) || empty($amenitiesList)) {
+    $amenitiesList = [
+        ['icon' => get_setting('home_amenity1_icon', 'pool'), 'text' => get_setting('home_amenity1_text', __t('amenity_pool', 'Saltwater Pool'))],
+        ['icon' => get_setting('home_amenity2_icon', 'fitness_center'), 'text' => get_setting('home_amenity2_text', __t('amenity_fitness', 'Fitness Center'))],
+        ['icon' => get_setting('home_amenity3_icon', 'restaurant'), 'text' => get_setting('home_amenity3_text', __t('amenity_dining', 'Fine Bistro & Cafe'))],
+        ['icon' => get_setting('home_amenity4_icon', 'wifi'), 'text' => get_setting('home_amenity4_text', __t('amenity_wifi', 'High-Speed Wi-Fi'))],
+    ];
+}
 ?>
 <section class="py-20 bg-[#f9f9f9] border-b border-stone-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -243,27 +245,25 @@ $amenitiesList = [
                 <?php endif; ?>
                 
                 <!-- Animated Statistics Counters -->
-                <div class="grid grid-cols-3 gap-4 pt-2 border-t border-stone-200">
+                <div class="grid grid-cols-<?= min(count($homeStats), 4) ?> gap-4 pt-2 border-t border-stone-200">
+                    <?php foreach ($homeStats as $st): 
+                        $valNum = (int)preg_replace('/[^0-9]/', '', $st['val'] ?? '0');
+                        $suf = e($st['suffix'] ?? '');
+                        $lbl = e($st['label'] ?? '');
+                    ?>
                     <div>
-                        <div class="font-headline font-bold text-2xl sm:text-3xl text-[#343c0a] animate-counter" data-target="<?= $stat1Val ?>" data-suffix="<?= e($stat1Suffix) ?>"><?= $stat1Val . e($stat1Suffix) ?></div>
-                        <span class="text-[11px] text-stone-500 font-medium"><?= e($stat1Label) ?></span>
+                        <div class="font-headline font-bold text-2xl sm:text-3xl text-[#343c0a] animate-counter" data-target="<?= $valNum ?>" data-suffix="<?= $suf ?>"><?= e($st['val'] . $suf) ?></div>
+                        <span class="text-[11px] text-stone-500 font-medium"><?= $lbl ?></span>
                     </div>
-                    <div>
-                        <div class="font-headline font-bold text-2xl sm:text-3xl text-[#343c0a] animate-counter" data-target="<?= $stat2Val ?>" data-suffix="<?= e($stat2Suffix) ?>"><?= $stat2Val . e($stat2Suffix) ?></div>
-                        <span class="text-[11px] text-stone-500 font-medium"><?= e($stat2Label) ?></span>
-                    </div>
-                    <div>
-                        <div class="font-headline font-bold text-2xl sm:text-3xl text-[#343c0a] animate-counter" data-target="<?= $stat3Val ?>" data-suffix="<?= e($stat3Suffix) ?>"><?= $stat3Val . e($stat3Suffix) ?></div>
-                        <span class="text-[11px] text-stone-500 font-medium"><?= e($stat3Label) ?></span>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
 
-                <!-- 4 Amenities Badges -->
+                <!-- Amenities Badges -->
                 <div class="pt-2 flex flex-wrap gap-6 text-sm font-semibold text-stone-800">
                     <?php foreach ($amenitiesList as $am): ?>
                     <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[#4B5320]"><?= e($am['icon']) ?></span>
-                        <span><?= e($am['text']) ?></span>
+                        <span class="material-symbols-outlined text-[#4B5320]"><?= e($am['icon'] ?? 'star') ?></span>
+                        <span><?= e($am['text'] ?? '') ?></span>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -380,74 +380,80 @@ $roomsBtnText = get_setting('home_rooms_btn_text', __t('rooms_view_all', 'View A
 </section>
 
 <!-- =======================================================
-     Eat & Drink + Gym & Wellness Feature Split Banners
+     Dining & Wellness Feature Experience Banners (Dynamic Repeater)
      ======================================================= -->
 <?php
-$diningBadge = get_setting('home_dining_badge', __t('dining_badge', 'Culinary Journey'));
-$diningTitle = get_setting('home_dining_title', __t('dining_title', 'The Bistro & Artisanal Cafe'));
-$diningDesc = get_setting('home_dining_desc', __t('dining_desc', 'Indulge in an exquisite culinary journey featuring international and Asian-fusion cuisine with a contemporary twist.'));
-$diningImg = get_setting('home_dining_image', 'https://lh3.googleusercontent.com/aida/AP1WRLu4xqDm5eXV-bc_ApYrUK1GnN0Euq-6ES4WN642l6K8VhewdBb_YkEtWSSt-tybo0AKJFBQh2oRWlfCx42rbsSmJsLPSmn2ODfXDog-y3cHuE5NTuWtSDiZptOZNk-bMlpk3s-xS7TRQHWRaUeUH0_bRiicGwQeGjy6gBDbaO4KosbM7QsKUNWT0PhQSHXUnhupahrd4i6fqtDtt53ZX2XGRn06_VQba3YHrkQ1BSNwkc5KeAJ3nMpX63ho');
-$diningBtnText = get_setting('home_dining_btn_text', __t('dining_explore', 'Explore Dining Menus'));
-$diningBtnUrl = get_setting('home_dining_btn_url', '/eat-drink');
+$dwBannersRaw = get_setting('home_dw_banners_json', '[]');
+$dwBanners = json_decode($dwBannersRaw, true);
 
-$wellnessBadge = get_setting('home_wellness_badge', 'Health & Vitality');
-$wellnessTitle = get_setting('home_wellness_title', 'Fitness Center, Pool & Spa');
-$wellnessDesc = get_setting('home_wellness_desc', 'Stay invigorated with our state-of-the-art training gear, workout machines, and our serene outdoor saltwater pool open daily from 7:00 AM to 9:00 PM. Unwind afterwards with authentic Khmer herbal massage treatments designed to soothe mind and body.');
-$wellnessImg = get_setting('home_wellness_image', 'https://lh3.googleusercontent.com/aida/AP1WRLuptPITXoiXpQR1wIOmYOuIMSUpJR1sTCXJga7uhGTXxKzccE6d21YAs-Fz3vugKf8Di3bkOx3Z2SAFqzNx65b_Uw7N7kpd85zK1LmfmQdCORWGDlOrtH72JS6rhGzsyzxnD8WonzUh6ObvlE7ID6Qbn5drvwWEj2vxz-cViALFQ0lhcHoW29UYsHXJWpGDyXLv5D6oiMwysDWC5sB1LzkdFz773ymQ3ZZ8FBQ4aSJgr2zufcudA_X7GzK5');
-$wellnessBtnText = get_setting('home_wellness_btn_text', 'Discover Wellness');
-$wellnessBtnUrl = get_setting('home_wellness_btn_url', '/wellness');
+if (!is_array($dwBanners) || empty($dwBanners)) {
+    $dwBanners = [
+        [
+            'badge' => get_setting('home_dining_badge', __t('dining_badge', 'Culinary Journey')),
+            'title' => get_setting('home_dining_title', __t('dining_title', 'The Bistro & Artisanal Cafe')),
+            'desc' => get_setting('home_dining_desc', __t('dining_desc', 'Indulge in an exquisite culinary journey featuring international and Asian-fusion cuisine with a contemporary twist.')),
+            'image_url' => get_setting('home_dining_image', 'https://lh3.googleusercontent.com/aida/AP1WRLu4xqDm5eXV-bc_ApYrUK1GnN0Euq-6ES4WN642l6K8VhewdBb_YkEtWSSt-tybo0AKJFBQh2oRWlfCx42rbsSmJsLPSmn2ODfXDog-y3cHuE5NTuWtSDiZptOZNk-bMlpk3s-xS7TRQHWRaUeUH0_bRiicGwQeGjy6gBDbaO4KosbM7QsKUNWT0PhQSHXUnhupahrd4i6fqtDtt53ZX2XGRn06_VQba3YHrkQ1BSNwkc5KeAJ3nMpX63ho'),
+            'btn_text' => get_setting('home_dining_btn_text', __t('dining_explore', 'Explore Dining Menus')),
+            'btn_url' => get_setting('home_dining_btn_url', '/eat-drink'),
+            'image_pos' => 'right'
+        ],
+        [
+            'badge' => get_setting('home_wellness_badge', 'Health & Vitality'),
+            'title' => get_setting('home_wellness_title', 'Fitness Center, Pool & Spa'),
+            'desc' => get_setting('home_wellness_desc', 'Stay invigorated with our state-of-the-art training gear, workout machines, and our serene outdoor saltwater pool open daily from 7:00 AM to 9:00 PM. Unwind afterwards with authentic Khmer herbal massage treatments designed to soothe mind and body.'),
+            'image_url' => get_setting('home_wellness_image', 'https://lh3.googleusercontent.com/aida/AP1WRLuptPITXoiXpQR1wIOmYOuIMSUpJR1sTCXJga7uhGTXxKzccE6d21YAs-Fz3vugKf8Di3bkOx3Z2SAFqzNx65b_Uw7N7kpd85zK1LmfmQdCORWGDlOrtH72JS6rhGzsyzxnD8WonzUh6ObvlE7ID6Qbn5drvwWEj2vxz-cViALFQ0lhcHoW29UYsHXJWpGDyXLv5D6oiMwysDWC5sB1LzkdFz773ymQ3ZZ8FBQ4aSJgr2zufcudA_X7GzK5'),
+            'btn_text' => get_setting('home_wellness_btn_text', 'Discover Wellness'),
+            'btn_url' => get_setting('home_wellness_btn_url', '/wellness'),
+            'image_pos' => 'left'
+        ]
+    ];
+}
 ?>
 <section class="py-20 bg-[#f3f3f4]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <!-- Dining Banner -->
-        <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 mb-12 grid grid-cols-1 lg:grid-cols-12 items-center reveal reveal-up">
-            <div class="lg:col-span-6 p-8 sm:p-12 space-y-4">
-                <?php if (!empty($diningBadge)): ?>
-                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#4B5320]"><?= e($diningBadge) ?></span>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <?php 
+        $staggerIdx = 0;
+        foreach ($dwBanners as $idx => $banner): 
+            $pos = strtolower($banner['image_pos'] ?? 'auto');
+            if ($pos === 'auto') {
+                $pos = ($idx % 2 === 1) ? 'left' : 'right';
+            }
+            $isImgLeft = ($pos === 'left');
+            $imgOrderClass = $isImgLeft ? 'order-2 lg:order-1' : 'order-2 lg:order-2';
+            $textOrderClass = $isImgLeft ? 'order-1 lg:order-2' : 'order-1 lg:order-1';
+            $btnBg = ($idx % 2 === 0) ? 'bg-onyx-charcoal hover:bg-black' : 'bg-[#343c0a] hover:bg-deep-olive btn-shimmer';
+            $btnIcon = ($idx % 2 === 0) ? 'restaurant_menu' : 'spa';
+            $targetUrl = BASE_URL . '/' . ltrim(e($banner['btn_url'] ?? '#'), '/');
+        ?>
+        <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 grid grid-cols-1 lg:grid-cols-12 items-center reveal reveal-up stagger-<?= ($staggerIdx++ % 3) + 1 ?>">
+            
+            <!-- Text Content Column -->
+            <div class="lg:col-span-6 <?= $textOrderClass ?> p-8 sm:p-12 space-y-4">
+                <?php if (!empty($banner['badge'])): ?>
+                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#4B5320]"><?= e($banner['badge']) ?></span>
                 <?php endif; ?>
-                <h2 class="font-headline text-3xl font-bold text-onyx-charcoal"><?= e($diningTitle) ?></h2>
+                <h2 class="font-headline text-3xl font-bold text-onyx-charcoal"><?= e($banner['title']) ?></h2>
                 <p class="text-stone-600 leading-relaxed text-sm sm:text-base">
-                    <?= e($diningDesc) ?>
+                    <?= e($banner['desc']) ?>
                 </p>
+                <?php if (!empty($banner['btn_text'])): ?>
                 <div class="pt-2">
-                    <a href="<?= BASE_URL . '/' . ltrim(e($diningBtnUrl), '/') ?>" class="inline-flex items-center gap-2 bg-onyx-charcoal hover:bg-black text-white px-5 py-2.5 rounded text-sm font-semibold transition">
-                        <span><?= e($diningBtnText) ?></span>
-                        <span class="material-symbols-outlined text-base">restaurant_menu</span>
+                    <a href="<?= $targetUrl ?>" class="inline-flex items-center gap-2 <?= $btnBg ?> text-white px-5 py-2.5 rounded text-sm font-semibold transition">
+                        <span><?= e($banner['btn_text']) ?></span>
+                        <span class="material-symbols-outlined text-base"><?= $btnIcon ?></span>
                     </a>
                 </div>
+                <?php endif; ?>
             </div>
-            <div class="lg:col-span-6 h-80 lg:h-full min-h-[340px] overflow-hidden">
-                <img src="<?= e($diningImg) ?>" 
-                     alt="<?= e($diningTitle) ?>" 
+
+            <!-- Image Column -->
+            <div class="lg:col-span-6 <?= $imgOrderClass ?> h-80 lg:h-full min-h-[340px] overflow-hidden">
+                <img src="<?= e($banner['image_url']) ?>" 
+                     alt="<?= e($banner['title']) ?>" 
                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-700">
             </div>
         </div>
-
-        <!-- Gym & Wellness Banner -->
-        <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 grid grid-cols-1 lg:grid-cols-12 items-center reveal reveal-up stagger-1">
-            <div class="lg:col-span-6 order-2 lg:order-1 h-80 lg:h-full min-h-[340px] overflow-hidden">
-                <img src="<?= e($wellnessImg) ?>" 
-                     alt="<?= e($wellnessTitle) ?>" 
-                     class="w-full h-full object-cover hover:scale-105 transition-transform duration-700">
-            </div>
-            <div class="lg:col-span-6 order-1 lg:order-2 p-8 sm:p-12 space-y-4">
-                <?php if (!empty($wellnessBadge)): ?>
-                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#4B5320]"><?= e($wellnessBadge) ?></span>
-                <?php endif; ?>
-                <h2 class="font-headline text-3xl font-bold text-onyx-charcoal"><?= e($wellnessTitle) ?></h2>
-                <p class="text-stone-600 leading-relaxed text-sm sm:text-base">
-                    <?= e($wellnessDesc) ?>
-                </p>
-                <div class="pt-2">
-                    <a href="<?= BASE_URL . '/' . ltrim(e($wellnessBtnUrl), '/') ?>" class="inline-flex items-center gap-2 bg-[#343c0a] hover:bg-deep-olive text-white px-5 py-2.5 rounded text-sm font-semibold transition btn-shimmer">
-                        <span><?= e($wellnessBtnText) ?></span>
-                        <span class="material-symbols-outlined text-base">spa</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
+        <?php endforeach; ?>
     </div>
 </section>
 

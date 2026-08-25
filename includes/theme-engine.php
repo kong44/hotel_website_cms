@@ -345,6 +345,114 @@ function render_dynamic_section_block(array $block, array $theme = []): string {
             <?php
             break;
 
+        // ==========================================
+        // 7. Experience Feature Banners
+        // ==========================================
+        case 'experience_banners':
+            $banners = is_array($block['banners'] ?? null) ? $block['banners'] : [];
+            ?>
+            <section class="py-20 bg-[#f3f3f4]">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                    <?php 
+                    foreach ($banners as $idx => $b): 
+                        $pos = strtolower($b['image_pos'] ?? 'auto');
+                        if ($pos === 'auto') {
+                            $pos = ($idx % 2 === 1) ? 'left' : 'right';
+                        }
+                        $isImgLeft = ($pos === 'left');
+                        $imgOrderClass = $isImgLeft ? 'order-2 lg:order-1' : 'order-2 lg:order-2';
+                        $textOrderClass = $isImgLeft ? 'order-1 lg:order-2' : 'order-1 lg:order-1';
+                        $btnBg = ($idx % 2 === 0) ? 'bg-onyx-charcoal hover:bg-black' : 'bg-[#343c0a] hover:bg-deep-olive btn-shimmer';
+                        $targetUrl = BASE_URL . '/' . ltrim(e($b['btn_url'] ?? '#'), '/');
+                    ?>
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 grid grid-cols-1 lg:grid-cols-12 items-center">
+                        <div class="lg:col-span-6 <?= $textOrderClass ?> p-8 sm:p-12 space-y-4">
+                            <?php if (!empty($b['badge'])): ?>
+                                <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#4B5320]"><?= e($b['badge']) ?></span>
+                            <?php endif; ?>
+                            <h2 class="font-headline text-3xl font-bold text-onyx-charcoal"><?= e($b['title'] ?? '') ?></h2>
+                            <p class="text-stone-600 leading-relaxed text-sm sm:text-base">
+                                <?= e($b['desc'] ?? '') ?>
+                            </p>
+                            <?php if (!empty($b['btn_text'])): ?>
+                            <div class="pt-2">
+                                <a href="<?= $targetUrl ?>" class="inline-flex items-center gap-2 <?= $btnBg ?> text-white px-5 py-2.5 rounded text-sm font-semibold transition">
+                                    <span><?= e($b['btn_text']) ?></span>
+                                    <span class="material-symbols-outlined text-base">arrow_forward</span>
+                                </a>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="lg:col-span-6 <?= $imgOrderClass ?> h-80 lg:h-full min-h-[340px] overflow-hidden">
+                            <img src="<?= e($b['image_url'] ?? '') ?>" alt="<?= e($b['title'] ?? '') ?>" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+            <?php
+            break;
+
+        // ==========================================
+        // 8. Core Value Pillars
+        // ==========================================
+        case 'value_pillars':
+            $pillars = is_array($block['pillars'] ?? null) ? $block['pillars'] : [];
+            $colsClass = (count($pillars) === 2) ? 'md:grid-cols-2' : ((count($pillars) >= 4) ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-3');
+            ?>
+            <section class="py-16 bg-white border-b border-stone-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <?php if (!empty($title)): ?>
+                    <div class="text-center max-w-3xl mx-auto mb-12">
+                        <?php if (!empty($subtitle)): ?>
+                            <span class="text-xs font-bold uppercase tracking-[0.25em] text-[#4B5320] block mb-2"><?= e($subtitle) ?></span>
+                        <?php endif; ?>
+                        <h2 class="font-headline text-3xl font-bold text-stone-900"><?= e($title) ?></h2>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="grid grid-cols-1 <?= $colsClass ?> gap-8">
+                        <?php foreach ($pillars as $p): ?>
+                        <div class="p-8 rounded-2xl bg-stone-50 border border-stone-200 space-y-4 transition hover:shadow-md">
+                            <div class="w-12 h-12 rounded-xl bg-[#343c0a] text-white flex items-center justify-center">
+                                <span class="material-symbols-outlined text-2xl"><?= e($p['icon'] ?? 'star') ?></span>
+                            </div>
+                            <h3 class="font-headline font-bold text-lg text-stone-900"><?= e($p['title'] ?? '') ?></h3>
+                            <p class="text-stone-600 text-xs sm:text-sm leading-relaxed"><?= e($p['desc'] ?? '') ?></p>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </section>
+            <?php
+            break;
+
+        // ==========================================
+        // 9. KPI Statistics Counters
+        // ==========================================
+        case 'kpi_stats':
+            $stats = is_array($block['stats'] ?? null) ? $block['stats'] : [];
+            ?>
+            <section class="py-12 bg-stone-900 text-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <?php if (!empty($title)): ?>
+                    <div class="text-center mb-8">
+                        <h2 class="font-headline text-2xl font-bold text-white"><?= e($title) ?></h2>
+                    </div>
+                    <?php endif; ?>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                        <?php foreach ($stats as $st): ?>
+                        <div class="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                            <div class="font-headline text-3xl font-bold text-[#dfe8a6]"><?= e($st['val'] ?? '') ?></div>
+                            <div class="text-xs text-stone-300 font-medium"><?= e($st['label'] ?? '') ?></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </section>
+            <?php
+            break;
+
         default:
             break;
     }
